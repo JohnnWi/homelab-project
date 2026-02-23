@@ -562,7 +562,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cipnas.homelab;
+				PRODUCT_BUNDLE_IDENTIFIER = com.homelab.homelab;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -577,7 +577,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cipnas.homelab.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.homelab.homelab.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Homelab.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Homelab";
@@ -597,7 +597,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cipnas.homelab;
+				PRODUCT_BUNDLE_IDENTIFIER = com.homelab.homelab;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -612,7 +612,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cipnas.homelab.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.homelab.homelab.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Homelab.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Homelab";

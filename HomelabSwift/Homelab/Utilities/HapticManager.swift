@@ -32,3 +32,19 @@ enum HapticManager {
         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
     }
 }
+
+// MARK: - Keyboard Management Helpers
+
+extension UIApplication {
+    func endEditing() {
+        sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+import SwiftUI
+
+extension View {
+    func endEditing() {
+        UIApplication.shared.endEditing()
+    }
+}

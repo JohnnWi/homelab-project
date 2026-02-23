@@ -43,41 +43,28 @@ struct HomeView: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(localizer.greetingKey())
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(AppTheme.textSecondary)
+        HStack {
+            Text(localizer.t.launcherTitle)
+                .font(.largeTitle)
+                .fontWeight(.heavy)
+                .foregroundStyle(.primary)
 
-                    Text(localizer.t.launcherTitle)
-                        .font(.largeTitle)
-                        .fontWeight(.heavy)
-                        .foregroundStyle(.primary)
-                }
+            Spacer()
 
-                Spacer()
-
-                // Connected badge
-                HStack(spacing: 5) {
-                    Image(systemName: "bolt.fill")
-                        .font(.caption2)
-                    Text("\(servicesStore.connectedCount)/4")
-                        .font(.subheadline.bold())
-                }
-                .foregroundStyle(AppTheme.accent)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .glassCard(cornerRadius: 20, tint: AppTheme.accent.opacity(0.15))
+            // Connected badge
+            HStack(spacing: 5) {
+                Image(systemName: "bolt.fill")
+                    .font(.caption2)
+                Text("\(servicesStore.connectedCount)/4")
+                    .font(.subheadline.bold())
             }
-
-            Text(localizer.t.launcherSubtitle)
-                .font(.subheadline)
-                .foregroundStyle(AppTheme.textMuted)
+            .foregroundStyle(AppTheme.accent)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .glassCard(cornerRadius: 20, tint: AppTheme.accent.opacity(0.15))
         }
-        .padding(.top, 16)
-        .padding(.bottom, 24)
+        .padding(.top, 8)
+        .padding(.bottom, 16)
     }
 
     // MARK: - Service Grid
@@ -185,27 +172,22 @@ private struct ServiceCardContent: View {
                         .tint(type.colors.primary)
                 }
             }
-            .padding(.bottom, 14)
+            .padding(.bottom, 10)
 
-            // Name + description
+            // Name
             VStack(alignment: .leading, spacing: 3) {
                 Text(serviceName)
                     .font(.body.bold())
                     .foregroundStyle(.primary)
-
-                Text(serviceDesc)
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.textMuted)
-                    .lineLimit(1)
             }
 
-            Spacer(minLength: 12)
+            Spacer(minLength: 8)
 
             // Status badge
             statusBadge
         }
-        .frame(maxWidth: .infinity, minHeight: 180, alignment: .leading)
-        .padding(18)
+        .frame(maxWidth: .infinity, minHeight: 140, alignment: .leading)
+        .padding(14)
         .contentShape(Rectangle())
         .glassCard()
     }

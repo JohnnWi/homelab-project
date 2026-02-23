@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 enum KeychainService {
-    private static let service = "com.cipnas.homelab.services"
+    private static let service = "com.homelab.homelab.services"
     private static let account = "homelab_user"
 
     static func saveConnections(_ connections: [ServiceType: ServiceConnection]) {

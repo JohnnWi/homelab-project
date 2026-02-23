@@ -33,7 +33,9 @@ struct ServiceLoginView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 40)
             }
+            .scrollDismissesKeyboard(.interactively)
             .background(AppTheme.background)
+            .onTapGesture { endEditing() }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
@@ -306,6 +308,14 @@ private struct InputField: View {
                     .keyboardType(keyboardType)
                     .submitLabel(onSubmit != nil ? .go : .next)
                     .onSubmit { onSubmit?() }
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button("Done") {
+                                endEditing()
+                            }
+                        }
+                    }
             }
 
             if showToggle {

@@ -14,7 +14,7 @@
         },
         "ios": {
             "supportsTablet": false,
-            "bundleIdentifier": "com.cipnas.homelab",
+            "bundleIdentifier": "com.homelab.homelab",
             "deploymentTarget": "26.0",
             "infoPlist": {
                 "NSAppTransportSecurity": {
@@ -28,7 +28,7 @@
                 "foregroundImage": "./assets/images/adaptive-icon.png",
                 "backgroundColor": "#ffffff"
             },
-            "package": "com.cipnas.homelab"
+            "package": "com.homelab.homelab"
         },
         "web": {
             "favicon": "./assets/images/favicon.png"

@@ -1,71 +1,101 @@
+# 🏠 Homelab Dashboard
+
+A premium, fully native dual-platform solution for monitoring and managing your personal Homelab ecosystem. This project features two distinct, purpose-built native applications sharing the same design soul but optimized for their respective platforms.
+
+---
+
+## 📱 iOS Version (Swift Native + Liquid Glass)
+Developed with **Swift 6** and **SwiftUI**, utilizing the latest native iOS 26 technologies. The UI is built around the **Liquid Glass** design system, leveraging frosted glass effects and fluid animations for a high-end feel.
+
 <div align="center">
-  <img src="fotogithub/IMG_8870.PNG" width="18%" />
-  <img src="fotogithub/IMG_8871.PNG" width="18%" />
-  <img src="fotogithub/IMG_8872.PNG" width="18%" />
-  <img src="fotogithub/IMG_8873.PNG" width="18%" />
-  <img src="fotogithub/IMG_8874.PNG" width="18%" />
+  <img src="foto-ios/IMG_8909.PNG" width="18%" />
+  <img src="foto-ios/IMG_8910.PNG" width="18%" />
+  <img src="foto-ios/IMG_8911.PNG" width="18%" />
+  <img src="foto-ios/IMG_8913.PNG" width="18%" />
+  <img src="foto-ios/IMG_8914.PNG" width="18%" />
   <br />
-  <img src="fotogithub/IMG_8875.PNG" width="18%" />
-  <img src="fotogithub/IMG_8876.PNG" width="18%" />
-  <img src="fotogithub/IMG_8877.jpg" width="18%" />
-  <img src="fotogithub/IMG_8878.PNG" width="18%" />
-  <img src="fotogithub/IMG_8879.jpg" width="18%" />
+  <img src="foto-ios/IMG_8915.PNG" width="18%" />
+  <img src="foto-ios/IMG_8916.PNG" width="18%" />
+  <img src="foto-ios/IMG_8917.jpeg" width="18%" />
+  <img src="foto-ios/IMG_8918.jpeg" width="18%" />
+  <img src="foto-ios/IMG_8919.PNG" width="18%" />
 </div>
 
-<p align="center">
-  <b>🌍 Supported Languages: English, Italian, French, Spanish, German</b>
-</p>
+---
 
-<br />
+## 🤖 Android Version (Kotlin Native + Material Expressive 3)
+Built with **Kotlin** and **Jetpack Compose**, following the **Material Expressive 3** design language. It focuses on dynamic color integration, haptic-rich interactions, and modern Android architecture.
 
+<div align="center">
+  <img src="foto-android/photo_1_2026-02-23_16-50-09.jpg" width="18%" />
+  <img src="foto-android/photo_2_2026-02-23_16-50-09.jpg" width="18%" />
+  <img src="foto-android/photo_3_2026-02-23_16-50-09.jpg" width="18%" />
+  <img src="foto-android/photo_4_2026-02-23_16-50-09.jpg" width="18%" />
+  <img src="foto-android/photo_5_2026-02-23_16-50-09.jpg" width="18%" />
+  <br />
+  <img src="foto-android/photo_6_2026-02-23_16-50-09.jpg" width="18%" />
+  <img src="foto-android/photo_7_2026-02-23_16-50-09.jpg" width="18%" />
+  <img src="foto-android/photo_8_2026-02-23_16-50-09.jpg" width="18%" />
+  <img src="foto-android/photo_9_2026-02-23_16-50-09.jpg" width="18%" />
+</div>
 
-# 🏠 Homelab Dashboard App
+---
 
-A beautifully crafted, fully native iOS dashboard for monitoring and managing your personal Homelab ecosystem. Built with a focus on premium aesthetics, this app seamlessly connects to your local services to provide real-time status updates and deep integrations, completely re-engineered in pure SwiftUI.
+## 👨‍🎓 Project & Author
+This project is a solo endeavor developed by a single **University Student**. It was born from the need for a beautiful, unified way to manage home servers without sacrificing the performance and "feel" of native development.
 
-## ✨ Core Features
+### ☕ Support the Project
+If you find this dashboard useful, consider supporting my studies with a donation. Every bit helps!
 
-- **Premium Native UI**: High-end visual design utilizing authentic native iOS `.glassEffect` components, SF Symbols, and natural, fluid navigation structures.
-- **Advanced Service Monitoring**: Actively verify the status of your local services in real time. Maintain individual status connections to your entire network stack (Proxmox, Pi-hole, Beszel, TrueNAS, etc.).
-- **Smart Fallback URLs**: Configurable internal (Local IP) and external (Cloudflare Tunnels/DDNS) URLs that auto-switch based on your current network accessibility.
-- **Native Gitea Integration**: Browse your Git repositories, check heatmap contribution activity, view latest commits, and read code files natively with full syntax highlighting. Includes customizable sorting (Recent / A-Z) and counts total branches.
-- **Portainer Integration**: Monitor your Docker node environments, view running containers, check resource limits, and instantly restart or stop containers directly from your iPhone (Secured via API Keys). 
-- **Pi-hole API Connectivity**: Monitor your DNS queries in real time, view blocked domains metrics, and temporarily disable tracking blocking (e.g., for 5 minutes) via quick action buttons.
+**EVM Wallet (Ethereum, BSC, Polygon, etc.):**
+`0x649641868e6876c2c1f04584a95679e01c1aaf0d`
 
-## 🛠 Tech Stack
-
-- **Framework**: Native [SwiftUI](https://developer.apple.com/xcode/swiftui/)
-- **Language**: [Swift 6](https://swift.org)
-- **Networking**: Configurable Async/Await custom REST clients with offline caching and native `URLSession` routing.
-- **Security**: Keychain Services securely backing all credentials.
-- **Platform**: iOS 17.0+ 
+---
 
 ## 🚀 Getting Started
 
-To run this project locally on your machine or deploy it to your iPhone:
+### 🍎 Build for iOS
+1. **Open Xcode**: Open `HomelabSwift/Homelab.xcodeproj` in Xcode 16.0+.
+2. **Signing**: Go to the project settings, select the **Homelab** target, and under **Signing & Capabilities**, select your development team.
+3. **Run**: Connect your iPhone or select a simulator and press `Cmd + R` to build and run.
 
-### Prerequisites
-- macOS Native Environment
-- Xcode 16.0+
-- An Apple Developer account (Free tier is sufficient for direct installation)
-- A connected iPhone (for physical device testing)
+### 🤖 Build for Android
+1. **Open Android Studio**: Import the `HomelabAndroid` folder.
+2. **Setup**: Let Gradle sync and download all dependencies.
+3. **Run**: Connect your Android device or start an emulator and press `Shift + F10`.
 
-### Installation
+---
 
-1. **Clone the repository:**
-   ```bash
-   git clone <YOUR_GIT_URL>
-   cd Homelab
-   ```
+## ✨ Integrated Services
 
-2. **Open the Project:**
-   Double-click the `HomelabSwift/Homelab.xcodeproj` file to open the project tightly coupled in Xcode.
+### 🐳 Portainer
+Monitor your Docker environments in real-time. Peek into container statuses, CPU/Memory usage, and perform quick actions like Start, Stop, or Restart directly from your mobile device.
 
-3. **Build & Run:**
-   Select your connected iOS Device from the top device dropdown in Xcode, and press `Cmd + R` (Run) to build and install the application directly onto your iPhone.
+### 🛡️ Pi-hole
+Keep your network clean. View real-time query statistics, see your total blocked domains, and toggle ad-blocking on the fly with customizable timers.
 
-## 🌍 Language Support
-The app features comprehensive native localization support for 5 languages: English 🇺🇸, Italian 🇮🇹, French 🇫🇷, Spanish 🇪🇸, and German 🇩🇪. It automatically detects your device's system language and adapts the interface seamlessly via Swift's String Catalogs.
+### 📊 Beszel
+A lightweight, efficient system monitor. Track global CPU, Memory, and Disk usage across all your connected nodes with beautiful percentage-based visualizations.
 
-## 📝 License
-This project is meant for personal homelab use. Build, tweak, and enjoy your beautiful dashboard!
+### 🦊 Gitea
+Manage your code natively. Browse repositories, view contribution heatmaps, read code files with full syntax highlighting, and keep track of your latest commits.
+
+---
+
+## 🌍 Multilingual
+Both apps are fully localized and automatically adapt to your system language. Supported languages include:
+**English 🇺🇸, Italian 🇮🇹, French 🇫🇷, Spanish 🇪🇸, German 🇩🇪.**
+
+---
+
+## 🛠 Tech Summary
+- **iOS**: Swift 6, SwiftUI, Keychain (Security), URLSession (Networking), Glassmorphism UI.
+- **Android**: Kotlin, Jetpack Compose, DataStore, Retrofit, Material Expressive 3 UI.
+
+---
+
+## 📜 Usage & License
+- ✅ **Authorized**: Personal use, modifications for personal homelab environments, and code contributions/improvements.
+- ❌ **NOT Authorized**: Use of this code in paid applications, apps with subscriptions, or any form of commercial redistribution.
+
+The code is free to explore and improve for the community. Build something great for your home!

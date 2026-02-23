@@ -363,7 +363,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.cipnas.homelab;
+				PRODUCT_BUNDLE_IDENTIFIER = com.homelab.homelab;
 				PRODUCT_NAME = Homelab;
 				SWIFT_OBJC_BRIDGING_HEADER = "Homelab/Homelab-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -395,7 +395,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.cipnas.homelab;
+				PRODUCT_BUNDLE_IDENTIFIER = com.homelab.homelab;
 				PRODUCT_NAME = Homelab;
 				SWIFT_OBJC_BRIDGING_HEADER = "Homelab/Homelab-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

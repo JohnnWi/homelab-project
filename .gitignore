@@ -80,3 +80,12 @@ secrets.json
 .claude/
 *.log
 changelog.txt
+
+# HomelabAndroid
+HomelabAndroid/.gradle/
+HomelabAndroid/app/build/
+HomelabAndroid/build/
+HomelabAndroid/local.properties
+HomelabAndroid/.idea/
+HomelabAndroid/**/*.iml
+HomelabAndroid/.kotlin/

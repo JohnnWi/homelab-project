@@ -1,0 +1,162 @@
+<resources>
+    <string name="app_name">Homelab</string>
+    
+    <!-- General -->
+    <string name="loading">Chargement...</string>
+    <string name="error_unknown">Erreur inconnue</string>
+    <string name="refresh">Actualiser</string>
+    <string name="save">Enregistrer</string>
+    <string name="cancel">Annuler</string>
+    <string name="back">Retour</string>
+    <string name="close">Fermer</string>
+    <string name="default_branch">par défaut</string>
+    <string name="preview">Aperçu</string>
+    <string name="code">Code</string>
+    <string name="copy">COPIER</string>
+    <string name="copied_to_clipboard">Adresse copiée dans le presse-papiers</string>
+    <string name="not_available">N/D</string>
+    <string name="all">Tout</string>
+    <string name="search_placeholder">Chercher...</string>
+    <string name="share">Partager</string>
+    <string name="nav_home">Accueil</string>
+    <string name="nav_settings">Paramètres</string>
+
+    <!-- Services -->
+    <string name="service_portainer">Portainer</string>
+    <string name="service_pihole">Pi-hole</string>
+    <string name="service_beszel">Beszel</string>
+    <string name="service_gitea">Gitea</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">Services</string>
+    <string name="home_status_online">En ligne</string>
+    <string name="home_status_offline">Hors ligne</string>
+    <string name="home_status_unconfigured">Non configuré</string>
+    <string name="home_welcome">Bon retour,</string>
+    <string name="home_verifying">Vérification...</string>
+    <string name="home_summary_title">Résumé</string>
+    <string name="home_summary_count">Services • %d connectés</string>
+
+    <!-- Login Screen -->
+    <string name="login_title">Connecter %s</string>
+    <string name="login_url_hint">https://homelab.example.com</string>
+    <string name="login_username_hint">Nom d\'utilisateur / Email</string>
+    <string name="login_password_hint">Mot de passe / Jeton</string>
+    <string name="login_button">Connexion</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_support_title">Soutenir le projet ❤️</string>
+    <string name="settings_support_desc">Cette application compagnon est fièrement Open Source et développée pendant mon temps libre. Si vous l\'avez trouvée utile, j\'accepte volontiers les dons (toute crypto sur la chaîne EVM convient) à l\'adresse suivante :</string>
+    <string name="settings_theme_label">THÈME</string>
+    <string name="settings_theme_light">Clair</string>
+    <string name="settings_theme_dark">Sombre</string>
+    <string name="settings_theme_auto">Auto</string>
+    <string name="settings_language_label">LANGUE</string>
+    <string name="settings_services_label">SERVICES CONNECTÉS</string>
+    <string name="settings_not_connected">Non connecté</string>
+    <string name="settings_disconnect">Déconnecter</string>
+    <string name="settings_fallback_url">URL de secours (ex. Cloudflare)</string>
+    <string name="settings_contacts_label">CONTACTS</string>
+    <string name="settings_disconnect_confirm_title">Déconnecter %s ?</string>
+    <string name="settings_disconnect_confirm_desc">Vous devrez vous reconnecter en saisissant l\'URL et la clé API.</string>
+
+    <!-- Pi-hole -->
+    <string name="pihole_status_active">Actif</string>
+    <string name="pihole_status_disabled">Désactivé</string>
+    <string name="pihole_total_queries">Total Requêtes</string>
+    <string name="pihole_blocked">BLOQUÉES</string>
+    <string name="pihole_percentage">POURCENTAGE</string>
+    <string name="pihole_domains">DOMAINES</string>
+    <string name="pihole_blocking_title">Blocage Pi-hole</string>
+    <string name="pihole_blocking_active_desc">Les domaines publicitaires et malveillants sont bloqués.</string>
+    <string name="pihole_blocking_disabled_desc">La protection DNS est désactivée.</string>
+    <string name="pihole_overview_title">APERÇU</string>
+    <string name="pihole_blocking_on">ACTIVÉ</string>
+    <string name="pihole_blocking_off">DÉSACTIVÉ</string>
+    <string name="pihole_query_activity">ACTIVITÉ DES REQUÊTES</string>
+    <string name="pihole_cached">En Cache</string>
+    <string name="pihole_forwarded">Transférées</string>
+    <string name="pihole_gravity_domains">DOMAINES EN GRAVITY (BLOQUÉS)</string>
+    <string name="pihole_top_blocked">DOMAINES LES PLUS BLOQUÉS</string>
+    <string name="pihole_top_queries">DOMAINES LES PLUS SOLLICITÉS</string>
+    <string name="pihole_top_clients">CLIENTS LES PLUS ACTIFS</string>
+    <string name="pihole_total_suffix">%s au total</string>
+    
+    <!-- Beszel -->
+    <string name="beszel_cpu">CPU</string>
+    <string name="beszel_ram">RAM</string>
+    <string name="beszel_disk">DISQUE</string>
+    <string name="beszel_network">RÉSEAU</string>
+    <string name="beszel_uptime">TEMPS D\'ACTIVITÉ</string>
+    <string name="beszel_system_details">Détails du système</string>
+    <string name="beszel_system_not_found">Système non trouvé</string>
+    <string name="beszel_online">EN LIGNE</string>
+    <string name="beszel_offline">HORS LIGNE</string>
+    <string name="beszel_info_title">INFOS SYSTÈME</string>
+    <string name="beszel_resources_title">RESSOURCES</string>
+    <string name="beszel_containers_title">CONTENEURS (%d)</string>
+    <string name="beszel_os">OS</string>
+    <string name="beszel_kernel">Noyau</string>
+    <string name="beszel_hostname">Nom d\'hôte</string>
+    <string name="beszel_cores">Cœurs</string>
+    <string name="beszel_memory">Mémoire</string>
+    <string name="beszel_background_update_info">Les données se mettent à jour automatiquement en arrière-plan.</string>
+    <string name="beszel_no_systems">Aucun système connecté à Beszel.</string>
+    <string name="beszel_systems_online">Systèmes en Ligne</string>
+    <string name="beszel_monitored_servers">SERVEURS SURVEILLÉS</string>
+
+    <!-- Gitea -->
+    <string name="gitea_repos">Dépôts</string>
+    <string name="gitea_stars">ÉTOILES</string>
+    <string name="gitea_branches">BRANCHES</string>
+    <string name="gitea_orgs">ORGANISATIONS</string>
+    <string name="gitea_contributions">CONTRIBUTIONS</string>
+    <string name="gitea_no_repos">Aucun dépôt trouvé</string>
+    <string name="gitea_no_files">Aucun fichier trouvé</string>
+    <string name="gitea_no_commits">Aucun commit trouvé</string>
+    <string name="gitea_no_issues">Aucun problème ouvert</string>
+    <string name="gitea_sort_recent">Récent</string>
+    <string name="gitea_sort_alpha">Alphabétique</string>
+    <string name="gitea_heatmap_less">Moins</string>
+    <string name="gitea_heatmap_more">Plus</string>
+    <string name="gitea_forks">Forks</string>
+    <string name="gitea_fork">Fork</string>
+    <string name="gitea_issues">Problèmes</string>
+    <string name="gitea_stars_label">Étoiles</string>
+    <string name="gitea_no_branches">Aucun branch trouvé</string>
+    <string name="gitea_file_too_large">Fichier trop volumineux pour l\'aperçu.</string>
+    <string name="gitea_image_decode_error">Erreur lors du décodage de l\'image.</string>
+    <string name="gitea_date_today">aujourd\'hui</string>
+    <string name="gitea_date_days_ago">il y a %d j</string>
+    <string name="gitea_date_months_ago">il y a %d m</string>
+
+    <!-- Portainer -->
+    <string name="portainer_endpoints">Terminaux</string>
+    <string name="portainer_containers">Conteneurs</string>
+    <string name="portainer_running">En cours d\'exécution</string>
+    <string name="portainer_stopped">Arrêté</string>
+    <string name="portainer_healthy">Sain</string>
+    <string name="portainer_unhealthy">Malsain</string>
+    <string name="portainer_stats">Stats</string>
+    <string name="portainer_logs">Logs</string>
+    <string name="portainer_details">Détails</string>
+    <string name="portainer_image">Image</string>
+    <string name="portainer_status">Statut</string>
+    <string name="portainer_created">Créé</string>
+    <string name="portainer_all_containers">Voir tous les conteneurs</string>
+    <string name="portainer_stacks">Stacks</string>
+    <string name="portainer_images">Images</string>
+    <string name="portainer_volumes">Volumes</string>
+    <string name="portainer_health">SANTÉ</string>
+    <string name="portainer_no_containers">Aucun conteneur trouvé</string>
+    <string name="portainer_search_hint">Chercher conteneur ou image...</string>
+    <string name="portainer_stop">Arrêter</string>
+    <string name="portainer_restart">Redémarrer</string>
+    <string name="portainer_start">Démarrer</string>
+    <string name="portainer_compose">Composer</string>
+    <string name="portainer_network_ip">IP Réseau</string>
+    <string name="portainer_cpu_ram">CPU &amp; RAM</string>
+    <string name="portainer_cpu_usage">Utilisation du CPU</string>
+    <string name="portainer_memory_percent">Mémoire %%</string>
+</resources>

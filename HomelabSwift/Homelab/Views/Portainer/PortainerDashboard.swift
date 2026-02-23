@@ -34,28 +34,28 @@ struct PortainerDashboard: View {
             // Container stats
             containerStatsSection
 
+            // View all button (moved here)
+            if let ep = selectedEndpoint {
+                NavigationLink(value: PortainerRoute.containers(endpointId: ep.Id)) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "list.bullet.indent")
+                        Text(localizer.t.portainerViewAll)
+                            .fontWeight(.semibold)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption.bold())
+                    }
+                    .foregroundStyle(portainerColor)
+                    .padding(16)
+                    .glassCard()
+                }
+                .buttonStyle(.plain)
+            }
+
             // Resources
             if let snapshot = selectedEndpoint?.Snapshots?.first {
                 resourcesSection(snapshot)
                 healthSection(snapshot)
-            }
-
-            // View all button
-            if selectedEndpoint != nil {
-                NavigationLink(value: PortainerRoute.containers(endpointId: selectedEndpoint!.Id)) {
-                    HStack(spacing: 6) {
-                        Text(localizer.t.portainerViewAll)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(portainerColor)
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundStyle(portainerColor)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .glassCard()
-                }
-                .buttonStyle(.plain)
             }
         }
         .navigationTitle(localizer.t.portainerDashboard)
@@ -141,18 +141,10 @@ struct PortainerDashboard: View {
                 }
             }
 
-            // Server details card
-            if let raw = ep.Snapshots?.first?.DockerSnapshotRaw {
+            // Server details card (Simplified per user request)
+            if let raw = ep.Snapshots?.first?.DockerSnapshotRaw, let name = raw.Name {
                 VStack(spacing: 0) {
-                    serverInfoRow(label: "OS", value: raw.OperatingSystem ?? "N/A")
-                    Divider()
-                    serverInfoRow(label: "Docker", value: raw.ServerVersion ?? ep.Snapshots?.first?.DockerVersion ?? "N/A")
-                    Divider()
-                    serverInfoRow(label: "Arch", value: raw.Architecture ?? "N/A")
-                    if let name = raw.Name {
-                        Divider()
-                        serverInfoRow(label: "Host", value: name)
-                    }
+                    serverInfoRow(label: "Host", value: name)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 4)
@@ -179,8 +171,8 @@ struct PortainerDashboard: View {
     private var containerStatsSection: some View {
         let running = containers.filter { $0.State == "running" }.count
         let stopped = containers.filter { $0.State == "exited" || $0.State == "dead" }.count
-        let paused = containers.filter { $0.State == "paused" }.count
         let total = containers.count
+        let stacks = selectedEndpoint?.Snapshots?.first?.StackCount ?? 0
 
         return VStack(alignment: .leading, spacing: 12) {
             Text(localizer.t.portainerContainers)
@@ -188,36 +180,11 @@ struct PortainerDashboard: View {
                 .foregroundStyle(AppTheme.textMuted)
                 .textCase(.uppercase)
 
-            HStack(spacing: 10) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                 miniStatCard(label: localizer.t.portainerTotal, value: total, color: AppTheme.info)
+                miniStatCard(label: localizer.t.portainerStacks, value: stacks, color: portainerColor)
                 miniStatCard(label: localizer.t.portainerRunning, value: running, color: AppTheme.running)
                 miniStatCard(label: localizer.t.portainerStopped, value: stopped, color: AppTheme.stopped)
-            }
-
-            // Status bar
-            if total > 0 {
-                GeometryReader { geo in
-                    HStack(spacing: 0) {
-                        if running > 0 {
-                            RoundedRectangle(cornerRadius: 0)
-                                .fill(AppTheme.running)
-                                .frame(width: geo.size.width * CGFloat(running) / CGFloat(total))
-                        }
-                        if paused > 0 {
-                            Rectangle()
-                                .fill(AppTheme.warning)
-                                .frame(width: geo.size.width * CGFloat(paused) / CGFloat(total))
-                        }
-                        if stopped > 0 {
-                            Rectangle()
-                                .fill(AppTheme.stopped)
-                                .frame(width: geo.size.width * CGFloat(stopped) / CGFloat(total))
-                        }
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                }
-                .frame(height: 8)
-                .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
             }
         }
     }
@@ -281,17 +248,14 @@ struct PortainerDashboard: View {
 
     @ViewBuilder
     private func healthSection(_ snapshot: EndpointSnapshot) -> some View {
-        if snapshot.StackCount > 0 || snapshot.HealthyContainerCount > 0 || snapshot.UnhealthyContainerCount > 0 {
+        if snapshot.HealthyContainerCount > 0 || snapshot.UnhealthyContainerCount > 0 {
             VStack(alignment: .leading, spacing: 12) {
-                Text("\(localizer.t.portainerStacks) & Health")
+                Text("Health Status")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(AppTheme.textMuted)
                     .textCase(.uppercase)
 
                 HStack(spacing: 10) {
-                    if snapshot.StackCount > 0 {
-                        healthCard(icon: "square.3.layers.3d", value: "\(snapshot.StackCount)", label: localizer.t.portainerStacks, color: portainerColor)
-                    }
                     if snapshot.HealthyContainerCount > 0 {
                         healthCard(icon: "heart.fill", value: "\(snapshot.HealthyContainerCount)", label: localizer.t.portainerHealthy, color: AppTheme.running)
                     }

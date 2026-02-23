@@ -30,7 +30,6 @@ struct BeszelSystemDetail: View {
                     if let info = system.info {
                         systemInfoSection(info)
                         resourcesSection(system: system, info: info)
-                        networkSection(info)
                         containersSection
                         uptimeCard(info)
                     }
@@ -168,9 +167,7 @@ struct BeszelSystemDetail: View {
                 title: localizer.t.beszelMemory,
                 percent: info.mpValue,
                 history: memHistory,
-                barColor: memoryColor,
-                detailLeft: "\(localizer.t.beszelUsedMemory): \(formatBeszelSize(memUsed))",
-                detailRight: "\(localizer.t.beszelTotalMemory): \(formatBeszelSize(memTotal))"
+                barColor: memoryColor
             )
 
             // Disk
@@ -180,40 +177,11 @@ struct BeszelSystemDetail: View {
                 title: localizer.t.beszelDisk,
                 percent: info.dpValue,
                 history: nil,
-                barColor: AppTheme.warning,
-                detailLeft: "\(localizer.t.beszelUsedDisk): \(formatBeszelSize(diskUsed))",
-                detailRight: "\(localizer.t.beszelTotalDisk): \(formatBeszelSize(diskTotal))"
+                barColor: AppTheme.warning
             )
         }
     }
 
-    // MARK: - Network Section
-
-    @ViewBuilder
-    private func networkSection(_ info: BeszelSystemInfo) -> some View {
-        let latestStats = records.first?.stats
-        let netSent = latestStats?.nsValue ?? info.nsValue
-        let netRecv = latestStats?.nrValue ?? info.nrValue
-
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(icon: "display", title: localizer.t.beszelNetworkTraffic)
-
-            HStack(spacing: 10) {
-                NetworkCard(
-                    icon: "arrow.up",
-                    iconColor: AppTheme.running,
-                    value: formatNetRate(netSent),
-                    label: localizer.t.beszelNetworkSent
-                )
-                NetworkCard(
-                    icon: "arrow.down",
-                    iconColor: AppTheme.info,
-                    value: formatNetRate(netRecv),
-                    label: localizer.t.beszelNetworkReceived
-                )
-            }
-        }
-    }
 
     // MARK: - Containers Section
 
@@ -243,23 +211,13 @@ struct BeszelSystemDetail: View {
 
                             Spacer()
 
-                            HStack(spacing: 12) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "cpu")
-                                        .font(.system(size: 10))
-                                        .foregroundStyle(AppTheme.textMuted)
-                                    Text(String(format: "%.1f%%", container.cpuValue))
-                                        .font(.caption2.weight(.medium))
-                                        .foregroundStyle(AppTheme.textMuted)
-                                }
-                                HStack(spacing: 4) {
-                                    Image(systemName: "memorychip")
-                                        .font(.system(size: 10))
-                                        .foregroundStyle(AppTheme.textMuted)
-                                    Text(Formatters.formatBytes(container.mValue))
-                                        .font(.caption2.weight(.medium))
-                                        .foregroundStyle(AppTheme.textMuted)
-                                }
+                            HStack(spacing: 4) {
+                                Image(systemName: "cpu")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(AppTheme.textMuted)
+                                Text(String(format: "%.1f%%", container.cpuValue))
+                                    .font(.caption2.weight(.medium))
+                                    .foregroundStyle(AppTheme.textMuted)
                             }
                         }
                         .padding(.horizontal, 14)

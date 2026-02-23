@@ -1,6 +1,6 @@
 name: Homelab
 options:
-  bundleIdPrefix: com.cipnas
+  bundleIdPrefix: com.homelab
   deploymentTarget:
     iOS: "26.0"
   xcodeVersion: "26.0"
@@ -23,7 +23,7 @@ targets:
           - "**/.DS_Store"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.cipnas.homelab
+        PRODUCT_BUNDLE_IDENTIFIER: com.homelab.homelab
         INFOPLIST_FILE: Homelab/Info.plist
         CODE_SIGN_ENTITLEMENTS: Homelab/Homelab.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -40,6 +40,6 @@ targets:
       - target: Homelab
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.cipnas.homelab.tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.homelab.homelab.tests
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Homelab.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Homelab"
         BUNDLE_LOADER: "$(TEST_HOST)"

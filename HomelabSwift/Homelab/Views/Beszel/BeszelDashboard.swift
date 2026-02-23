@@ -194,39 +194,8 @@ private struct SystemCard: View {
                 }
                 .padding(.bottom, 14)
 
-                // Memory/Disk chips
-                HStack(spacing: 8) {
-                    InfoChip(
-                        icon: "memorychip",
-                        iconColor: memoryColor,
-                        text: "\(formatBeszelSize(info.mValue, compact: true)) / \(formatBeszelSize(info.mtValue, compact: true))"
-                    )
-                    InfoChip(
-                        icon: "internaldrive",
-                        iconColor: AppTheme.warning,
-                        text: "\(formatBeszelSize(info.dValue, compact: true)) / \(formatBeszelSize(info.dtValue, compact: true))"
-                    )
-                }
-                .padding(.bottom, 10)
-
-                // Footer: network + uptime
+                // Footer: uptime
                 HStack(spacing: 16) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.up")
-                            .font(.caption2)
-                            .foregroundStyle(AppTheme.running)
-                        Text(formatNetRate(info.nsValue))
-                            .font(.caption2.weight(.medium))
-                            .foregroundStyle(AppTheme.textMuted)
-                    }
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.down")
-                            .font(.caption2)
-                            .foregroundStyle(AppTheme.info)
-                        Text(formatNetRate(info.nrValue))
-                            .font(.caption2.weight(.medium))
-                            .foregroundStyle(AppTheme.textMuted)
-                    }
                     HStack(spacing: 4) {
                         Image(systemName: "clock")
                             .font(.caption2)
@@ -235,6 +204,7 @@ private struct SystemCard: View {
                             .font(.caption2.weight(.medium))
                             .foregroundStyle(AppTheme.textMuted)
                     }
+                    Spacer()
                 }
                 .padding(.top, 12)
                 .overlay(alignment: .top) {

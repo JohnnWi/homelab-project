@@ -227,7 +227,12 @@ extension Translations {
         settingsVersion: "Version",
         settingsConnected: "Connecté",
         settingsNotConnected: "Non connecté",
-        settingsFallbackUrl: "URL alternative (secours)"
+        settingsFallbackUrl: "URL alternative (secours)",
+        settingsSupportTitle: "Soutenir le Projet ❤️",
+        settingsSupportDesc: "Cette application compagnon est fièrement Open Source et développée pendant mon temps libre. Si vous l'avez trouvée utile, j'accepte volontiers les dons (toute crypto sur la chaîne EVM convient) à l'adresse suivante :",
+        settingsCopied: "Adresse copiée dans le presse-papiers",
+        settingsThemeAuto: "Auto",
+        settingsContacts: "CONTACTS"
     )
 
     static let spanish = Translations(
@@ -456,7 +461,12 @@ extension Translations {
         settingsVersion: "Versión",
         settingsConnected: "Conectado",
         settingsNotConnected: "No conectado",
-        settingsFallbackUrl: "URL alternativa (respaldo)"
+        settingsFallbackUrl: "URL alternativa (respaldo)",
+        settingsSupportTitle: "Apoya el Proyecto ❤️",
+        settingsSupportDesc: "Esta aplicación complementaria es orgullosamente de código abierto y ha sido desarrollada en mi tiempo libre. Si te ha resultado utile, acepto con gusto donaciones (cualquier cripto en la cadena EVM está bien) en la siguiente dirección:",
+        settingsCopied: "Dirección copiada al portapapeles",
+        settingsThemeAuto: "Auto",
+        settingsContacts: "CONTACTOS"
     )
 
     static let german = Translations(
@@ -685,6 +695,11 @@ extension Translations {
         settingsVersion: "Version",
         settingsConnected: "Verbunden",
         settingsNotConnected: "Nicht verbunden",
-        settingsFallbackUrl: "Alternative URL (Fallback)"
+        settingsFallbackUrl: "Alternative URL (Fallback)",
+        settingsSupportTitle: "Unterstütze das Projekt ❤️",
+        settingsSupportDesc: "Diese Begleit-App ist stolz Open Source und wurde in meiner Freizeit entwickelt. Wenn Sie sie nützlich fanden, nehme ich gerne Spenden (jede Krypto auf der EVM-Chain ist in Ordnung) an der folgenden Adresse entgegen:",
+        settingsCopied: "Adresse in die Zwischenablage kopiert",
+        settingsThemeAuto: "Auto",
+        settingsContacts: "KONTAKTE"
     )
 }

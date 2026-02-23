@@ -225,6 +225,11 @@ extension Translations {
         settingsVersion: "Versione",
         settingsConnected: "Connesso",
         settingsNotConnected: "Non connesso",
-        settingsFallbackUrl: "URL Alternativo (fallback)"
+        settingsFallbackUrl: "URL Alternativo (fallback)",
+        settingsSupportTitle: "Supporta il Progetto ❤️",
+        settingsSupportDesc: "Questa companion app è orgogliosamente Open Source e sviluppata nel mio tempo libero. Se ti è tornata utile, accetto volentieri donazioni (qualsiasi crypto su chain EVM va bene) al seguente indirizzo:",
+        settingsCopied: "Indirizzo copiato negli appunti",
+        settingsThemeAuto: "Auto",
+        settingsContacts: "CONTATTI"
     )
 }
