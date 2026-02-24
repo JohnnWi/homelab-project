@@ -20,6 +20,7 @@ import com.homelab.app.data.remote.dto.beszel.BeszelRecordStats
 import com.homelab.app.data.remote.dto.beszel.BeszelSystemDetails
 import com.homelab.app.data.remote.dto.beszel.BeszelSystemInfo
 import com.homelab.app.data.remote.dto.beszel.BeszelSystemRecord
+import com.homelab.app.data.remote.dto.beszel.BeszelSmartDevice
 import com.homelab.app.ui.theme.StatusPurple
 import com.homelab.app.ui.theme.primaryColor
 import com.homelab.app.util.ServiceType
@@ -34,6 +35,7 @@ fun BeszelSystemDetailScreen(
     val system by viewModel.selectedSystem.collectAsStateWithLifecycle()
     val systemDetails by viewModel.systemDetails.collectAsStateWithLifecycle()
     val records by viewModel.records.collectAsStateWithLifecycle()
+    val smartDevices by viewModel.smartDevices.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     
@@ -93,6 +95,7 @@ fun BeszelSystemDetailScreen(
             val expandedMetric = remember { mutableStateOf<ExtraMetricType?>(null) }
             val expandedResourceMetric = remember { mutableStateOf<ResourceMetricType?>(null) }
             val expandedDiskFs = remember { mutableStateOf<DiskFsUsage?>(null) }
+            val expandedSmartDevice = remember { mutableStateOf<BeszelSmartDevice?>(null) }
 
             LazyColumn(
                 modifier = Modifier
@@ -127,6 +130,15 @@ fun BeszelSystemDetailScreen(
                         )
                     }
 
+                    if (smartDevices.isNotEmpty()) {
+                        item {
+                            SmartDevicesSection(
+                                devices = smartDevices,
+                                onDeviceClick = { expandedSmartDevice.value = it }
+                            )
+                        }
+                    }
+
                     // Containers
                     val containers = latestStats?.dc ?: emptyList()
                     if (containers.isNotEmpty()) {
@@ -144,8 +156,6 @@ fun BeszelSystemDetailScreen(
                         }
                     }
 
-                    // Uptime
-                    item { UptimeCard(info.uValue) }
                 }
             }
 
@@ -191,6 +201,13 @@ fun BeszelSystemDetailScreen(
                     drive = fs,
                     history = statsHistory,
                     onDismiss = { expandedDiskFs.value = null }
+                )
+            }
+
+            expandedSmartDevice.value?.let { dev ->
+                SmartDetailsSheet(
+                    device = dev,
+                    onDismiss = { expandedSmartDevice.value = null }
                 )
             }
 

@@ -5,6 +5,8 @@ import com.homelab.app.data.remote.dto.beszel.BeszelRecordsResponse
 import com.homelab.app.data.remote.dto.beszel.BeszelSystem
 import com.homelab.app.data.remote.dto.beszel.BeszelSystemDetailsResponse
 import com.homelab.app.data.remote.dto.beszel.BeszelSystemsResponse
+import com.homelab.app.data.remote.dto.beszel.BeszelSmartDevicesResponse
+import com.homelab.app.data.remote.dto.beszel.BeszelSmartDevice
 import retrofit2.http.*
 
 interface BeszelApi {
@@ -41,4 +43,17 @@ interface BeszelApi {
         @Query("filter", encoded = true) filter: String,
         @Query("perPage") limit: Int = 1
     ): BeszelSystemDetailsResponse
+
+    @GET("api/collections/smart_devices/records")
+    suspend fun getSmartDevices(
+        @Header("X-Homelab-Service") service: String = "Beszel",
+        @Query("filter", encoded = true) filter: String,
+        @Query("perPage") limit: Int = 10
+    ): BeszelSmartDevicesResponse
+
+    @GET("api/collections/smart_devices/records/{id}")
+    suspend fun getSmartDevice(
+        @Header("X-Homelab-Service") service: String = "Beszel",
+        @Path("id") id: String
+    ): BeszelSmartDevice
 }

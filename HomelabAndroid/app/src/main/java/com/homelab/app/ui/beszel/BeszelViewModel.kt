@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.homelab.app.data.remote.dto.beszel.BeszelSystem
 import com.homelab.app.data.remote.dto.beszel.BeszelSystemDetails
 import com.homelab.app.data.remote.dto.beszel.BeszelSystemRecord
+import com.homelab.app.data.remote.dto.beszel.BeszelSmartDevice
 import com.homelab.app.data.repository.BeszelRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +29,9 @@ class BeszelViewModel @Inject constructor(
 
     private val _records = MutableStateFlow<List<BeszelSystemRecord>>(emptyList())
     val records: StateFlow<List<BeszelSystemRecord>> = _records
+
+    private val _smartDevices = MutableStateFlow<List<BeszelSmartDevice>>(emptyList())
+    val smartDevices: StateFlow<List<BeszelSmartDevice>> = _smartDevices
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -75,6 +79,15 @@ class BeszelViewModel @Inject constructor(
                         _records.value = rawRecords.sortedBy { it.created }
                     } catch (_: Exception) {
                         // Ignore non-critical records failure
+                    }
+                }
+
+                // Fire-and-forget: SMART devices (non-critical, may not be configured)
+                launch {
+                    try {
+                        _smartDevices.value = repository.getSmartDevices(systemId)
+                    } catch (_: Exception) {
+                        _smartDevices.value = emptyList()
                     }
                 }
             } catch (e: Exception) {

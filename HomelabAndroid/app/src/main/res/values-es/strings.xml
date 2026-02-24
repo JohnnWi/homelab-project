@@ -113,6 +113,12 @@
     <string name="beszel_systems_online">Sistemas en Línea</string>
     <string name="beszel_monitored_servers">SERVIDORES MONITOREADOS</string>
 
+    <string name="beszel_smart_title">S.M.A.R.T.</string>
+    <string name="beszel_smart_title_device">S.M.A.R.T. • %s</string>
+    <string name="beszel_smart_power_on">Días encendido: %dd</string>
+    <string name="beszel_smart_cycles">Ciclos: %d</string>
+    <string name="beszel_smart_attributes_title">Atributos</string>
+
     <!-- Gitea -->
     <string name="gitea_repos">Repositorios</string>
     <string name="gitea_stars">ESTRELLAS</string>

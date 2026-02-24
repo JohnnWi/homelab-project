@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.NetworkCheck
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Thermostat
@@ -71,6 +70,7 @@ import com.homelab.app.data.remote.dto.beszel.BeszelRecordStats
 import com.homelab.app.data.remote.dto.beszel.BeszelSystem
 import com.homelab.app.data.remote.dto.beszel.BeszelSystemDetails
 import com.homelab.app.data.remote.dto.beszel.BeszelSystemInfo
+import com.homelab.app.data.remote.dto.beszel.BeszelSmartDevice
 import com.homelab.app.ui.theme.StatusGreen
 import com.homelab.app.ui.theme.StatusOrange
 import com.homelab.app.ui.theme.StatusPurple
@@ -146,6 +146,7 @@ internal fun SystemInfoSection(info: BeszelSystemInfo?, details: BeszelSystemDet
     val osText = details?.osName ?: info?.os
     val kernelText = details?.kernel ?: info?.k
     val hostnameText = details?.hostname ?: info?.h
+    val uptimeSeconds = info?.uValue
     val cpuText = details?.cpu ?: info?.cm
     val coresValue = details?.cores ?: info?.c
     val memoryDisplay = details?.memory?.let { bytes ->
@@ -182,14 +183,33 @@ internal fun SystemInfoSection(info: BeszelSystemInfo?, details: BeszelSystemDet
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold
                         )
-                        hostnameText?.takeIf { it.isNotEmpty() }?.let {
-                            Text(
-                                text = it,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                        if (!hostnameText.isNullOrEmpty() || (uptimeSeconds != null && uptimeSeconds > 0)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                hostnameText?.takeIf { it.isNotEmpty() }?.let {
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f, fill = false)
+                                    )
+                                }
+                                if (uptimeSeconds != null && uptimeSeconds > 0) {
+                                    val uptimeText = formatUptimeShort(uptimeSeconds)
+                                    Text(
+                                        text = " | ${stringResource(R.string.beszel_uptime)}: $uptimeText",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
                         }
                     }
                     Icon(
@@ -232,6 +252,13 @@ internal fun SystemInfoSection(info: BeszelSystemInfo?, details: BeszelSystemDet
                                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
                                 )
                                 InfoRow(stringResource(R.string.beszel_cores), "$it")
+                            }
+                            if (uptimeSeconds != null && uptimeSeconds > 0) {
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 4.dp),
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                                )
+                                InfoRow(stringResource(R.string.beszel_uptime), formatUptimeShort(uptimeSeconds))
                             }
                             memoryDisplay?.takeIf { it.isNotEmpty() }?.let {
                                 HorizontalDivider(
@@ -762,31 +789,136 @@ internal fun ContainersSection(containers: List<BeszelContainer>) {
 }
 
 @Composable
-internal fun ContainerStat(icon: ImageVector, value: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(10.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+internal fun SmartDevicesSection(
+    devices: List<BeszelSmartDevice>,
+    onDeviceClick: (BeszelSmartDevice) -> Unit
+) {
+    if (devices.isEmpty()) return
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionHeader(icon = Icons.Default.Storage, title = stringResource(R.string.beszel_smart_title))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        ) {
+            Column {
+                devices.forEachIndexed { index, dev ->
+                    Column(
+                        modifier = Modifier
+                            .clickable { onDeviceClick(dev) }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = dev.device ?: dev.model ?: "-",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                dev.model?.let {
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+
+                            Column(
+                                horizontalAlignment = Alignment.End,
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                dev.capacityBytes?.let {
+                                    Text(
+                                        text = formatBytes(it.toDouble()),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                val status = dev.status ?: ""
+                                if (status.isNotEmpty()) {
+                                    val statusColor = when (status.uppercase()) {
+                                        "PASSED", "OK" -> StatusGreen
+                                        "FAILING", "FAILED" -> StatusRed
+                                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
+                                    Surface(
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = statusColor.copy(alpha = 0.12f)
+                                    ) {
+                                        Text(
+                                            text = status,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = statusColor,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            dev.type?.let {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            dev.hours?.let { hours ->
+                                val days = hours / 24
+                                Text(
+                                    text = stringResource(R.string.beszel_smart_power_on, days),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            dev.cycles?.let {
+                                Text(
+                                    text = stringResource(R.string.beszel_smart_cycles, it),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            dev.temperatureCelsius?.let {
+                                Text(
+                                    text = String.format("%.0f°C", it),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                    if (index < devices.size - 1) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    }
+                }
+            }
+        }
     }
 }
 
 @Composable
-internal fun UptimeCard(seconds: Double) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            Column {
-                Text(stringResource(R.string.beszel_uptime), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(formatUptimeShort(seconds), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            }
-        }
+internal fun ContainerStat(icon: ImageVector, value: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(10.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
     }
 }
 

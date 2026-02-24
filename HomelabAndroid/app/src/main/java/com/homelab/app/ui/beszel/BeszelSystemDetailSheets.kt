@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.homelab.app.R
 import com.homelab.app.data.remote.dto.beszel.BeszelRecordStats
+import com.homelab.app.data.remote.dto.beszel.BeszelSmartDevice
 import com.homelab.app.ui.theme.StatusGreen
 import com.homelab.app.ui.theme.StatusOrange
 import com.homelab.app.ui.theme.StatusPurple
@@ -303,6 +304,123 @@ internal fun DiskFsDetailsSheet(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun SmartDetailsSheet(
+    device: BeszelSmartDevice,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.beszel_smart_title_device, device.device ?: device.model ?: ""),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                device.model?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    device.capacityBytes?.let {
+                        Text(
+                            text = formatBytes(it.toDouble()),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    device.type?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    device.temperatureCelsius?.let {
+                        Text(
+                            text = String.format("%.0f°C", it),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Text(
+                text = stringResource(R.string.beszel_smart_attributes_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            if (device.attributes.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.beszel_background_update_info),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    device.attributes.forEach { attr ->
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = (attr.id?.let { "$it " } ?: "") + attr.name,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+
+                                val summaryText = if (attr.value == null && attr.worst == null && attr.threshold == null) {
+                                    // NVMe-style attributes: show raw string or raw value
+                                    attr.rawString ?: attr.rawValue?.toString().orEmpty()
+                                } else {
+                                    val valueText = attr.value?.let { "Value $it" } ?: ""
+                                    val worstText = attr.worst?.let { "Worst $it" } ?: ""
+                                    val thresholdText = attr.threshold?.let { "Th $it" } ?: ""
+                                    listOf(valueText, worstText, thresholdText)
+                                        .filter { it.isNotEmpty() }
+                                        .joinToString(" • ")
+                                }
+
+                                if (summaryText.isNotEmpty()) {
+                                    Text(
+                                        text = summaryText,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            attr.rawString?.let {
+                                // For SATA-style attributes this adds more context; for NVMe
+                                // many entries won't have a rawString so this is a no-op.
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

@@ -197,3 +197,38 @@ data class BeszelSystemDetails(
     val podman: Boolean? = null,
     val updated: String? = null
 )
+
+@Serializable
+data class BeszelSmartAttribute(
+    val id: Int? = null,
+    @SerialName("n") val name: String,
+    @SerialName("v") val value: Int? = null,
+    @SerialName("w") val worst: Int? = null,
+    @SerialName("t") val threshold: Int? = null,
+    @SerialName("rv") val rawValue: Long? = null,
+    @SerialName("rs") val rawString: String? = null
+)
+
+@Serializable
+data class BeszelSmartDevice(
+    val id: String,
+    @SerialName("system") val systemId: String? = null,
+    @SerialName("name") val device: String? = null,
+    val model: String? = null,
+    @SerialName("capacity") val capacityBytes: Long? = null,
+    @SerialName("state") val status: String? = null,
+    val type: String? = null,
+    @SerialName("hours") val hours: Int? = null,
+    @SerialName("cycles") val cycles: Int? = null,
+    @SerialName("temp") val temperatureCelsius: Double? = null,
+    val updated: String? = null,
+    val attributes: List<BeszelSmartAttribute> = emptyList()
+)
+
+@Serializable
+data class BeszelSmartDevicesResponse(
+    val items: List<BeszelSmartDevice>,
+    val totalItems: Int? = null,
+    val page: Int? = null,
+    val perPage: Int? = null
+)
