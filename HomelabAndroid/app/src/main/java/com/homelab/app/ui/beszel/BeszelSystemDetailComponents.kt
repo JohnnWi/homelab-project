@@ -570,6 +570,141 @@ internal fun ExtraMetricsSection(
                         onClick = { onMetricClick(ExtraMetricType.BATTERY) }
                     )
                 }
+
+            }
+        }
+    }
+}
+
+@Composable
+internal fun GpuMetricsSection(
+    latest: BeszelRecordStats,
+    history: List<BeszelRecordStats>,
+    onUsageClick: () -> Unit = {},
+    onPowerClick: () -> Unit = {}
+) {
+    val gpu = latest.primaryGpu ?: return
+    val usageHistory = history.mapNotNull { it.gpuUsagePercent }
+    val powerHistory = history.mapNotNull { it.gpuPowerWatts }
+
+    GpuMetricsCard(
+        gpuName = gpu.n,
+        latestUsage = gpu.u ?: 0.0,
+        latestPowerWatts = gpu.p ?: 0.0,
+        usageHistory = usageHistory,
+        powerHistory = powerHistory,
+        onUsageClick = onUsageClick,
+        onPowerClick = onPowerClick
+    )
+}
+
+@Composable
+private fun GpuMetricsCard(
+    gpuName: String,
+    latestUsage: Double,
+    latestPowerWatts: Double,
+    usageHistory: List<Double>,
+    powerHistory: List<Double>,
+    onUsageClick: () -> Unit = {},
+    onPowerClick: () -> Unit = {}
+) {
+    val accentUsage = ServiceType.BESZEL.primaryColor
+    val accentPower = StatusPurple
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = accentUsage.copy(alpha = 0.12f),
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Memory,
+                            contentDescription = null,
+                            tint = accentUsage,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.beszel_gpu_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = gpuName,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text = String.format("%.1f%%", latestUsage),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = accentUsage
+                    )
+                    Text(
+                        text = String.format("%.1f W", latestPowerWatts),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = accentPower
+                    )
+                }
+            }
+
+            val condensedUsage = usageHistory.takeLast(60)
+            val condensedPower = powerHistory.takeLast(60)
+
+            if (condensedUsage.size >= 2) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onUsageClick)
+                    ) {
+                        SmoothLineGraph(
+                            data = condensedUsage,
+                            graphColor = accentUsage,
+                            enableScrub = false,
+                            labelFormatter = { v -> String.format("%.0f%%", v) }
+                        )
+                    }
+                }
+            }
+
+            if (condensedPower.size >= 2) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onPowerClick)
+                    ) {
+                        SmoothLineGraph(
+                            data = condensedPower,
+                            graphColor = accentPower,
+                            enableScrub = false,
+                            labelFormatter = { v -> String.format("%.1f W", v) }
+                        )
+                    }
+                }
             }
         }
     }

@@ -73,7 +73,8 @@ fun BeszelSystemDetailScreen(
             val s = system!!
             val info = s.info
             val details = systemDetails
-            val latestStats = records.firstOrNull()?.stats
+            // Most recent stats record (API returns newest first, but we sort ascending).
+            val latestStats = records.lastOrNull()?.stats
             val statsHistory = records.map { it.stats }
 
             val cpuHistory = records.takeLast(30).map { it.stats.cpuValue }
@@ -96,6 +97,7 @@ fun BeszelSystemDetailScreen(
             val expandedResourceMetric = remember { mutableStateOf<ResourceMetricType?>(null) }
             val expandedDiskFs = remember { mutableStateOf<DiskFsUsage?>(null) }
             val expandedSmartDevice = remember { mutableStateOf<BeszelSmartDevice?>(null) }
+            val gpuDetailsMetric = remember { mutableStateOf<GpuMetricType?>(null) }
 
             LazyColumn(
                 modifier = Modifier
@@ -147,6 +149,15 @@ fun BeszelSystemDetailScreen(
 
                     // Extra metrics from latest stats
                     if (latestStats != null) {
+                        // GPU above extra metrics
+                        item {
+                            GpuMetricsSection(
+                                latest = latestStats,
+                                history = statsHistory,
+                                onUsageClick = { gpuDetailsMetric.value = GpuMetricType.USAGE },
+                                onPowerClick = { gpuDetailsMetric.value = GpuMetricType.POWER }
+                            )
+                        }
                         item {
                             ExtraMetricsSection(
                                 latest = latestStats,
@@ -208,6 +219,14 @@ fun BeszelSystemDetailScreen(
                 SmartDetailsSheet(
                     device = dev,
                     onDismiss = { expandedSmartDevice.value = null }
+                )
+            }
+
+            gpuDetailsMetric.value?.let { metric ->
+                GpuDetailsSheet(
+                    metric = metric,
+                    history = statsHistory,
+                    onDismiss = { gpuDetailsMetric.value = null }
                 )
             }
 

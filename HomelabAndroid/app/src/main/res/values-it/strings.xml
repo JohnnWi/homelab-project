@@ -87,6 +87,11 @@
     <string name="beszel_cpu">CPU</string>
     <string name="beszel_ram">RAM</string>
     <string name="beszel_disk">DISCHI</string>
+    <string name="beszel_gpu_title">GPU</string>
+    <string name="beszel_gpu_usage_label">Utilizzo (%)</string>
+    <string name="beszel_gpu_power_label">Potenza (W)</string>
+    <string name="beszel_gpu_usage_label_full">Utilizzo GPU</string>
+    <string name="beszel_gpu_power_label_full">Potenza GPU</string>
     <string name="beszel_network">RETE</string>
     <string name="beszel_uptime">UPTIME</string>
     <string name="beszel_system_details">Dettagli Sistema</string>
@@ -118,6 +123,7 @@
     <string name="beszel_smart_power_on">Acceso: %dg</string>
     <string name="beszel_smart_cycles">Cicli: %d</string>
     <string name="beszel_smart_attributes_title">Attributi</string>
+    <string name="beszel_time_axis_hint">Dal più vecchio al più recente</string>
 
     <!-- Gitea -->
     <string name="gitea_repos">Repository</string>

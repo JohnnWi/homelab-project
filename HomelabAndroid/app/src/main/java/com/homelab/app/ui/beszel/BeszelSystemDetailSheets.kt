@@ -201,7 +201,7 @@ internal fun ExtraMetricDetailsSheet(
                 }
 
                 Text(
-                    text = "Oldest \u2192 Latest",
+                    text = stringResource(R.string.beszel_time_axis_hint),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -294,7 +294,103 @@ internal fun DiskFsDetailsSheet(
                 )
 
                 Text(
-                    text = "Oldest \u2192 Latest",
+                    text = stringResource(R.string.beszel_time_axis_hint),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.beszel_background_update_info),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun GpuDetailsSheet(
+    metric: GpuMetricType,
+    history: List<BeszelRecordStats>,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        val latestGpu = history.lastOrNull()?.primaryGpu
+
+        val title: String
+        val series: List<Double>
+        val accent: Color
+        val formatter: (Double) -> String
+
+        when (metric) {
+            GpuMetricType.USAGE -> {
+                title = stringResource(R.string.beszel_gpu_usage_label_full)
+                series = history.mapNotNull { it.gpuUsagePercent }.takeLast(240)
+                accent = ServiceType.BESZEL.primaryColor
+                formatter = { v: Double -> String.format("%.0f%%", v) }
+            }
+            GpuMetricType.POWER -> {
+                title = stringResource(R.string.beszel_gpu_power_label_full)
+                series = history.mapNotNull { it.gpuPowerWatts }.takeLast(240)
+                accent = StatusPurple
+                formatter = { v: Double -> String.format("%.1f W", v) }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(text = title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+
+            latestGpu?.let { gpu ->
+                Text(
+                    text = gpu.n,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (series.size >= 2) {
+                val min = series.minOrNull()
+                val avg = if (series.isNotEmpty()) series.sum() / series.size else null
+                val selectedIndex = remember { mutableStateOf<Int?>(null) }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val leftParts = buildList {
+                        min?.let { add("Min: ${formatter(it)}") }
+                        avg?.let { add("Avg: ${formatter(it)}") }
+                    }
+                    if (leftParts.isNotEmpty()) {
+                        Text(
+                            text = leftParts.joinToString("   "),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                SmoothLineGraph(
+                    data = series,
+                    graphColor = accent,
+                    enableScrub = true,
+                    selectedIndex = selectedIndex.value,
+                    onSelectedIndexChange = { selectedIndex.value = it },
+                    labelFormatter = formatter
+                )
+
+                Text(
+                    text = stringResource(R.string.beszel_time_axis_hint),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -480,7 +576,7 @@ internal fun ResourceMetricDetailsSheet(
                 )
 
                 Text(
-                    text = "Oldest \u2192 Latest",
+                    text = stringResource(R.string.beszel_time_axis_hint),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

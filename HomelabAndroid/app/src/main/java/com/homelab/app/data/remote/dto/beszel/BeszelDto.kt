@@ -103,7 +103,8 @@ data class BeszelRecordStats(
     val ni: Map<String, List<Double>>? = null,
     val dio: List<Double>? = null,
     val bat: List<Double>? = null,
-    val dc: List<BeszelContainer>? = null
+    val dc: List<BeszelContainer>? = null,
+    val g: Map<String, BeszelGpuEntry>? = null
 ) {
     val cpuValue: Double get() = cpu ?: 0.0
     val mpValue: Double get() = mp ?: 0.0
@@ -139,7 +140,23 @@ data class BeszelRecordStats(
 
     val batteryMinutes: Int?
         get() = bat?.getOrNull(1)?.toInt()
+
+    val primaryGpu: BeszelGpuEntry?
+        get() = g?.values?.firstOrNull()
+
+    val gpuUsagePercent: Double?
+        get() = primaryGpu?.u
+
+    val gpuPowerWatts: Double?
+        get() = primaryGpu?.p
 }
+
+@Serializable
+data class BeszelGpuEntry(
+    val n: String,
+    val u: Double? = null,
+    val p: Double? = null
+)
 
 @Serializable
 data class BeszelFsEntry(

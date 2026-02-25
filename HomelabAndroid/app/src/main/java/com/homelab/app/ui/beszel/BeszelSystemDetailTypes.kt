@@ -8,6 +8,10 @@ internal enum class ResourceMetricType {
     CPU, MEMORY
 }
 
+internal enum class GpuMetricType {
+    USAGE, POWER
+}
+
 internal data class BandwidthPoint(
     val rxBytesPerSec: Double,
     val txBytesPerSec: Double

@@ -87,6 +87,7 @@
     <string name="beszel_cpu">CPU</string>
     <string name="beszel_ram">RAM</string>
     <string name="beszel_disk">Disks</string>
+    <string name="beszel_gpu_title">GPU</string>
     <string name="beszel_network">NETZWERK</string>
     <string name="beszel_uptime">UPTIME</string>
     <string name="beszel_system_details">Systemdetails</string>
@@ -118,6 +119,7 @@
     <string name="beszel_smart_power_on">Einschaltzeit: %dT</string>
     <string name="beszel_smart_cycles">Zyklen: %d</string>
     <string name="beszel_smart_attributes_title">Attribute</string>
+    <string name="beszel_time_axis_hint">Älteste → Neueste</string>
 
     <!-- Gitea -->
     <string name="gitea_repos">Repositories</string>
