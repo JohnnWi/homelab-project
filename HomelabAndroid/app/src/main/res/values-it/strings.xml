@@ -60,6 +60,8 @@
     <string name="settings_contacts_label">CONTATTI</string>
     <string name="settings_disconnect_confirm_title">Disconnettere %s?</string>
     <string name="settings_disconnect_confirm_desc">Dovrai rieffettuare l\'accesso inserendo URL e API Key.</string>
+    <string name="settings_hide_service">Nascosto dalla Home</string>
+    <string name="settings_show_service">Visibile nella Home</string>
 
     <!-- Pi-hole -->
     <string name="pihole_status_active">Attivo</string>
@@ -83,16 +85,15 @@
     <string name="pihole_top_clients">CLIENT PIÙ ATTIVI</string>
     <string name="pihole_total_suffix">%s totali</string>
     
-    <!-- Beszel -->
     <string name="beszel_cpu">CPU</string>
     <string name="beszel_ram">RAM</string>
-    <string name="beszel_disk">DISCHI</string>
     <string name="beszel_gpu_title">GPU</string>
     <string name="beszel_gpu_usage_label">Utilizzo (%)</string>
     <string name="beszel_gpu_power_label">Potenza (W)</string>
     <string name="beszel_gpu_usage_label_full">Utilizzo GPU</string>
     <string name="beszel_gpu_power_label_full">Potenza GPU</string>
     <string name="beszel_gpu_vram_label_full">VRAM GPU</string>
+    <string name="beszel_disk">DISCO</string>
     <string name="beszel_network">RETE</string>
     <string name="beszel_uptime">UPTIME</string>
     <string name="beszel_system_details">Dettagli Sistema</string>
@@ -114,6 +115,7 @@
     <string name="beszel_network_io">Banda</string>
     <string name="beszel_disk_io">IO Disco</string>
     <string name="beszel_battery">Batteria</string>
+
     <string name="beszel_background_update_info">I dati si aggiornano automaticamente in background.</string>
     <string name="beszel_no_systems">Nessun sistema collegato a Beszel.</string>
     <string name="beszel_systems_online">Sistemi Online</string>
@@ -180,4 +182,3 @@
     <string name="portainer_cpu_usage">Utilizzo CPU</string>
     <string name="portainer_memory_percent">Memoria %%</string>
 </resources>
-

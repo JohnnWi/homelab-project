@@ -8,6 +8,7 @@ import com.homelab.app.data.repository.GiteaRepository
 import com.homelab.app.data.repository.PiholeRepository
 import com.homelab.app.data.repository.PortainerRepository
 import com.homelab.app.data.repository.ServicesRepository
+import com.homelab.app.data.repository.LocalPreferencesRepository
 import com.homelab.app.util.ServiceType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -26,7 +27,8 @@ class HomeViewModel @Inject constructor(
     private val portainerRepository: PortainerRepository,
     private val piholeRepository: PiholeRepository,
     private val beszelRepository: BeszelRepository,
-    private val giteaRepository: GiteaRepository
+    private val giteaRepository: GiteaRepository,
+    private val localPreferencesRepository: LocalPreferencesRepository
 ) : ViewModel() {
 
     data class PortainerSummary(val running: Int, val total: Int)
@@ -47,6 +49,9 @@ class HomeViewModel @Inject constructor(
     val connectedCount: StateFlow<Int> = connectionStatus
         .map { map -> map.values.count { it } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val hiddenServices: StateFlow<Set<String>> = localPreferencesRepository.hiddenServices
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     fun checkReachability(type: ServiceType) {
         viewModelScope.launch {

@@ -128,7 +128,7 @@ struct ServiceLoginView: View {
             if serviceType == .portainer {
                 InputField(
                     icon: "key.fill",
-                    placeholder: "API Key",
+                    placeholder: localizer.t.loginApiKey,
                     text: $apiKey,
                     isSecure: !showPassword,
                     showToggle: true,
@@ -287,6 +287,8 @@ private struct InputField: View {
     var showPassword: Bool = false
     var onSubmit: (() -> Void)? = nil
 
+    @Environment(Localizer.self) private var localizer
+
     var body: some View {
         HStack(spacing: 0) {
             Image(systemName: icon)
@@ -311,7 +313,7 @@ private struct InputField: View {
                     .toolbar {
                         ToolbarItemGroup(placement: .keyboard) {
                             Spacer()
-                            Button("Done") {
+                            Button(localizer.t.done) {
                                 endEditing()
                             }
                         }

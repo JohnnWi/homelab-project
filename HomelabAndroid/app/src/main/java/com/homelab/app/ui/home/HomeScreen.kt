@@ -74,6 +74,7 @@ fun HomeScreen(
     val reachability by viewModel.reachability.collectAsStateWithLifecycle()
     val pinging by viewModel.pinging.collectAsStateWithLifecycle()
     val connectedCount by viewModel.connectedCount.collectAsStateWithLifecycle()
+    val hiddenServices by viewModel.hiddenServices.collectAsStateWithLifecycle()
 
     // Effetto per il refresh all'apertura
     LaunchedEffect(Unit) {
@@ -128,7 +129,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Grid Component (M3 Expressive Bouncy Cards)
-            val services = ServiceType.entries.filter { it != ServiceType.UNKNOWN }
+            val services = ServiceType.entries.filter { it != ServiceType.UNKNOWN && !hiddenServices.contains(it.name) }
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 val rows = services.chunked(2)
                 rows.forEach { rowServices ->
@@ -321,7 +322,7 @@ fun ServiceCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Riprova",
+                            contentDescription = stringResource(R.string.refresh),
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(20.dp)
                         )

@@ -60,6 +60,8 @@
     <string name="settings_contacts_label">CONTACTS</string>
     <string name="settings_disconnect_confirm_title">Déconnecter %s ?</string>
     <string name="settings_disconnect_confirm_desc">Vous devrez vous reconnecter en saisissant l\'URL et la clé API.</string>
+    <string name="settings_hide_service">Masqué de l\'accueil</string>
+    <string name="settings_show_service">Visible sur l\'accueil</string>
 
     <!-- Pi-hole -->
     <string name="pihole_status_active">Actif</string>

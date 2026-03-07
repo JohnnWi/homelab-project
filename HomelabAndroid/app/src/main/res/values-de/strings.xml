@@ -60,6 +60,8 @@
     <string name="settings_contacts_label">KONTAKTE</string>
     <string name="settings_disconnect_confirm_title">%s trennen?</string>
     <string name="settings_disconnect_confirm_desc">Sie müssen sich erneut anmelden, indem Sie die URL und den API-Key eingeben.</string>
+    <string name="settings_hide_service">Von Start ausgeblendet</string>
+    <string name="settings_show_service">Auf Start sichtbar</string>
 
     <!-- Pi-hole -->
     <string name="pihole_status_active">Aktiv</string>

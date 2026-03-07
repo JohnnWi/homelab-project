@@ -60,6 +60,8 @@
     <string name="settings_contacts_label">CONTACTS</string>
     <string name="settings_disconnect_confirm_title">Disconnect %s?</string>
     <string name="settings_disconnect_confirm_desc">You will need to log in again by entering URL and API Key.</string>
+    <string name="settings_hide_service">Hidden from Home</string>
+    <string name="settings_show_service">Visible on Home</string>
 
     <!-- Pi-hole -->
     <string name="pihole_status_active">Active</string>
@@ -86,7 +88,7 @@
     <!-- Beszel -->
     <string name="beszel_cpu">CPU</string>
     <string name="beszel_ram">RAM</string>
-    <string name="beszel_disk">Disks</string>
+    <string name="beszel_disk">DISK</string>
     <string name="beszel_gpu_title">GPU</string>
     <string name="beszel_gpu_usage_label">Usage (%)</string>
     <string name="beszel_gpu_power_label">Power (W)</string>
@@ -118,7 +120,6 @@
     <string name="beszel_no_systems">No systems connected to Beszel.</string>
     <string name="beszel_systems_online">Systems Online</string>
     <string name="beszel_monitored_servers">MONITORED SERVERS</string>
-
     <string name="beszel_smart_title">S.M.A.R.T.</string>
     <string name="beszel_smart_title_device">S.M.A.R.T. • %s</string>
     <string name="beszel_smart_power_on">Power on: %dd</string>

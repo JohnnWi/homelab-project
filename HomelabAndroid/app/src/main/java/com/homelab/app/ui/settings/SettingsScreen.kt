@@ -13,6 +13,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -296,6 +298,9 @@ fun ServiceSettingsRow(
     var showDisconnectDialog by remember { mutableStateOf(false) }
     var fallbackInput by remember(connection?.fallbackUrl) { mutableStateOf(connection?.fallbackUrl ?: "") }
 
+    val hiddenServices by viewModel.hiddenServices.collectAsStateWithLifecycle()
+    val isHidden = hiddenServices.contains(type.name)
+
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         shape = RoundedCornerShape(16.dp),
@@ -313,7 +318,8 @@ fun ServiceSettingsRow(
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
                 ) {
                     // Placeholder Icon
                     Surface(
@@ -351,6 +357,24 @@ fun ServiceSettingsRow(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                    }
+                }
+
+                // Visibility toggle
+                IconButton(
+                    onClick = { viewModel.toggleServiceVisibility(type) }
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (isHidden) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Icon(
+                            imageVector = if (isHidden) androidx.compose.material.icons.Icons.Filled.VisibilityOff
+                                          else androidx.compose.material.icons.Icons.Filled.Visibility,
+                            contentDescription = if (isHidden) stringResource(R.string.settings_show_service) else stringResource(R.string.settings_hide_service),
+                            tint = if (isHidden) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(8.dp).size(16.dp)
+                        )
                     }
                 }
 

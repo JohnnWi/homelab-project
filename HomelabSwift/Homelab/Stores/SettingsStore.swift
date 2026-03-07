@@ -19,21 +19,45 @@ final class SettingsStore {
         }
     }
 
+    var hiddenServices: Set<String> {
+        didSet {
+            UserDefaults.standard.set(Array(hiddenServices), forKey: Keys.hiddenServices)
+        }
+    }
+
     // MARK: - Keys
 
     private enum Keys {
         static let language = "homelab_language"
         static let theme = "homelab_theme"
+        static let hiddenServices = "homelab_hidden_services"
     }
 
     // MARK: - Init
 
     init() {
-        let savedLang = UserDefaults.standard.string(forKey: Keys.language) ?? "it"
-        self.language = Language(rawValue: savedLang) ?? .it
+        let savedLang = UserDefaults.standard.string(forKey: Keys.language) ?? "en"
+        self.language = Language(rawValue: savedLang) ?? .en
 
         let savedTheme = UserDefaults.standard.string(forKey: Keys.theme)
         self.theme = savedTheme.flatMap(ThemeMode.init) ?? .system
+
+        let savedHidden = UserDefaults.standard.stringArray(forKey: Keys.hiddenServices) ?? []
+        self.hiddenServices = Set(savedHidden)
+    }
+
+    // MARK: - Service Visibility
+
+    func isServiceHidden(_ type: ServiceType) -> Bool {
+        hiddenServices.contains(type.rawValue)
+    }
+
+    func toggleServiceVisibility(_ type: ServiceType) {
+        if hiddenServices.contains(type.rawValue) {
+            hiddenServices.remove(type.rawValue)
+        } else {
+            hiddenServices.insert(type.rawValue)
+        }
     }
 }
 
