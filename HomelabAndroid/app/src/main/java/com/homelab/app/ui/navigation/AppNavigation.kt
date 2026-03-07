@@ -74,6 +74,9 @@ fun AppNavigation() {
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = null // Rimuove il cerchio grigio di default al click per un look più pulito
                                 ) {
+                                    // Avoid navigating if the user taps the tab for the screen they're already on
+                                    if (currentDestination?.route == screen.route) return@clickable
+
                                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
                                     navController.navigate(screen.route) {
                                         popUpTo(navController.graph.findStartDestination().id) {

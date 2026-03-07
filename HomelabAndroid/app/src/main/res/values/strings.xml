@@ -89,6 +89,12 @@
     <string name="beszel_cpu">CPU</string>
     <string name="beszel_ram">RAM</string>
     <string name="beszel_disk">DISK</string>
+    <string name="beszel_gpu_title">GPU</string>
+    <string name="beszel_gpu_usage_label">Usage (%)</string>
+    <string name="beszel_gpu_power_label">Power (W)</string>
+    <string name="beszel_gpu_usage_label_full">GPU Usage</string>
+    <string name="beszel_gpu_power_label_full">GPU Power</string>
+    <string name="beszel_gpu_vram_label_full">GPU VRAM</string>
     <string name="beszel_network">NETWORK</string>
     <string name="beszel_uptime">UPTIME</string>
     <string name="beszel_system_details">System Details</string>
@@ -103,10 +109,23 @@
     <string name="beszel_hostname">Hostname</string>
     <string name="beszel_cores">Cores</string>
     <string name="beszel_memory">Memory</string>
+    <string name="beszel_podman">Podman</string>
+    <string name="beszel_extra_title">EXTRA METRICS</string>
+    <string name="beszel_temps">Temperatures</string>
+    <string name="beszel_load_avg">Load avg</string>
+    <string name="beszel_network_io">Bandwidth</string>
+    <string name="beszel_disk_io">Disk IO</string>
+    <string name="beszel_battery">Battery</string>
     <string name="beszel_background_update_info">Data updates automatically in the background.</string>
     <string name="beszel_no_systems">No systems connected to Beszel.</string>
     <string name="beszel_systems_online">Systems Online</string>
     <string name="beszel_monitored_servers">MONITORED SERVERS</string>
+    <string name="beszel_smart_title">S.M.A.R.T.</string>
+    <string name="beszel_smart_title_device">S.M.A.R.T. • %s</string>
+    <string name="beszel_smart_power_on">Power on: %dd</string>
+    <string name="beszel_smart_cycles">Cycles: %d</string>
+    <string name="beszel_smart_attributes_title">Attributes</string>
+    <string name="beszel_time_axis_hint">Oldest → Latest</string>
 
     <!-- Gitea -->
     <string name="gitea_repos">Repositories</string>

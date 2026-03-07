@@ -265,14 +265,16 @@ fun ServiceCard(
             .height(130.dp)
             .scale(scale)
             .clip(RoundedCornerShape(24.dp))
-            .pointerInput(Unit) {
+            .pointerInput(onClick) {
                 detectTapGestures(
-                    onPress = {
+                    onPress = { offset ->
                         isPressed = true
-                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                        tryAwaitRelease()
+                        val success = tryAwaitRelease()
                         isPressed = false
-                        onClick()
+                        if (success) {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                            onClick()
+                        }
                     }
                 )
             },
