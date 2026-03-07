@@ -55,6 +55,8 @@ extension Translations {
         loginHintPihole: "Utilisez le mot de passe configuré dans les paramètres de Pi-hole",
         loginHintGitea2FA: "Si vous avez activé l'authentification à deux facteurs, générez un mot de passe d'application depuis Paramètres → Applications dans votre Gitea.",
         loginHintPortainer: "Utilisez la clé API générée dans Portainer (Mon compte → Jetons API). La connexion standard nom d'utilisateur/mot de passe n'est pas prise en charge pour des raisons de sécurité.",
+        loginApiKey: "Clé API",
+        done: "Terminé",
         portainerDashboard: "Portainer",
         portainerEndpoints: "Endpoints",
         portainerActive: "Actif",
@@ -232,7 +234,9 @@ extension Translations {
         settingsSupportDesc: "Cette application compagnon est fièrement Open Source et développée pendant mon temps libre. Si vous l'avez trouvée utile, j'accepte volontiers les dons (toute crypto sur la chaîne EVM convient) à l'adresse suivante :",
         settingsCopied: "Adresse copiée dans le presse-papiers",
         settingsThemeAuto: "Auto",
-        settingsContacts: "CONTACTS"
+        settingsContacts: "CONTACTS",
+        settingsHideService: "Masqué de l'accueil",
+        settingsShowService: "Visible sur l'accueil"
     )
 
     static let spanish = Translations(
@@ -289,6 +293,8 @@ extension Translations {
         loginHintPihole: "Usa la contraseña configurada en los ajustes de Pi-hole",
         loginHintGitea2FA: "Si tienes activada la autenticación de dos factores, genera una contraseña de aplicación en Ajustes → Aplicaciones en tu Gitea.",
         loginHintPortainer: "Utilice la clave API generada en Portainer (Mi cuenta → API tokens). El inicio de sesión estándar no es compatible por razones de seguridad.",
+        loginApiKey: "Clave API",
+        done: "Listo",
         portainerDashboard: "Portainer",
         portainerEndpoints: "Endpoints",
         portainerActive: "Activo",
@@ -466,7 +472,9 @@ extension Translations {
         settingsSupportDesc: "Esta aplicación complementaria es orgullosamente de código abierto y ha sido desarrollada en mi tiempo libre. Si te ha resultado utile, acepto con gusto donaciones (cualquier cripto en la cadena EVM está bien) en la siguiente dirección:",
         settingsCopied: "Dirección copiada al portapapeles",
         settingsThemeAuto: "Auto",
-        settingsContacts: "CONTACTOS"
+        settingsContacts: "CONTACTOS",
+        settingsHideService: "Oculto del inicio",
+        settingsShowService: "Visible en el inicio"
     )
 
     static let german = Translations(
@@ -523,6 +531,8 @@ extension Translations {
         loginHintPihole: "Verwenden Sie das in Pi-hole konfigurierte Passwort",
         loginHintGitea2FA: "Wenn Sie Zwei-Faktor-Authentifizierung (2FA) aktiviert haben, generieren Sie ein App-Passwort in den Gitea-Einstellungen unter Anwendungen.",
         loginHintPortainer: "Verwenden Sie den in Portainer generierten API-Schlüssel. Standard-Benutzername/Passwort wird aus Sicherheitsgründen nicht unterstützt.",
+        loginApiKey: "API-Schlüssel",
+        done: "Fertig",
         portainerDashboard: "Portainer",
         portainerEndpoints: "Endpunkte",
         portainerActive: "Aktiv",
@@ -700,6 +710,8 @@ extension Translations {
         settingsSupportDesc: "Diese Begleit-App ist stolz Open Source und wurde in meiner Freizeit entwickelt. Wenn Sie sie nützlich fanden, nehme ich gerne Spenden (jede Krypto auf der EVM-Chain ist in Ordnung) an der folgenden Adresse entgegen:",
         settingsCopied: "Adresse in die Zwischenablage kopiert",
         settingsThemeAuto: "Auto",
-        settingsContacts: "KONTAKTE"
+        settingsContacts: "KONTAKTE",
+        settingsHideService: "Von Start ausgeblendet",
+        settingsShowService: "Auf Start sichtbar"
     )
 }

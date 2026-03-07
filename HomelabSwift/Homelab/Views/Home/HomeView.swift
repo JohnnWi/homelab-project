@@ -72,7 +72,7 @@ struct HomeView: View {
     private var serviceGrid: some View {
         GlassGroup(spacing: 14) {
             LazyVGrid(columns: columns, spacing: 14) {
-                ForEach(ServiceType.allCases) { type in
+                ForEach(ServiceType.allCases.filter { !settingsStore.isServiceHidden($0) }) { type in
                     let connected = servicesStore.isConnected(type)
                     if connected {
                         NavigationLink(value: type) {

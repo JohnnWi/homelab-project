@@ -10,6 +10,7 @@ struct SettingsView: View {
     @State private var fallbackInputs: [ServiceType: String] = [:]
     @State private var showDisconnectAlert: ServiceType? = nil
     @State private var showCopiedToast = false
+    @FocusState private var focusedField: ServiceType?
 
     private let cryptoAddress = "0x649641868e6876c2c1f04584a95679e01c1aaf0d"
 
@@ -40,6 +41,20 @@ struct SettingsView: View {
                     .padding(.bottom, 32)
                 }
                 .scrollDismissesKeyboard(.interactively)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button(localizer.t.confirm) {
+                            focusedField = nil
+                            endEditing()
+                        }
+                    }
+                }
+                .onChange(of: focusedField) { oldValue, newValue in
+                    if let old = oldValue, newValue != old {
+                        saveFallback(for: old)
+                    }
+                }
             }
             .onTapGesture { endEditing() }
             .navigationBarHidden(true)
@@ -249,6 +264,20 @@ struct SettingsView: View {
 
                 Spacer()
 
+                // Visibility toggle
+                Button {
+                    settingsStore.toggleServiceVisibility(type)
+                    HapticManager.light()
+                } label: {
+                    Image(systemName: settingsStore.isServiceHidden(type) ? "eye.slash" : "eye")
+                        .font(.caption)
+                        .foregroundStyle(settingsStore.isServiceHidden(type) ? .secondary : AppTheme.accent)
+                        .frame(width: 32, height: 32)
+                        .background(settingsStore.isServiceHidden(type) ? Color.secondary.opacity(0.1) : AppTheme.accent.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+
                 if connected {
                     Button {
                         showDisconnectAlert = type
@@ -276,16 +305,11 @@ struct SettingsView: View {
 
                     TextField(localizer.t.settingsFallbackUrl, text: fallbackBinding(for: type, current: conn?.fallbackUrl))
                         .font(.caption)
+                        .focused($focusedField, equals: type)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .keyboardType(.URL)
                         .onSubmit { saveFallback(for: type) }
-                        .toolbar {
-                            ToolbarItemGroup(placement: .keyboard) {
-                                Spacer()
-                                Button(localizer.t.confirm) { endEditing() }
-                            }
-                        }
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)

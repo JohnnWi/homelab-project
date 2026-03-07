@@ -52,7 +52,7 @@ class SettingsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ThemeMode.SYSTEM)
 
     val languageMode: StateFlow<LanguageMode> = localPreferencesRepository.languageMode
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LanguageMode.ITALIAN)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LanguageMode.ENGLISH)
 
     fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch {
@@ -66,6 +66,15 @@ class SettingsViewModel @Inject constructor(
             androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
                 androidx.core.os.LocaleListCompat.forLanguageTags(mode.code)
             )
+        }
+    }
+
+    val hiddenServices: StateFlow<Set<String>> = localPreferencesRepository.hiddenServices
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    fun toggleServiceVisibility(type: ServiceType) {
+        viewModelScope.launch {
+            localPreferencesRepository.toggleServiceVisibility(type.name)
         }
     }
 }

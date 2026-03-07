@@ -36,7 +36,7 @@ enum class LanguageMode(val code: String, val flag: String) {
 
     companion object {
         fun fromCode(code: String?): LanguageMode {
-            return entries.find { it.code.equals(code, ignoreCase = true) } ?: ITALIAN
+            return entries.find { it.code.equals(code, ignoreCase = true) } ?: ENGLISH
         }
     }
 }
@@ -49,6 +49,7 @@ class LocalPreferencesRepository @Inject constructor(
 
     private val THEME_KEY = stringPreferencesKey("theme_mode")
     private val LANG_KEY = stringPreferencesKey("language_mode")
+    private val HIDDEN_SERVICES_KEY = stringPreferencesKey("hidden_services")
 
     val themeMode: Flow<ThemeMode> = dataStore.data
         .catch { exception ->
@@ -83,6 +84,32 @@ class LocalPreferencesRepository @Inject constructor(
     suspend fun setLanguageMode(mode: LanguageMode) {
         dataStore.edit { preferences ->
             preferences[LANG_KEY] = mode.code
+        }
+    }
+
+    val hiddenServices: Flow<Set<String>> = dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            val raw = preferences[HIDDEN_SERVICES_KEY] ?: ""
+            if (raw.isBlank()) emptySet() else raw.split(",").toSet()
+        }
+
+    suspend fun toggleServiceVisibility(serviceKey: String) {
+        dataStore.edit { preferences ->
+            val raw = preferences[HIDDEN_SERVICES_KEY] ?: ""
+            val current = if (raw.isBlank()) mutableSetOf() else raw.split(",").toMutableSet()
+            if (current.contains(serviceKey)) {
+                current.remove(serviceKey)
+            } else {
+                current.add(serviceKey)
+            }
+            preferences[HIDDEN_SERVICES_KEY] = current.joinToString(",")
         }
     }
 }

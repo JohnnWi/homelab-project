@@ -69,6 +69,8 @@ struct Translations {
     let loginHintPihole: String
     let loginHintGitea2FA: String
     let loginHintPortainer: String
+    let loginApiKey: String
+    let done: String
 
     // Portainer
     let portainerDashboard: String
@@ -263,6 +265,8 @@ struct Translations {
     let settingsCopied: String
     let settingsThemeAuto: String
     let settingsContacts: String
+    let settingsHideService: String
+    let settingsShowService: String
 }
 
 // MARK: - Factory
@@ -284,7 +288,7 @@ extension Translations {
 @Observable
 @MainActor
 final class Localizer {
-    var language: Language = .it
+    var language: Language = .en
 
     var t: Translations { Translations.forLanguage(language) }
 

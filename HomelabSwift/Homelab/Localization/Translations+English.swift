@@ -53,6 +53,8 @@ extension Translations {
         loginHintPihole: "Use the password configured in Pi-hole settings (Settings → API / Web Interface → API Password)",
         loginHintGitea2FA: "If you have two-factor auth enabled, generate an app password from Settings → Applications in your Gitea.",
         loginHintPortainer: "Use the API Key generated in Portainer (My Account → API tokens). Standard username/password login is not supported for security reasons.",
+        loginApiKey: "API Key",
+        done: "Done",
         portainerDashboard: "Portainer",
         portainerEndpoints: "Endpoints",
         portainerActive: "Active",
@@ -230,6 +232,8 @@ extension Translations {
         settingsSupportDesc: "This companion app is proudly Open Source and developed in my free time. If you found it useful, I gladly accept donations (any crypto on EVM chain is fine) at the following address:",
         settingsCopied: "Address copied to clipboard",
         settingsThemeAuto: "Auto",
-        settingsContacts: "CONTACTS"
+        settingsContacts: "CONTACTS",
+        settingsHideService: "Hidden from Home",
+        settingsShowService: "Visible on Home"
     )
 }
