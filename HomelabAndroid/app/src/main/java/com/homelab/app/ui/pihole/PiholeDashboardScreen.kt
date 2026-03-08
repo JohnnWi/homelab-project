@@ -44,6 +44,7 @@ import java.util.*
 @Composable
 fun PiholeDashboardScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToDomains: () -> Unit,
     viewModel: PiholeViewModel = hiltViewModel()
 ) {
     val stats by viewModel.stats.collectAsStateWithLifecycle()
@@ -106,14 +107,19 @@ fun PiholeDashboardScreen(
                     BlockingCard(
                         isBlocking = isBlocking,
                         isToggling = isToggling,
-                        onToggle = { viewModel.toggleBlocking() }
+                        onToggle = { timer -> viewModel.toggleBlocking(timer) }
                     )
                 }
 
+                // Gravity info
                 if (stats != null) {
                     item { StatsOverview(stats = stats!!) }
                     item { QueryActivitySection(stats = stats!!) }
                     item { GravitySection(stats = stats!!) }
+                }
+
+                item {
+                    DomainManagementLink(onClick = onNavigateToDomains)
                 }
 
                 if (topBlocked.isNotEmpty()) {
@@ -146,8 +152,39 @@ fun PiholeDashboardScreen(
 private fun BlockingCard(
     isBlocking: Boolean,
     isToggling: Boolean,
-    onToggle: () -> Unit
+    onToggle: (timer: Int?) -> Unit
 ) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(stringResource(R.string.pihole_blocking_disabled_desc)) },
+            text = {
+                Column {
+                    TextButton(onClick = { onToggle(null); showDialog = false }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.pihole_disable_permanently), color = MaterialTheme.colorScheme.error)
+                    }
+                    TextButton(onClick = { onToggle(3600); showDialog = false }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.pihole_disable_1h))
+                    }
+                    TextButton(onClick = { onToggle(300); showDialog = false }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.pihole_disable_5m))
+                    }
+                    TextButton(onClick = { onToggle(60); showDialog = false }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.pihole_disable_1m))
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -170,7 +207,11 @@ private fun BlockingCard(
                 enabled = !isToggling,
                 onClick = {
                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                    onToggle()
+                    if (isBlocking) {
+                        showDialog = true
+                    } else {
+                        onToggle(null)
+                    }
                 }
             ),
         shape = RoundedCornerShape(16.dp),
@@ -220,6 +261,33 @@ private fun BlockingCard(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun DomainManagementLink(onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(shape = RoundedCornerShape(10.dp), color = ServiceType.PIHOLE.primaryColor.copy(alpha = 0.1f), modifier = Modifier.size(36.dp)) {
+                Icon(Icons.Default.ListAlt, contentDescription = null, tint = ServiceType.PIHOLE.primaryColor, modifier = Modifier.padding(8.dp))
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                stringResource(R.string.pihole_domain_management),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.weight(1f)
+            )
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

@@ -57,7 +57,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 import com.homelab.app.R
+import com.homelab.app.ui.theme.StatusGreen
 import com.homelab.app.ui.theme.isThemeDark
 import com.homelab.app.ui.theme.primaryColor
 import com.homelab.app.util.ServiceType
@@ -74,6 +79,7 @@ fun HomeScreen(
     val reachability by viewModel.reachability.collectAsStateWithLifecycle()
     val pinging by viewModel.pinging.collectAsStateWithLifecycle()
     val connectedCount by viewModel.connectedCount.collectAsStateWithLifecycle()
+    val isTailscaleConnected by viewModel.isTailscaleConnected.collectAsStateWithLifecycle()
     val hiddenServices by viewModel.hiddenServices.collectAsStateWithLifecycle()
 
     // Effetto per il refresh all'apertura
@@ -126,7 +132,21 @@ fun HomeScreen(
                 }
             }
 
+            // Determine if ANY active, un-hidden service is currently down
+            val connectionStatus by viewModel.connectionStatus.collectAsStateWithLifecycle()
+            
+            val hasUnreachableService = ServiceType.entries.filter { 
+                it != ServiceType.UNKNOWN && !hiddenServices.contains(it.name) 
+            }.any { type ->
+                connectionStatus[type] == true && reachability[type] == false
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
+            
+            if (hasUnreachableService || isTailscaleConnected) {
+                TailscaleCard(isConnected = isTailscaleConnected)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             // Grid Component (M3 Expressive Bouncy Cards)
             val services = ServiceType.entries.filter { it != ServiceType.UNKNOWN && !hiddenServices.contains(it.name) }
@@ -135,7 +155,6 @@ fun HomeScreen(
                 rows.forEach { rowServices ->
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         rowServices.forEach { type ->
-                            val connectionStatus by viewModel.connectionStatus.collectAsStateWithLifecycle()
                             val isConnected = connectionStatus[type] ?: false
                             val isReachable = reachability[type]
                             val isPinging = pinging[type] ?: false
@@ -167,6 +186,117 @@ fun HomeScreen(
         }
     }
 }
+
+@Composable
+fun TailscaleCard(isConnected: Boolean) {
+    val context = LocalContext.current
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    var isPressed by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "ts_card_bounce"
+    )
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .scale(scale)
+            .clip(RoundedCornerShape(24.dp))
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                        tryAwaitRelease()
+                        isPressed = false
+
+                        val launchIntent =
+                            context.packageManager.getLaunchIntentForPackage("com.tailscale.ipn")
+                                ?: context.packageManager.getLaunchIntentForPackage("com.tailscale.ipn.beta")
+                        if (launchIntent != null) {
+                            context.startActivity(launchIntent.apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) })
+                        } else {
+                            try {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("tailscale://app")))
+                            } catch (e: ActivityNotFoundException) {
+                                try {
+                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.tailscale.ipn")))
+                                } catch (e: ActivityNotFoundException) {
+                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.tailscale.ipn")))
+                                }
+                            }
+                        }
+                    }
+                )
+            },
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = RoundedCornerShape(24.dp),
+        shadowElevation = 0.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = Color.Black,
+                modifier = Modifier.size(44.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        Icons.Default.Security,
+                        contentDescription = "Tailscale",
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.tailscale_open),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.tailscale_tap_to_open),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+            }
+
+            // Status badge
+            val statusColor = if (isConnected) StatusGreen else MaterialTheme.colorScheme.onSurfaceVariant
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = statusColor.copy(alpha = 0.1f)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(statusColor))
+                    Text(
+                        text = stringResource(if (isConnected) R.string.tailscale_connected else R.string.tailscale_not_connected),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = statusColor
+                    )
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
 fun DashboardSummary(viewModel: HomeViewModel) {

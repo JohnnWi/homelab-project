@@ -18,6 +18,7 @@ struct PiHoleDashboard: View {
     @State private var isToggling = false
     @State private var toggleError: String?
     @State private var showToggleError = false
+    @State private var showDisableOptions = false
 
     private let piholeColor = ServiceType.pihole.colors.primary
     private var isBlocking: Bool { blocking?.isEnabled ?? false }
@@ -46,6 +47,29 @@ struct PiHoleDashboard: View {
 
                 // Gravity info
                 gravitySection(stats)
+                
+                // Domain Management Link
+                NavigationLink(destination: PiholeDomainListView()) {
+                    HStack {
+                        Image(systemName: "list.bullet.rectangle.portrait.fill")
+                            .font(.body)
+                            .foregroundStyle(piholeColor)
+                            .frame(width: 36, height: 36)
+                            .background(piholeColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        
+                        Text(localizer.t.piholeDomainManagement)
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color(.tertiaryLabel))
+                    }
+                    .padding(16)
+                    .glassCard()
+                }
+                .buttonStyle(.plain)
             }
 
             // Top blocked
@@ -74,13 +98,24 @@ struct PiHoleDashboard: View {
         } message: {
             Text(toggleError ?? "Unknown error")
         }
+        .confirmationDialog(localizer.t.piholeDisableDesc, isPresented: $showDisableOptions, titleVisibility: .visible) {
+            Button(localizer.t.piholeDisablePermanently, role: .destructive) { handleToggle(timer: nil) }
+            Button(localizer.t.piholeDisable1h) { handleToggle(timer: 3600) }
+            Button(localizer.t.piholeDisable5m) { handleToggle(timer: 300) }
+            Button(localizer.t.piholeDisable1m) { handleToggle(timer: 60) }
+            Button(localizer.t.cancel, role: .cancel) { }
+        }
     }
 
     // MARK: - Blocking Card
 
     private var blockingCard: some View {
         Button {
-            handleToggle()
+            if isBlocking {
+                showDisableOptions = true
+            } else {
+                handleToggle(timer: nil)
+            }
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: isBlocking ? "shield.fill" : "shield.slash.fill")
@@ -434,12 +469,16 @@ struct PiHoleDashboard: View {
 
     // MARK: - Toggle Blocking
 
-    private func handleToggle() {
+    private func handleToggle(timer: Int? = nil) {
         HapticManager.medium()
         isToggling = true
         Task {
             do {
-                try await servicesStore.piholeClient.setBlocking(enabled: !isBlocking)
+                if let timer = timer {
+                    try await servicesStore.piholeClient.setBlocking(enabled: false, timer: timer)
+                } else {
+                    try await servicesStore.piholeClient.setBlocking(enabled: !isBlocking)
+                }
                 HapticManager.success()
                 blocking = try? await servicesStore.piholeClient.getBlockingStatus()
                 stats = try? await servicesStore.piholeClient.getStats()

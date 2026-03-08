@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import Darwin
 
 @Observable
 @MainActor
@@ -11,6 +12,7 @@ final class ServicesStore {
     private(set) var isReady: Bool = false
     private(set) var reachability: [ServiceType: Bool?] = [:]  // nil = checking, true = up, false = down
     private(set) var pinging: [ServiceType: Bool] = [:]
+    private(set) var isTailscaleConnected: Bool = false
 
     /// Tracks last reachability check time to debounce rapid checks
     private var lastReachabilityCheck: Date?
@@ -77,6 +79,7 @@ final class ServicesStore {
         // Fire-and-forget health checks
         Task {
             await checkAllReachability()
+            await checkTailscale()
         }
 
         // Start periodic health checks (every 30 seconds)
@@ -152,6 +155,32 @@ final class ServicesStore {
                 group.addTask { await self.checkReachability(for: type) }
             }
         }
+        await checkTailscale()
+    }
+
+    func checkTailscale() async {
+        var addrs: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&addrs) == 0, let first = addrs else {
+            isTailscaleConnected = false
+            return
+        }
+        defer { freeifaddrs(first) }
+
+        var cursor: UnsafeMutablePointer<ifaddrs>? = first
+        var found = false
+        while let addr = cursor {
+            if let sa = addr.pointee.ifa_addr, sa.pointee.sa_family == UInt8(AF_INET) {
+                var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                getnameinfo(sa, socklen_t(sa.pointee.sa_len), &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST)
+                let ip = String(cString: hostname)
+                if ip.hasPrefix("100.") {
+                    found = true
+                    break
+                }
+            }
+            cursor = addr.pointee.ifa_next
+        }
+        isTailscaleConnected = found
     }
 
     // MARK: - Periodic Health Checks
@@ -163,7 +192,7 @@ final class ServicesStore {
         healthCheckTask?.cancel()
         healthCheckTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(30))
+                try? await Task.sleep(for: .seconds(180))
                 guard !Task.isCancelled else { break }
                 await self?.checkAllReachability()
             }

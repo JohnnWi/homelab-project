@@ -20,6 +20,7 @@ struct Translations {
 
     // Tabs
     let tabHome: String
+    let tabBookmarks: String
     let tabSettings: String
 
     // Launcher
@@ -29,6 +30,10 @@ struct Translations {
     let launcherNotConfigured: String
     let launcherTapToConnect: String
     let launcherServices: String
+
+    // Tailscale
+    let tailscaleConnect: String
+    let tailscaleDesc: String
 
     // Status
     let statusUnreachable: String
@@ -175,6 +180,17 @@ struct Translations {
     let piholeOverview: String
     let piholeQueryActivity: String
     let piholeQueriesOverTime: String
+    let piholeDomainManagement: String
+    let piholeAllowed: String
+    let piholeBlocked: String
+    let piholeAddDomain: String
+    let piholeNoDomains: String
+    let piholeAddDomainDesc: String
+
+    let piholeDisablePermanently: String
+    let piholeDisable1m: String
+    let piholeDisable5m: String
+    let piholeDisable1h: String
 
     // Beszel
     let beszelSystems: String
@@ -267,6 +283,73 @@ struct Translations {
     let settingsContacts: String
     let settingsHideService: String
     let settingsShowService: String
+
+    // Security
+    let securityTitle: String
+    let securitySetupPin: String
+    let securitySetupPinDesc: String
+    let securityConfirmPin: String
+    let securityConfirmPinDesc: String
+    let securityEnterPin: String
+    let securityEnterPinDesc: String
+    let securityWrongPin: String
+    let securityEnableBiometric: String
+    let securityBiometricDesc: String
+    let securityChangePin: String
+    let securityDisable: String
+    let securityDisableConfirm: String
+    let securityDisableMessage: String
+    let securityPinMismatch: String
+    let securityBiometricReason: String
+    let securityNewPin: String
+    let securityNewPinDesc: String
+    let securityCurrentPin: String
+    let securityCurrentPinDesc: String
+    let securityNotConfigured: String
+    let securitySkip: String
+
+    // Bookmarks
+    let bookmarkTitle: String
+    let bookmarkDesc: String
+    let bookmarkUrl: String
+    let bookmarkCategory: String
+    let bookmarkCategoryNew: String
+    let bookmarkIcon: String
+    let bookmarkAdd: String
+    let bookmarkEdit: String
+    let categoryName: String
+    let categoryAdd: String
+    let categoryEdit: String
+    let categoryDelete: String
+    let categoryDeleteConfirm: String
+    let categoryEmpty: String
+    let categoryUncategorized: String
+
+    // Tailscale v2
+    let tailscaleOpen: String
+    let tailscaleOpenDesc: String
+    let tailscaleSecure: String
+    let tailscaleConnected: String
+    let tailscaleNotConnected: String
+
+    // Bookmarks v2
+    let categoryColor: String
+    let bookmarkFavicon: String
+    let bookmarkSymbol: String
+    let bookmarkSelfhst: String
+    let bookmarkAutoFavicon: String
+    let bookmarkEnterUrl: String
+    let bookmarkTags: String
+    let bookmarkSearchPrompt: String
+    let bookmarkEnterSelfhst: String
+    let bookmarkPreviewSelfhst: String
+
+    // Onboarding v2
+    let onboardingWelcome: String
+    let onboardingWelcomeDesc: String
+    let onboardingAskPin: String
+    let onboardingAskPinYes: String
+    let onboardingAskPinNo: String
 }
 
 // MARK: - Factory

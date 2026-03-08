@@ -34,6 +34,9 @@ class PiholeViewModel @Inject constructor(
     private val _history = MutableStateFlow<List<PiholeHistoryEntry>>(emptyList())
     val history: StateFlow<List<PiholeHistoryEntry>> = _history
 
+    private val _domains = MutableStateFlow<List<PiholeDomainDto>>(emptyList())
+    val domains: StateFlow<List<PiholeDomainDto>> = _domains
+
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -75,20 +78,68 @@ class PiholeViewModel @Inject constructor(
         }
     }
 
-    fun toggleBlocking() {
+    fun toggleBlocking(timer: Int? = null) {
         if (_isToggling.value) return
         val currentEnabled = _blocking.value?.isEnabled ?: return
 
         viewModelScope.launch {
             _isToggling.value = true
             try {
-                repository.setBlocking(enabled = !currentEnabled)
+                if (timer != null) {
+                    repository.setBlocking(enabled = false, timer = timer)
+                } else {
+                    repository.setBlocking(enabled = !currentEnabled)
+                }
                 _blocking.value = repository.getBlockingStatus()
                 _stats.value = repository.getStats()
             } catch (e: Exception) {
                 _error.value = e.localizedMessage ?: "Errore durante il cambio di stato"
             } finally {
                 _isToggling.value = false
+            }
+        }
+    }
+
+    fun fetchDomains() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                _domains.value = repository.getDomains()
+            } catch (e: Exception) {
+                _error.value = e.localizedMessage ?: "Errore caricamento domini"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun addDomain(domain: String, listType: PiholeDomainListType) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                repository.addDomain(domain, listType)
+                _domains.value = repository.getDomains()
+            } catch (e: Exception) {
+                _error.value = e.localizedMessage ?: "Errore aggiunta dominio"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun removeDomain(domain: String, listType: PiholeDomainListType) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                repository.removeDomain(domain, listType)
+                _domains.value = repository.getDomains()
+            } catch (e: Exception) {
+                _error.value = e.localizedMessage ?: "Errore rimozione dominio"
+            } finally {
+                _isLoading.value = false
             }
         }
     }

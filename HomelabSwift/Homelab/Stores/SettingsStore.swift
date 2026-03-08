@@ -25,12 +25,28 @@ final class SettingsStore {
         }
     }
 
+    var biometricEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(biometricEnabled, forKey: Keys.biometricEnabled)
+        }
+    }
+
+    var hasCompletedOnboarding: Bool {
+        didSet {
+            UserDefaults.standard.set(hasCompletedOnboarding, forKey: Keys.hasCompletedOnboarding)
+        }
+    }
+
+    var lastBackgroundDate: Date? = nil
+
     // MARK: - Keys
 
     private enum Keys {
         static let language = "homelab_language"
         static let theme = "homelab_theme"
         static let hiddenServices = "homelab_hidden_services"
+        static let biometricEnabled = "homelab_biometric_enabled"
+        static let hasCompletedOnboarding = "homelab_has_completed_onboarding"
     }
 
     // MARK: - Init
@@ -44,6 +60,9 @@ final class SettingsStore {
 
         let savedHidden = UserDefaults.standard.stringArray(forKey: Keys.hiddenServices) ?? []
         self.hiddenServices = Set(savedHidden)
+
+        self.biometricEnabled = UserDefaults.standard.bool(forKey: Keys.biometricEnabled)
+        self.hasCompletedOnboarding = UserDefaults.standard.bool(forKey: Keys.hasCompletedOnboarding)
     }
 
     // MARK: - Service Visibility
@@ -58,6 +77,25 @@ final class SettingsStore {
         } else {
             hiddenServices.insert(type.rawValue)
         }
+    }
+
+    // MARK: - PIN Security
+
+    var isPinSet: Bool {
+        KeychainService.loadPin() != nil
+    }
+
+    func savePin(_ pin: String) {
+        KeychainService.savePin(pin)
+    }
+
+    func verifyPin(_ pin: String) -> Bool {
+        KeychainService.loadPin() == pin
+    }
+
+    func clearSecurity() {
+        KeychainService.deletePin()
+        biometricEnabled = false
     }
 }
 

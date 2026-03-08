@@ -6,6 +6,8 @@ import com.homelab.app.data.remote.dto.pihole.PiholeBlockingStatus
 import com.homelab.app.data.remote.dto.pihole.PiholeQueryHistory
 import com.homelab.app.data.remote.dto.pihole.PiholeStats
 import com.homelab.app.data.remote.dto.pihole.PiholeUpstream
+import com.homelab.app.data.remote.dto.pihole.PiholeDomainListResponse
+import com.homelab.app.data.remote.dto.pihole.PiholeAddDomainRequest
 import kotlinx.serialization.json.JsonElement
 import okhttp3.ResponseBody
 import retrofit2.http.*
@@ -37,6 +39,29 @@ interface PiholeApi {
         @Header("X-Homelab-Service") service: String = "Pihole",
         @Query("auth") auth: String? = null,
         @Body request: PiholeBlockingRequest
+    )
+
+    // Domains (v6 API)
+    @GET("api/domains")
+    suspend fun getDomains(
+        @Header("X-Homelab-Service") service: String = "Pihole",
+        @Query("auth") auth: String? = null
+    ): PiholeDomainListResponse
+
+    @POST("api/domains/{list}/exact")
+    suspend fun addDomain(
+        @Path("list") list: String,
+        @Header("X-Homelab-Service") service: String = "Pihole",
+        @Query("auth") auth: String? = null,
+        @Body request: PiholeAddDomainRequest
+    )
+
+    @DELETE("api/domains/{list}/exact/{domain}")
+    suspend fun removeDomain(
+        @Path("list") list: String,
+        @Path("domain") domain: String,
+        @Header("X-Homelab-Service") service: String = "Pihole",
+        @Query("auth") auth: String? = null
     )
 
     // Pi-Hole APIs return dynamic formats (arrays vs objects based on version v5/v6)

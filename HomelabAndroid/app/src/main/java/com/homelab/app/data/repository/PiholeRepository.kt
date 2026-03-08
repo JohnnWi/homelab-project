@@ -40,6 +40,17 @@ class PiholeRepository @Inject constructor(
         api.setBlocking(auth = getAuth(), request = PiholeBlockingRequest(blocking = enabled, timer = timer))
     }
 
+    // Domains (v6 API)
+    suspend fun getDomains(): List<PiholeDomainDto> = api.getDomains(auth = getAuth()).domains
+
+    suspend fun addDomain(domain: String, list: PiholeDomainListType) {
+        api.addDomain(list = list.value, auth = getAuth(), request = PiholeAddDomainRequest(domain = domain))
+    }
+
+    suspend fun removeDomain(domain: String, list: PiholeDomainListType) {
+        api.removeDomain(list = list.value, domain = domain, auth = getAuth())
+    }
+
     suspend fun getTopDomains(count: Int = 10): List<PiholeTopItem> {
         return try {
             val raw = api.getTopDomains(auth = getAuth(), count = count)

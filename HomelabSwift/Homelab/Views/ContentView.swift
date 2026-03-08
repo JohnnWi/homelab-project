@@ -15,6 +15,10 @@ struct ContentView: View {
             Tab(localizer.t.tabHome, systemImage: "house.fill") {
                 HomeView()
             }
+            
+            Tab(localizer.t.tabBookmarks, systemImage: "bookmark.fill") {
+                BookmarksView()
+            }
 
             Tab(localizer.t.tabSettings, systemImage: "gearshape.fill") {
                 SettingsView()

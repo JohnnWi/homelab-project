@@ -71,6 +71,32 @@ actor PiHoleAPIClient {
         try await engine.requestVoid(baseURL: baseURL, fallbackURL: fallbackURL, path: "/api/dns/blocking", method: "POST", headers: authHeaders(), body: body)
     }
 
+    // MARK: - Domains (v6 API)
+
+    private struct DomainListResponse: Codable, Sendable {
+        let domains: [PiholeDomain]
+    }
+
+    func getDomains() async throws -> [PiholeDomain] {
+        let response: DomainListResponse = try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: "/api/domains", headers: authHeaders())
+        return response.domains
+    }
+    
+    func addDomain(domain: String, to list: PiholeDomainListType) async throws {
+        struct AddDomainBody: Encodable {
+            let domain: String
+        }
+        let body = try AddDomainBody(domain: domain).toJSONData()
+        let path = "/api/domains/\(list.rawValue)/exact"
+        try await engine.requestVoid(baseURL: baseURL, fallbackURL: fallbackURL, path: path, method: "POST", headers: authHeaders(), body: body)
+    }
+    
+    func removeDomain(domain: String, from list: PiholeDomainListType) async throws {
+        // v6 API for exact domains
+        let path = "/api/domains/\(list.rawValue)/exact/\(domain)"
+        try await engine.requestVoid(baseURL: baseURL, fallbackURL: fallbackURL, path: path, method: "DELETE", headers: authHeaders())
+    }
+
     // MARK: - Top lists (handles varying API response formats)
 
     func getTopDomains(count: Int = 10) async throws -> [PiholeTopItem] {

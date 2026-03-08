@@ -84,7 +84,35 @@
     <string name="pihole_top_queries">DOMINI PIÙ RICHIESTI</string>
     <string name="pihole_top_clients">CLIENT PIÙ ATTIVI</string>
     <string name="pihole_total_suffix">%s totali</string>
-    
+    <string name="pihole_domain_management">Gestione Domini</string>
+    <string name="pihole_allowed">Consentiti</string>
+    <string name="pihole_blocked_list">Bloccati</string>
+    <string name="pihole_add_domain">Aggiungi Dominio</string>
+    <string name="pihole_no_domains">Nessun dominio trovato</string>
+    <string name="pihole_add_domain_desc">Aggiungi un nuovo dominio alla lista %s.</string>
+    <string name="pihole_disable_permanently">Disabilita indefinitamente</string>
+    <string name="pihole_disable_1m">Disabilita per 1 minuto</string>
+    <string name="pihole_disable_5m">Disabilita per 5 minuti</string>
+    <string name="pihole_disable_1h">Disabilita per 1 ora</string>
+    <string name="retry">Riprova</string>
+    <string name="delete">Elimina</string>
+    <string name="confirm">Conferma</string>
+    <string name="yes">Sì</string>
+    <string name="no">No</string>
+
+    <!-- Tailscale -->
+    <string name="tailscale_open">Tailscale VPN</string>
+    <string name="tailscale_connected">Connesso</string>
+    <string name="tailscale_not_connected">Non connesso</string>
+    <string name="tailscale_tap_to_open">Tocca per aprire Tailscale</string>
+
+    <!-- Bookmarks extra -->
+    <string name="category_color">Colore</string>
+    <string name="bookmark_favicon">Favicon</string>
+    <string name="bookmark_symbol">URL immagine</string>
+    <string name="bookmark_auto_favicon">Rilevata automaticamente dall\'URL</string>
+    <string name="bookmark_enter_url">Inserisci un URL per recuperare l\'icona</string>
+
     <!-- Beszel -->
     <string name="beszel_cpu">CPU</string>
     <string name="beszel_ram">RAM</string>
@@ -161,4 +189,68 @@
     <string name="portainer_cpu_ram">CPU &amp; RAM</string>
     <string name="portainer_cpu_usage">Utilizzo CPU</string>
     <string name="portainer_memory_percent">Memoria %%</string>
+
+    <!-- Security -->
+    <string name="security_title">Sicurezza</string>
+    <string name="security_setup_pin">Crea PIN</string>
+    <string name="security_setup_pin_desc">Imposta un PIN a 6 cifre per proteggere l\'app</string>
+    <string name="security_confirm_pin">Conferma PIN</string>
+    <string name="security_confirm_pin_desc">Inserisci nuovamente il PIN per confermare</string>
+    <string name="security_enter_pin">Inserisci PIN</string>
+    <string name="security_enter_pin_desc">Inserisci il PIN a 6 cifre per sbloccare</string>
+    <string name="security_wrong_pin">PIN errato. Riprova.</string>
+    <string name="security_enable_biometric">Abilita biometria</string>
+    <string name="security_biometric_desc">Sblocca velocemente con la biometria</string>
+    <string name="security_change_pin">Cambia PIN</string>
+    <string name="security_disable">Disattiva Sicurezza</string>
+    <string name="security_disable_confirm">Disattivare la Sicurezza?</string>
+    <string name="security_disable_message">Il PIN e le impostazioni biometriche verranno rimossi. Chiunque potrà accedere all\'app.</string>
+    <string name="security_pin_mismatch">I PIN non corrispondono. Riprova.</string>
+    <string name="biometric_reason">Sblocca Homelab</string>
+    <string name="security_new_pin">Nuovo PIN</string>
+    <string name="security_new_pin_desc">Inserisci il nuovo PIN a 6 cifre</string>
+    <string name="security_current_pin">PIN Attuale</string>
+    <string name="security_current_pin_desc">Inserisci il PIN attuale per continuare</string>
+    <string name="security_not_configured">Nessun PIN configurato</string>
+    <string name="security_skip">Salta per ora</string>
+
+    <!-- Tailscale -->
+    <string name="tailscale_connect">Connetti a Tailscale</string>
+    <string name="tailscale_desc">Apri la VPN Tailscale per accedere alla tua homelab in sicurezza</string>
+
+    <!-- Segnalibri -->
+    <string name="bookmark_title">Titolo</string>
+    <string name="bookmark_desc">Descrizione (Opzionale)</string>
+    <string name="bookmark_url">URL</string>
+    <string name="bookmark_category">Categoria</string>
+    <string name="bookmark_category_new">Nuova Categoria</string>
+    <string name="bookmark_icon">Icona</string>
+    <string name="bookmark_add">Aggiungi Segnalibro</string>
+    <string name="bookmark_edit">Modifica Segnalibro</string>
+    <string name="category_name">Nome Categoria</string>
+    <string name="category_add">Aggiungi Categoria</string>
+    <string name="category_edit">Modifica Categoria</string>
+    <string name="category_delete">Elimina Categoria</string>
+    <string name="category_delete_confirm">Vuoi davvero eliminare questa categoria e tutti i suoi segnalibri?</string>
+    <string name="category_empty">Nessun segnalibro in questa categoria</string>
+    <string name="category_uncategorized">Non categorizzati</string>
+    <string name="nav_bookmarks">Segnalibri</string>
+    <string name="bookmark_tags">Tag (separati da virgola)</string>
+    <string name="bookmark_icon_type">Tipo Icona</string>
+    <string name="bookmark_selfhst">Selfh.st</string>
+    <string name="bookmark_symbol_name">URL immagine</string>
+    <string name="bookmark_selfhst_name">Servizio Selfh.st (es. pihole)</string>
+    <string name="bookmark_selfhst_preview">Anteprima da Selfh.st</string>
+    <string name="bookmark_delete_confirm">Sei sicuro di voler eliminare questo segnalibro?</string>
+    <string name="bookmark_search">Cerca titoli o tag...</string>
+    <string name="bookmark_reorder">Riordina segnalibri</string>
+    <string name="bookmark_reorder_category_label">Categoria</string>
+    <string name="bookmark_reorder_bookmark_label">Segnalibro</string>
+
+    <!-- Onboarding v2 -->
+    <string name="onboarding_welcome">Benvenuto</string>
+    <string name="onboarding_welcome_desc">La tua casa digitale, organizzata e semplice.</string>
+    <string name="onboarding_ask_pin">Vuoi impostare un codice di sblocco per proteggere l\'app?</string>
+    <string name="onboarding_ask_pin_yes">Sì, imposta un codice</string>
+    <string name="onboarding_ask_pin_no">No, salta per ora</string>
 </resources>

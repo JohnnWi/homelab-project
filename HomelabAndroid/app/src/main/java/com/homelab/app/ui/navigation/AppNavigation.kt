@@ -25,8 +25,12 @@ import com.homelab.app.ui.settings.SettingsScreen
 import com.homelab.app.R
 import androidx.compose.ui.res.stringResource
 
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.outlined.Bookmark
+
 sealed class Screen(val route: String, val titleResId: Int, val activeIcon: androidx.compose.ui.graphics.vector.ImageVector, val inactiveIcon: androidx.compose.ui.graphics.vector.ImageVector) {
     object Home : Screen("home", R.string.nav_home, Icons.Filled.Home, Icons.Outlined.Home)
+    object Bookmarks : Screen("bookmarks", R.string.nav_bookmarks, Icons.Filled.Bookmark, Icons.Outlined.Bookmark)
     object Settings : Screen("settings", R.string.nav_settings, Icons.Filled.Settings, Icons.Outlined.Settings)
 }
 
@@ -34,7 +38,7 @@ sealed class Screen(val route: String, val titleResId: Int, val activeIcon: andr
 fun AppNavigation() {
     val navController = rememberNavController()
     
-    val items = listOf(Screen.Home, Screen.Settings)
+    val items = listOf(Screen.Home, Screen.Bookmarks, Screen.Settings)
 
     Scaffold(
         bottomBar = {
@@ -133,6 +137,10 @@ fun AppNavigation() {
                 )
             }
             
+            composable(Screen.Bookmarks.route) {
+                com.homelab.app.ui.bookmarks.BookmarksScreen()
+            }
+            
             composable(Screen.Settings.route) {
                 SettingsScreen()
             }
@@ -187,6 +195,13 @@ fun AppNavigation() {
 
             composable("pihole/dashboard") {
                 com.homelab.app.ui.pihole.PiholeDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToDomains = { navController.navigate("pihole/domains") }
+                )
+            }
+
+            composable("pihole/domains") {
+                com.homelab.app.ui.pihole.PiholeDomainListScreen(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

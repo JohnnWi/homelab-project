@@ -41,10 +41,17 @@ struct ServiceLoginView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .symbolRenderingMode(.hierarchical)
-                            .font(.title3)
-                            .foregroundStyle(AppTheme.textSecondary)
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(Color(uiColor: .secondaryLabel))
+                            .padding(8)
+                            .background(Color(uiColor: .tertiarySystemFill), in: Circle())
+                    }
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button(localizer.t.done) {
+                        endEditing()
                     }
                 }
             }
@@ -310,14 +317,6 @@ private struct InputField: View {
                     .keyboardType(keyboardType)
                     .submitLabel(onSubmit != nil ? .go : .next)
                     .onSubmit { onSubmit?() }
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button(localizer.t.done) {
-                                endEditing()
-                            }
-                        }
-                    }
             }
 
             if showToggle {

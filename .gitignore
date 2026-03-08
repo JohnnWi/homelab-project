@@ -26,9 +26,11 @@ secrets.json
 # ----------------------------
 HomelabSwift/**/xcuserdata/
 HomelabSwift/**/DerivedData/
+HomelabSwift/**/build/
 HomelabSwift/**/*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
 HomelabSwift/**/*.xcodeproj/xcuserdata/
 HomelabSwift/**/*.xcodeproj/project.xcworkspace/xcuserdata/
+HomelabSwift/**/*.xcresult/
 *.hmap
 *.dSYM.zip
 *.dSYM
@@ -37,6 +39,7 @@ HomelabSwift/**/*.xcodeproj/project.xcworkspace/xcuserdata/
 
 # Swift Package Manager
 HomelabSwift/.build/
+HomelabSwift/.swiftpm/
 HomelabSwift/Packages/
 HomelabSwift/**/*.resolved
 
@@ -44,8 +47,12 @@ HomelabSwift/**/*.resolved
 # Android / Kotlin (HomelabAndroid)
 # ----------------------------
 HomelabAndroid/.gradle/
+HomelabAndroid/**/build/
 HomelabAndroid/app/build/
 HomelabAndroid/build/
+HomelabAndroid/.externalNativeBuild/
+HomelabAndroid/.cxx/
+HomelabAndroid/captures/
 HomelabAndroid/local.properties
 HomelabAndroid/.idea/
 HomelabAndroid/**/*.iml
