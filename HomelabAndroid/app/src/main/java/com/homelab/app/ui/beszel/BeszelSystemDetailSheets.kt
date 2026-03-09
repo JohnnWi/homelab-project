@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -144,6 +146,7 @@ internal fun ExtraMetricDetailsSheet(
         Column(
             modifier = androidx.compose.ui.Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -238,52 +241,52 @@ internal fun ExtraMetricDetailsSheet(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
-                when (metric) {
-                    ExtraMetricType.TEMPERATURE -> {
-                        val sensors = latest?.temperatureSensors.orEmpty().entries.sortedByDescending { it.value }
-                        if (sensors.isNotEmpty()) {
-                            DetailSectionTitle(stringResource(R.string.beszel_temp_sensors))
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                sensors.forEach { (name, value) ->
-                                    DetailStatRow(name, String.format("%.1f°C", value))
-                                }
-                            }
-                        }
-                    }
-
-                    ExtraMetricType.LOAD -> {
-                        val loadValues = latest?.loadAvgValues.orEmpty()
-                        if (loadValues.isNotEmpty()) {
-                            DetailSectionTitle(stringResource(R.string.beszel_load_avg))
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                loadValues.getOrNull(0)?.let { DetailStatRow("1 min", String.format("%.2f", it)) }
-                                loadValues.getOrNull(1)?.let { DetailStatRow("5 min", String.format("%.2f", it)) }
-                                loadValues.getOrNull(2)?.let { DetailStatRow("15 min", String.format("%.2f", it)) }
-                            }
-                        }
-                    }
-
-                    ExtraMetricType.NETWORK -> {
-                        val interfaces = latest?.networkInterfaces.orEmpty().toList().sortedBy { it.first }
-                        if (interfaces.isNotEmpty()) {
-                            DetailSectionTitle(stringResource(R.string.beszel_network_interfaces))
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                interfaces.forEach { (name, snapshot) ->
-                                    NetworkInterfaceRow(name = name, snapshot = snapshot)
-                                }
-                            }
-                        }
-                    }
-
-                    else -> Unit
-                }
             } else {
                 Text(
                     text = stringResource(R.string.beszel_background_update_info),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+
+            when (metric) {
+                ExtraMetricType.TEMPERATURE -> {
+                    val sensors = latest?.temperatureSensors.orEmpty().entries.sortedByDescending { it.value }
+                    if (sensors.isNotEmpty()) {
+                        DetailSectionTitle(stringResource(R.string.beszel_temp_sensors))
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            sensors.forEach { (name, value) ->
+                                DetailStatRow(name, String.format("%.1f°C", value))
+                            }
+                        }
+                    }
+                }
+
+                ExtraMetricType.LOAD -> {
+                    val loadValues = latest?.loadAvgValues.orEmpty()
+                    if (loadValues.isNotEmpty()) {
+                        DetailSectionTitle(stringResource(R.string.beszel_load_avg))
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            loadValues.getOrNull(0)?.let { DetailStatRow("1 min", String.format("%.2f", it)) }
+                            loadValues.getOrNull(1)?.let { DetailStatRow("5 min", String.format("%.2f", it)) }
+                            loadValues.getOrNull(2)?.let { DetailStatRow("15 min", String.format("%.2f", it)) }
+                        }
+                    }
+                }
+
+                ExtraMetricType.NETWORK -> {
+                    val interfaces = latest?.networkInterfaces.orEmpty().toList().sortedBy { it.first }
+                    if (interfaces.isNotEmpty()) {
+                        DetailSectionTitle(stringResource(R.string.beszel_network_interfaces))
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            interfaces.forEach { (name, snapshot) ->
+                                NetworkInterfaceRow(name = name, snapshot = snapshot)
+                            }
+                        }
+                    }
+                }
+
+                else -> Unit
             }
         }
     }
@@ -313,6 +316,7 @@ internal fun CpuDetailsSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -426,6 +430,7 @@ internal fun DiskFsDetailsSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -544,6 +549,7 @@ internal fun GpuDetailsSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -617,6 +623,7 @@ internal fun SmartDetailsSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -740,6 +747,7 @@ internal fun ResourceMetricDetailsSheet(
         Column(
             modifier = androidx.compose.ui.Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -916,6 +924,7 @@ internal fun DualMetricDetailsSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {

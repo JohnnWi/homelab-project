@@ -25,6 +25,7 @@ class BeszelViewModel @Inject constructor(
     private val repository: BeszelRepository,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
+    private var systemDetailRequestToken: Long = 0
 
     private val _systemsState = MutableStateFlow<UiState<List<BeszelSystem>>>(UiState.Loading)
     val systemsState: StateFlow<UiState<List<BeszelSystem>>> = _systemsState
@@ -63,17 +64,27 @@ class BeszelViewModel @Inject constructor(
 
     fun fetchSystemDetail(systemId: String) {
         viewModelScope.launch {
+            val requestToken = ++systemDetailRequestToken
             _systemDetailState.value = UiState.Loading
+            _systemDetails.value = null
+            _records.value = emptyList()
+            _smartDevices.value = emptyList()
             try {
                 val system = repository.getSystem(systemId)
+                if (requestToken != systemDetailRequestToken) return@launch
                 _systemDetailState.value = UiState.Success(system)
 
                 // Fire-and-forget: extended system details (non-critical)
                 launch {
                     try {
-                        _systemDetails.value = repository.getSystemDetails(systemId)
+                        val details = repository.getSystemDetails(systemId)
+                        if (requestToken == systemDetailRequestToken) {
+                            _systemDetails.value = details
+                        }
                     } catch (_: Exception) {
-                        // Ignore non-critical details failure
+                        if (requestToken == systemDetailRequestToken) {
+                            _systemDetails.value = null
+                        }
                     }
                 }
 
@@ -82,21 +93,31 @@ class BeszelViewModel @Inject constructor(
                     try {
                         val rawRecords = repository.getSystemRecords(systemId, limit = 60)
                         // The API returns newest records first. Sort chronologically so graphs plot left to right natively.
-                        _records.value = rawRecords.sortedBy { it.created }
+                        if (requestToken == systemDetailRequestToken) {
+                            _records.value = rawRecords.sortedBy { it.created }
+                        }
                     } catch (_: Exception) {
-                        // Ignore non-critical records failure
+                        if (requestToken == systemDetailRequestToken) {
+                            _records.value = emptyList()
+                        }
                     }
                 }
 
                 // Fire-and-forget: SMART devices (non-critical, may not be configured)
                 launch {
                     try {
-                        _smartDevices.value = repository.getSmartDevices(systemId)
+                        val devices = repository.getSmartDevices(systemId)
+                        if (requestToken == systemDetailRequestToken) {
+                            _smartDevices.value = devices
+                        }
                     } catch (_: Exception) {
-                        _smartDevices.value = emptyList()
+                        if (requestToken == systemDetailRequestToken) {
+                            _smartDevices.value = emptyList()
+                        }
                     }
                 }
             } catch (e: Exception) {
+                if (requestToken != systemDetailRequestToken) return@launch
                 val message = ErrorHandler.getMessage(context, e)
                 _systemDetailState.value = UiState.Error(message, retryAction = { fetchSystemDetail(systemId) })
             }
