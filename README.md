@@ -2,6 +2,11 @@
 
 A premium, fully native dual-platform solution for monitoring and managing your personal Homelab ecosystem. This project features two distinct, purpose-built native applications sharing the same design soul but optimized for their respective platforms.
 
+## Highlights
+
+- **Tailscale support**: quickly open Tailscale, check VPN connectivity status, and secure access to homelab services when they are not directly reachable.
+- **Bookmarks**: save your favorite internal tools and dashboards with categories, tags, and custom icons for faster access from both apps.
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=JohnnWi/homelab-project&type=date&legend=top-left)](https://www.star-history.com/#JohnnWi/homelab-project&type=date&legend=top-left)
@@ -83,6 +88,12 @@ A lightweight, efficient system monitor. Track global CPU, Memory, and Disk usag
 
 ### 🦊 Gitea
 Manage your code natively. Browse repositories, view contribution heatmaps, read code files with full syntax highlighting, and keep track of your latest commits.
+
+### 🔐 Tailscale
+Integrated Tailscale support helps you securely reach your homelab from anywhere, with quick launch actions and connection status surfaced directly inside the app experience.
+
+### 🔖 Bookmarks
+Keep all your most-used homelab links in one place with a native bookmarks feature that supports organization, quick access, and a cleaner daily workflow.
 
 ---
 
