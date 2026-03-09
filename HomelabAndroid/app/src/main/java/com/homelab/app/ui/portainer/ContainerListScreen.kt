@@ -23,6 +23,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -38,7 +39,7 @@ import com.homelab.app.data.remote.dto.portainer.ContainerAction
 import com.homelab.app.data.remote.dto.portainer.PortainerContainer
 import com.homelab.app.ui.theme.primaryColor
 import com.homelab.app.util.ServiceType
-import androidx.compose.ui.res.stringResource
+import com.homelab.app.util.ResourceFormatters
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -244,7 +245,7 @@ fun ContainerRowCard(
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = formatUnixDate(container.created),
+                    text = ResourceFormatters.formatUnixDate(container.created),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -303,12 +304,21 @@ fun StatusBadge(status: String) {
         else -> Color.Gray to Color.LightGray
     }
 
+    val label = when (status) {
+        "running" -> stringResource(R.string.portainer_running)
+        "exited", "dead" -> stringResource(R.string.portainer_stopped)
+        "paused" -> stringResource(R.string.pihole_status_disabled) // Or another appropriate string
+        "healthy" -> stringResource(R.string.portainer_healthy)
+        "unhealthy" -> stringResource(R.string.portainer_unhealthy)
+        else -> status.uppercase()
+    }
+
     Surface(
         shape = RoundedCornerShape(6.dp),
         color = bgColor
     ) {
         Text(
-            text = status.uppercase(),
+            text = label,
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
             color = color,
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)
@@ -352,8 +362,4 @@ fun ActionButton(action: ContainerAction, icon: androidx.compose.ui.graphics.vec
     }
 }
 
-private fun formatUnixDate(unixTime: Long): String {
-    val date = Date(unixTime * 1000)
-    val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-    return formatter.format(date)
-}
+// --- Formatters moved to ResourceFormatters ---

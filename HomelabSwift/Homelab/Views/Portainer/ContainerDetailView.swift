@@ -69,10 +69,10 @@ struct ContainerDetailView: View {
         .onChange(of: activeTab) { _, newTab in
             Task { await fetchTabData(newTab) }
         }
-        .alert("Error", isPresented: $showActionError) {
-            Button("OK", role: .cancel) {}
+        .alert(localizer.t.error, isPresented: $showActionError) {
+            Button(localizer.t.confirm, role: .cancel) {}
         } message: {
-            Text(actionError ?? "Unknown error")
+            Text(actionError ?? localizer.t.errorUnknown)
         }
     }
 
@@ -307,7 +307,7 @@ struct ContainerDetailView: View {
                 infoRow(label: localizer.t.detailMode, value: detail.HostConfig.NetworkMode)
                 ForEach(Array(detail.NetworkSettings.Networks.keys.sorted()), id: \.self) { name in
                     if let net = detail.NetworkSettings.Networks[name] {
-                        infoRow(label: name, value: net.IPAddress.isEmpty ? "N/A" : net.IPAddress)
+                        infoRow(label: name, value: net.IPAddress.isEmpty ? localizer.t.notAvailable : net.IPAddress)
                     }
                 }
             }
@@ -363,7 +363,7 @@ struct ContainerDetailView: View {
                         .font(.subheadline.weight(.semibold))
                 }
                 .padding(.bottom, 4)
-                infoRow(label: localizer.t.detailPolicy, value: detail.HostConfig.RestartPolicy.Name.isEmpty ? "none" : detail.HostConfig.RestartPolicy.Name)
+                infoRow(label: localizer.t.detailPolicy, value: detail.HostConfig.RestartPolicy.Name.isEmpty ? localizer.t.none : detail.HostConfig.RestartPolicy.Name)
                 infoRow(label: localizer.t.detailMaxRetries, value: "\(detail.HostConfig.RestartPolicy.MaximumRetryCount)")
             }
             .padding(16)

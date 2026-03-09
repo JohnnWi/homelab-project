@@ -22,9 +22,11 @@ class ServicesRepository @Inject constructor(
     // Current reachability status (true = up, false = down, null = checking/unknown)
     private val _reachability = MutableStateFlow<Map<ServiceType, Boolean?>>(emptyMap())
     private val _pinging = MutableStateFlow<Map<ServiceType, Boolean>>(emptyMap())
-
+    private val _isTailscaleConnected = MutableStateFlow(false)
+    
     val reachability: Flow<Map<ServiceType, Boolean?>> = _reachability
     val pinging: Flow<Map<ServiceType, Boolean>> = _pinging
+    val isTailscaleConnected: Flow<Boolean> = _isTailscaleConnected
 
     val allConnections: Flow<Map<ServiceType, ServiceConnection?>> = settingsManager.allConnections
 
@@ -57,7 +59,10 @@ class ServicesRepository @Inject constructor(
         // Use a real GET request on IO dispatcher to avoid blocking main thread
         // Some local servers (like Pi-hole) might handle HEAD differently or fail.
         val reachable = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            val baseUrl = connection.url.trimEnd('/')
+            val baseUrl = connection.url
+                .takeIf { it.isNotBlank() }
+                ?.trimEnd('/')
+                ?: return@withContext false
             val pathsToTry = if (type == ServiceType.PIHOLE) {
                 // For Pi-hole, try v6 info path, v5 admin path, and base URL
                 listOf("/api/info/version", "/admin/index.php", "", "/admin/api.php")
@@ -88,6 +93,30 @@ class ServicesRepository @Inject constructor(
         
         updatePingingMap(type, false)
         updateReachabilityMap(type, reachable)
+    }
+
+    fun checkTailscale() {
+        val connected = try {
+            val interfaces = java.net.NetworkInterface.getNetworkInterfaces()
+            var found = false
+            while (interfaces.hasMoreElements()) {
+                val networkInterface = interfaces.nextElement()
+                val addresses = networkInterface.inetAddresses
+                while (addresses.hasMoreElements()) {
+                    val address = addresses.nextElement()
+                    val hostAddress = address.hostAddress ?: continue
+                    if (!address.isLoopbackAddress && hostAddress.startsWith("100.")) {
+                        found = true
+                        break
+                    }
+                }
+                if (found) break
+            }
+            found
+        } catch (e: Exception) {
+            false
+        }
+        _isTailscaleConnected.value = connected
     }
 
     private fun updateReachabilityMap(type: ServiceType, value: Boolean?) {

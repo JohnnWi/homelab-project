@@ -41,10 +41,17 @@ struct ServiceLoginView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .symbolRenderingMode(.hierarchical)
-                            .font(.title3)
-                            .foregroundStyle(AppTheme.textSecondary)
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(Color(uiColor: .secondaryLabel))
+                            .padding(8)
+                            .background(Color(uiColor: .tertiarySystemFill), in: Circle())
+                    }
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button(localizer.t.done) {
+                        endEditing()
                     }
                 }
             }
@@ -244,8 +251,16 @@ struct ServiceLoginView: View {
             return ServiceConnection(type: .portainer, url: url, apiKey: apiKey.trimmingCharacters(in: .whitespaces))
 
         case .pihole:
-            let sid = try await servicesStore.piholeClient.authenticate(url: url, password: password)
-            return ServiceConnection(type: .pihole, url: url, token: sid)
+            let trimmedPassword = password.trimmingCharacters(in: .whitespaces)
+            let sid = try await servicesStore.piholeClient.authenticate(url: url, password: trimmedPassword)
+            let authMode: PiHoleAuthMode = sid == trimmedPassword ? .legacy : .session
+            return ServiceConnection(
+                type: .pihole,
+                url: url,
+                token: sid,
+                piholePassword: trimmedPassword,
+                piholeAuthMode: authMode
+            )
 
         case .beszel:
             let token = try await servicesStore.beszelClient.authenticate(url: url, email: username.trimmingCharacters(in: .whitespaces), password: password)
@@ -310,14 +325,6 @@ private struct InputField: View {
                     .keyboardType(keyboardType)
                     .submitLabel(onSubmit != nil ? .go : .next)
                     .onSubmit { onSubmit?() }
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button(localizer.t.done) {
-                                endEditing()
-                            }
-                        }
-                    }
             }
 
             if showToggle {

@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import Darwin
 
 @Observable
 @MainActor
@@ -11,6 +12,7 @@ final class ServicesStore {
     private(set) var isReady: Bool = false
     private(set) var reachability: [ServiceType: Bool?] = [:]  // nil = checking, true = up, false = down
     private(set) var pinging: [ServiceType: Bool] = [:]
+    private(set) var isTailscaleConnected: Bool = false
 
     /// Tracks last reachability check time to debounce rapid checks
     private var lastReachabilityCheck: Date?
@@ -50,7 +52,7 @@ final class ServicesStore {
         ) { [weak self] notification in
             if let serviceType = notification.userInfo?["serviceType"] as? ServiceType {
                 Task { @MainActor in
-                    self?.disconnectService(serviceType)
+                    await self?.handleUnauthorized(serviceType)
                 }
             }
         }
@@ -77,6 +79,7 @@ final class ServicesStore {
         // Fire-and-forget health checks
         Task {
             await checkAllReachability()
+            await checkTailscale()
         }
 
         // Start periodic health checks (every 30 seconds)
@@ -112,6 +115,8 @@ final class ServicesStore {
             token: conn.token,
             username: conn.username,
             apiKey: conn.apiKey,
+            piholePassword: conn.piholePassword,
+            piholeAuthMode: conn.piholeAuthMode,
             fallbackUrl: fallbackUrl.isEmpty ? nil : fallbackUrl
         )
         connections[type] = conn
@@ -152,6 +157,32 @@ final class ServicesStore {
                 group.addTask { await self.checkReachability(for: type) }
             }
         }
+        await checkTailscale()
+    }
+
+    func checkTailscale() async {
+        var addrs: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&addrs) == 0, let first = addrs else {
+            isTailscaleConnected = false
+            return
+        }
+        defer { freeifaddrs(first) }
+
+        var cursor: UnsafeMutablePointer<ifaddrs>? = first
+        var found = false
+        while let addr = cursor {
+            if let sa = addr.pointee.ifa_addr, sa.pointee.sa_family == UInt8(AF_INET) {
+                var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                getnameinfo(sa, socklen_t(sa.pointee.sa_len), &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST)
+                let ip = String(cString: hostname)
+                if ip.hasPrefix("100.") {
+                    found = true
+                    break
+                }
+            }
+            cursor = addr.pointee.ifa_next
+        }
+        isTailscaleConnected = found
     }
 
     // MARK: - Periodic Health Checks
@@ -163,7 +194,7 @@ final class ServicesStore {
         healthCheckTask?.cancel()
         healthCheckTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(30))
+                try? await Task.sleep(for: .seconds(180))
                 guard !Task.isCancelled else { break }
                 await self?.checkAllReachability()
             }
@@ -178,6 +209,27 @@ final class ServicesStore {
 
     // MARK: - Private: configure clients
 
+    private func handleUnauthorized(_ type: ServiceType) async {
+        if type == .pihole,
+           let conn = connections[type],
+           let password = conn.piHoleStoredSecret,
+           !password.isEmpty {
+            do {
+                let refreshedSID = try await piholeClient.authenticate(url: conn.url, password: password)
+                let authMode: PiHoleAuthMode = refreshedSID == password ? .legacy : .session
+                let refreshed = conn.updatingToken(refreshedSID, piholeAuthMode: authMode)
+                connections[type] = refreshed
+                await configureClient(for: type, with: refreshed)
+                KeychainService.saveConnections(connections)
+                return
+            } catch {
+                // Fall back to disconnect only if session refresh fails.
+            }
+        }
+
+        disconnectService(type)
+    }
+
     private func configureClient(for type: ServiceType, with conn: ServiceConnection) async {
         switch type {
         case .portainer:
@@ -187,7 +239,24 @@ final class ServicesStore {
                 await portainerClient.configure(url: conn.url, jwt: conn.token, fallbackUrl: conn.fallbackUrl)
             }
         case .pihole:
-            await piholeClient.configure(url: conn.url, sid: conn.token, fallbackUrl: conn.fallbackUrl)
+            let configuredSID: String
+            var authMode = conn.piholeAuthMode
+            if let password = conn.piHoleStoredSecret, !password.isEmpty {
+                do {
+                    configuredSID = try await piholeClient.authenticate(url: conn.url, password: password)
+                    authMode = configuredSID == password ? .legacy : .session
+                    let refreshed = conn.updatingToken(configuredSID, piholeAuthMode: authMode)
+                    if refreshed != conn {
+                        connections[type] = refreshed
+                        KeychainService.saveConnections(connections)
+                    }
+                } catch {
+                    configuredSID = conn.token
+                }
+            } else {
+                configuredSID = conn.token
+            }
+            await piholeClient.configure(url: conn.url, sid: configuredSID, authMode: authMode, fallbackUrl: conn.fallbackUrl)
         case .beszel:
             await beszelClient.configure(url: conn.url, token: conn.token, fallbackUrl: conn.fallbackUrl)
         case .gitea:

@@ -1,8 +1,12 @@
 package com.homelab.app.ui.settings
 
+import android.content.ClipData
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.animation.*
+import androidx.compose.animation.togetherWith
+import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -10,11 +14,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,14 +31,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import com.homelab.app.R
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.AnnotatedString
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homelab.app.util.ServiceType
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,8 +74,9 @@ fun SettingsScreen(
 
             // --- DONATION ---
             item {
-                val clipboardManager = LocalClipboardManager.current
+                val clipboard = LocalClipboard.current
                 val context = LocalContext.current
+                val scope = rememberCoroutineScope()
                 val cryptoAddress = "0x649641868e6876c2c1f04584a95679e01c1aaf0d"
 
                 Surface(
@@ -98,8 +102,12 @@ fun SettingsScreen(
                         
                         Surface(
                             onClick = { 
-                                clipboardManager.setText(AnnotatedString(cryptoAddress))
-                                Toast.makeText(context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+                                scope.launch {
+                                    clipboard.setClipEntry(
+                                        ClipEntry(ClipData.newPlainText("Homelab donation address", cryptoAddress))
+                                    )
+                                    Toast.makeText(context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+                                }
                             },
                             shape = RoundedCornerShape(12.dp),
                             color = MaterialTheme.colorScheme.surfaceContainer,
@@ -191,6 +199,261 @@ fun SettingsScreen(
                                         modifier = if (!isSelected) Modifier.alpha(0.5f) else Modifier
                                     )
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // --- SECURITY ---
+            item {
+                val isPinSet by viewModel.isPinSet.collectAsState()
+                val biometricEnabled by viewModel.biometricEnabled.collectAsState()
+                val context = LocalContext.current
+                val canUseBiometric = remember { com.homelab.app.util.BiometricHelper.canAuthenticate(context) }
+                var showDisableDialog by remember { mutableStateOf(false) }
+                var showChangePinSheet by remember { mutableStateOf(false) }
+
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.security_title).uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 16.dp, start = 8.dp)
+                    )
+
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        tonalElevation = 1.dp
+                    ) {
+                        Column {
+                            if (isPinSet) {
+                                // Biometric toggle
+                                if (canUseBiometric) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Fingerprint,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = stringResource(R.string.security_enable_biometric),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.security_biometric_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        Switch(
+                                            checked = biometricEnabled,
+                                            onCheckedChange = { viewModel.setBiometricEnabled(it) }
+                                        )
+                                    }
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                                }
+
+                                // Change PIN
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = { showChangePinSheet = true },
+                                    color = Color.Transparent
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Key,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                            text = stringResource(R.string.security_change_pin),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Medium,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Icon(
+                                            imageVector = Icons.Default.ChevronRight,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                                // Disable security
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = { showDisableDialog = true },
+                                    color = Color.Transparent
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.LockOpen,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                            text = stringResource(R.string.security_disable),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Medium,
+                                            color = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.LockOpen,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = stringResource(R.string.security_not_configured),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Disable security confirmation dialog
+                if (showDisableDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showDisableDialog = false },
+                        title = { Text(stringResource(R.string.security_disable_confirm)) },
+                        text = { Text(stringResource(R.string.security_disable_message)) },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                viewModel.clearSecurity()
+                                showDisableDialog = false
+                            }) {
+                                Text(
+                                    stringResource(R.string.security_disable),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showDisableDialog = false }) {
+                                Text(stringResource(R.string.cancel))
+                            }
+                        }
+                    )
+                }
+
+                // Change PIN flow
+                if (showChangePinSheet) {
+                    androidx.compose.ui.window.Dialog(
+                        onDismissRequest = { showChangePinSheet = false },
+                        properties = androidx.compose.ui.window.DialogProperties(
+                            usePlatformDefaultWidth = false,
+                            decorFitsSystemWindows = false
+                        )
+                    ) {
+                        var changePinStep by remember { mutableStateOf(0) } // 0: current, 1: new, 2: confirm
+                        var newPinInput by remember { mutableStateOf("") }
+                        var pinError by remember { mutableStateOf<String?>(null) }
+                        val scope = rememberCoroutineScope()
+                        
+                        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                            androidx.compose.animation.AnimatedContent(
+                                targetState = changePinStep,
+                                transitionSpec = {
+                                    androidx.compose.animation.slideInHorizontally { it } togetherWith androidx.compose.animation.slideOutHorizontally { -it }
+                                },
+                                label = "change_pin_step"
+                            ) { step ->
+                                when(step) {
+                                    0 -> {
+                                        com.homelab.app.ui.security.PinEntryScreen(
+                                            title = stringResource(R.string.security_current_pin),
+                                            subtitle = stringResource(R.string.security_current_pin_desc),
+                                            errorMessage = pinError,
+                                            onPinComplete = { pin ->
+                                                if (viewModel.verifyPin(pin)) {
+                                                    pinError = null
+                                                    changePinStep = 1
+                                                } else {
+                                                    pinError = context.getString(R.string.security_wrong_pin)
+                                                    scope.launch {
+                                                        kotlinx.coroutines.delay(1500)
+                                                        pinError = null
+                                                    }
+                                                }
+                                            }
+                                        )
+                                    }
+                                    1 -> {
+                                        com.homelab.app.ui.security.PinEntryScreen(
+                                            title = stringResource(R.string.security_new_pin),
+                                            subtitle = stringResource(R.string.security_new_pin_desc),
+                                            onPinComplete = { pin ->
+                                                newPinInput = pin
+                                                changePinStep = 2
+                                            }
+                                        )
+                                    }
+                                    2 -> {
+                                        com.homelab.app.ui.security.PinEntryScreen(
+                                            title = stringResource(R.string.security_confirm_pin),
+                                            subtitle = stringResource(R.string.security_confirm_pin_desc),
+                                            errorMessage = pinError,
+                                            onPinComplete = { pin ->
+                                                if (pin == newPinInput) {
+                                                    viewModel.savePin(pin)
+                                                    showChangePinSheet = false
+                                                } else {
+                                                    pinError = context.getString(R.string.security_pin_mismatch)
+                                                    scope.launch {
+                                                        kotlinx.coroutines.delay(1500)
+                                                        pinError = null
+                                                    }
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            // Close button
+                            IconButton(
+                                onClick = { showChangePinSheet = false },
+                                modifier = Modifier
+                                    .align(Alignment.TopStart)
+                                    .padding(top = 48.dp, start = 8.dp)
+                            ) {
+                                Icon(Icons.Default.Close, contentDescription = "Close")
                             }
                         }
                     }

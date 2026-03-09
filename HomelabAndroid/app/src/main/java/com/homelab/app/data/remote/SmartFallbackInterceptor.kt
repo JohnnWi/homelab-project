@@ -18,7 +18,7 @@ import javax.inject.Singleton
 
 @Singleton
 class SmartFallbackInterceptor @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val settingsManager: SettingsManager
 ) : Interceptor {
 

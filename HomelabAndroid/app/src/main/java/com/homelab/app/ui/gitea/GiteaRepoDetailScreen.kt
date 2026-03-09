@@ -43,6 +43,9 @@ import com.homelab.app.R
 import com.homelab.app.data.remote.dto.gitea.*
 import com.homelab.app.ui.theme.primaryColor
 import com.homelab.app.util.ServiceType
+import com.homelab.app.util.UiState
+import com.homelab.app.ui.common.ErrorScreen
+import com.homelab.app.util.ResourceFormatters
 import java.text.SimpleDateFormat
 import java.util.Locale
 import com.homelab.app.ui.gitea.langColors
@@ -60,26 +63,27 @@ fun GiteaRepoDetailScreen(
     onNavigateBack: () -> Unit,
     viewModel: GiteaRepoDetailViewModel = hiltViewModel()
 ) {
-    val repo by viewModel.repo.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val repo = (uiState as? UiState.Success)?.data
+    
     val activeTab by viewModel.activeTab.collectAsStateWithLifecycle()
     val branches by viewModel.branches.collectAsStateWithLifecycle()
     val selectedBranch by viewModel.selectedBranch.collectAsStateWithLifecycle()
     val viewingFile by viewModel.viewingFile.collectAsStateWithLifecycle()
     val currentPath by viewModel.currentPath.collectAsStateWithLifecycle()
 
-    val isLoadingRepo by viewModel.isLoadingRepo.collectAsStateWithLifecycle()
     val isLoadingContent by viewModel.isLoadingContent.collectAsStateWithLifecycle()
-    val error by viewModel.error.collectAsStateWithLifecycle()
+    val actionError by viewModel.actionError.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
     var showBranchSheet by remember { mutableStateOf(false) }
 
     val effectiveBranch = selectedBranch ?: repo?.default_branch ?: "main"
 
-    LaunchedEffect(error) {
-        error?.let {
+    LaunchedEffect(actionError) {
+        actionError?.let {
             snackbarHostState.showSnackbar(it)
-            viewModel.clearError()
+            viewModel.clearActionError()
         }
     }
 
@@ -130,6 +134,8 @@ fun GiteaRepoDetailScreen(
                     IconButton(onClick = {
                         haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
                         if (viewingFile == null && currentPath.isEmpty()) {
+                            viewModel.fetchRepo()
+                        } else {
                             viewModel.fetchTabContent()
                         }
                     }) {
@@ -146,38 +152,57 @@ fun GiteaRepoDetailScreen(
             } else if (currentPath.isNotEmpty()) {
                 FileBrowserContent(viewModel = viewModel, modifier = Modifier.fillMaxSize())
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    if (isLoadingRepo && repo == null) {
-                        item {
-                            Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(color = ServiceType.GITEA.primaryColor)
+                when (val state = uiState) {
+                    is UiState.Loading, is UiState.Idle -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = ServiceType.GITEA.primaryColor)
+                        }
+                    }
+                    is UiState.Error -> {
+                        ErrorScreen(
+                            message = state.message,
+                            onRetry = { viewModel.fetchRepo() },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    is UiState.Offline -> {
+                        ErrorScreen(
+                            message = "",
+                            onRetry = { viewModel.fetchRepo() },
+                            isOffline = true,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    is UiState.Success -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            item {
+                                RepoHeader(
+                                    repo = state.data,
+                                    branchesCount = branches.size,
+                                    effectiveBranch = effectiveBranch,
+                                    onBranchClick = { showBranchSheet = true }
+                                )
                             }
-                        }
-                    } else if (repo != null) {
-                        item {
-                            RepoHeader(
-                                repo = repo!!,
-                                branchesCount = branches.size,
-                                effectiveBranch = effectiveBranch,
-                                onBranchClick = { showBranchSheet = true }
-                            )
-                        }
-                        item {
-                            TabBar(
-                                activeTab = activeTab,
-                                onTabSelected = { viewModel.setActiveTab(it) }
-                            )
-                        }
-                        item {
-                            when (activeTab) {
-                                GiteaRepoTab.FILES -> FileBrowserContent(viewModel = viewModel)
-                                GiteaRepoTab.COMMITS -> CommitsTabContent(viewModel = viewModel)
-                                GiteaRepoTab.ISSUES -> IssuesTabContent(viewModel = viewModel)
-                                GiteaRepoTab.BRANCHES -> BranchesTabContent(viewModel = viewModel)
+                            item {
+                                TabBar(
+                                    activeTab = activeTab,
+                                    onTabSelected = { viewModel.setActiveTab(it) }
+                                )
+                            }
+                            item {
+                                when (activeTab) {
+                                    GiteaRepoTab.FILES -> FileBrowserContent(viewModel = viewModel)
+                                    GiteaRepoTab.COMMITS -> CommitsTabContent(viewModel = viewModel)
+                                    GiteaRepoTab.ISSUES -> IssuesTabContent(viewModel = viewModel)
+                                    GiteaRepoTab.BRANCHES -> BranchesTabContent(
+                                        viewModel = viewModel,
+                                        defaultBranch = state.data.default_branch
+                                    )
+                                }
                             }
                         }
                     }
@@ -269,7 +294,7 @@ private fun RepoHeader(repo: GiteaRepo, branchesCount: Int, effectiveBranch: Str
                 }
             }
             Row(modifier = Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.gitea_branches) + ":", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.gitea_branch_label), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 val haptic = LocalHapticFeedback.current
                 Surface(
                     shape = RoundedCornerShape(8.dp),
@@ -286,7 +311,7 @@ private fun RepoHeader(repo: GiteaRepo, branchesCount: Int, effectiveBranch: Str
                     }
                 }
                 Text("•", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(formatBytes(repo.size * 1024L), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(ResourceFormatters.formatBytes(repo.size * 1024.0, LocalContext.current), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -308,8 +333,14 @@ private fun TabBar(activeTab: GiteaRepoTab, onTabSelected: (GiteaRepoTab) -> Uni
                     onTabSelected(tab)
                 },
                 text = { 
+                    val tabTitle = when (tab) {
+                        GiteaRepoTab.FILES -> stringResource(R.string.gitea_tab_files)
+                        GiteaRepoTab.COMMITS -> stringResource(R.string.gitea_tab_commits)
+                        GiteaRepoTab.ISSUES -> stringResource(R.string.gitea_tab_issues)
+                        GiteaRepoTab.BRANCHES -> stringResource(R.string.gitea_tab_branches)
+                    }
                     Text(
-                        tab.name, 
+                        tabTitle, 
                         color = if (isSelected) ServiceType.GITEA.primaryColor else MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Visible
@@ -381,7 +412,8 @@ private fun FileBrowserContent(viewModel: GiteaRepoDetailViewModel, modifier: Mo
                             if (file.isDirectory) {
                                 Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
                             } else if (file.size > 0) {
-                                Text(formatBytes(file.size.toLong()), style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                val context = LocalContext.current
+                                Text(ResourceFormatters.formatBytes(file.size.toDouble(), context), style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                         if (index < files.lastIndex) {
@@ -401,7 +433,7 @@ private fun FileBrowserContent(viewModel: GiteaRepoDetailViewModel, modifier: Mo
                         }
                         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                         MarkdownText(
-                            markdown = content.take(25000) + if (content.length > 25000) "\n\n(Preview truncated...)" else "",
+                            markdown = content.take(25000) + if (content.length > 25000) "\n\n" + stringResource(R.string.gitea_preview_truncated) else "",
                             modifier = Modifier.padding(16.dp),
                             style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
                         )
@@ -443,21 +475,22 @@ private fun FileViewerContent(viewModel: GiteaRepoDetailViewModel, file: GiteaFi
                         Text(file.name, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Spacer(modifier = Modifier.weight(1f))
                         if (file.size > 0) {
-                            Text(formatBytes(file.size.toLong()), style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(ResourceFormatters.formatBytes(file.size.toDouble(), LocalContext.current), style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
 
-                    if (file.size > 5_000_000 && !file.isImage) {
+                    if (file.size > 5_000_000) {
                         Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
-                            Text(stringResource(R.string.gitea_file_too_large), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.gitea_file_too_large, ResourceFormatters.formatBytes(file.size.toDouble(), LocalContext.current)), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                    } else if (file.isImage && file.content != null) {
+                    } else if (file.isImage && !file.content.isNullOrEmpty()) {
+                        val encodedContent = file.content.orEmpty()
                         var bitmap: android.graphics.Bitmap? = null
                         var errorMsg: String? = null
                         val context = androidx.compose.ui.platform.LocalContext.current
                         try {
-                            val decodedBytes = Base64.decode(file.content.replace("\n", ""), Base64.DEFAULT)
+                            val decodedBytes = Base64.decode(encodedContent.replace("\n", ""), Base64.DEFAULT)
                             bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
                             if (bitmap == null) {
                                 errorMsg = context.getString(R.string.gitea_image_decode_error)
@@ -472,7 +505,7 @@ private fun FileViewerContent(viewModel: GiteaRepoDetailViewModel, file: GiteaFi
                             }
                         } else {
                             Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
-                                Text(errorMsg ?: "Errore sconosciuto", color = MaterialTheme.colorScheme.error)
+                                Text(errorMsg ?: stringResource(R.string.error_unknown), color = MaterialTheme.colorScheme.error)
                             }
                         }
                     } else if (file.decodedContent != null) {
@@ -567,7 +600,7 @@ private fun CommitsTabContent(viewModel: GiteaRepoDetailViewModel) {
                             Text(commit.commit.message.split("\n").firstOrNull() ?: "", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium), maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Text(commit.commit.author?.name ?: stringResource(R.string.not_available), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(formatDate(commit.commit.author?.date ?: ""), style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(ResourceFormatters.formatDate(commit.commit.author?.date ?: ""), style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Text(commit.sha.take(7), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = ServiceType.GITEA.primaryColor)
                         }
@@ -601,7 +634,7 @@ private fun IssuesTabContent(viewModel: GiteaRepoDetailViewModel) {
                             Text("#${issue.number} ${issue.title}", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium), maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Text(issue.user?.login ?: stringResource(R.string.not_available), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(formatDate(issue.created_at), style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(ResourceFormatters.formatDate(issue.created_at), style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 if (issue.comments > 0) {
                                     Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(10.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -631,9 +664,8 @@ private fun IssuesTabContent(viewModel: GiteaRepoDetailViewModel) {
 }
 
 @Composable
-private fun BranchesTabContent(viewModel: GiteaRepoDetailViewModel) {
+private fun BranchesTabContent(viewModel: GiteaRepoDetailViewModel, defaultBranch: String?) {
     val branches by viewModel.branches.collectAsStateWithLifecycle()
-    val repo by viewModel.repo.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoadingContent.collectAsStateWithLifecycle()
 
     if (isLoading && branches.isEmpty()) {
@@ -656,7 +688,7 @@ private fun BranchesTabContent(viewModel: GiteaRepoDetailViewModel) {
                                 if (branch.protected) {
                                     Icon(Icons.Default.Shield, contentDescription = null, tint = Color(0xFFFF9800), modifier = Modifier.size(10.dp))
                                 }
-                                if (branch.name == repo?.default_branch) {
+                                if (branch.name == defaultBranch) {
                                     Surface(shape = RoundedCornerShape(6.dp), color = ServiceType.GITEA.primaryColor.copy(alpha = 0.1f)) {
                                         Text(stringResource(R.string.default_branch), style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.SemiBold), color = ServiceType.GITEA.primaryColor, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                     }
@@ -674,21 +706,4 @@ private fun BranchesTabContent(viewModel: GiteaRepoDetailViewModel) {
     }
 }
 
-private fun formatBytes(bytes: Long): String {
-    if (bytes <= 0) return "0 B"
-    val units = arrayOf("B", "KB", "MB", "GB", "TB")
-    val digitGroups = (Math.log10(bytes.toDouble()) / Math.log10(1024.0)).toInt()
-    return String.format(Locale.US, "%.1f %s", bytes / Math.pow(1024.0, digitGroups.toDouble()), units[digitGroups])
-}
-
-private fun formatDate(dateString: String?): String {
-    val safeDate = dateString ?: return ""
-    try {
-        val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-        val date = formatter.parse(safeDate.take(19)) ?: return safeDate
-        val outFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-        return outFormatter.format(date)
-    } catch (e: Exception) {
-        return safeDate
-    }
-}
+// --- Formatters moved to ResourceFormatters ---

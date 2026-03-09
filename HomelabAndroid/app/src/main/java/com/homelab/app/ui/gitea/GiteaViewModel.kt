@@ -4,21 +4,30 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.homelab.app.data.remote.dto.gitea.*
 import com.homelab.app.data.repository.GiteaRepository
+import com.homelab.app.util.ErrorHandler
+import com.homelab.app.util.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import android.content.Context
 import android.util.Log
+import com.homelab.app.R
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import com.homelab.app.util.Logger
 import javax.inject.Inject
 
 enum class RepoSortOrder { RECENT, ALPHA }
 
 @HiltViewModel
 class GiteaViewModel @Inject constructor(
-    private val repository: GiteaRepository
+    private val repository: GiteaRepository,
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<GiteaUser?>(null)
@@ -39,16 +48,16 @@ class GiteaViewModel @Inject constructor(
     private val _sortOrder = MutableStateFlow(RepoSortOrder.RECENT)
     val sortOrder: StateFlow<RepoSortOrder> = _sortOrder
 
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    private val _uiState = MutableStateFlow<UiState<Unit>>(UiState.Loading)
+    val uiState: StateFlow<UiState<Unit>> = _uiState
 
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
+    init {
+        _uiState.onEach { Logger.stateTransition("GiteaViewModel", "uiState", it) }.launchIn(viewModelScope)
+    }
 
     fun fetchAll() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
+            _uiState.value = UiState.Loading
 
             try {
                 // We use supervisorScope so that if one async fails, it doesn't cancel the others.
@@ -102,22 +111,19 @@ class GiteaViewModel @Inject constructor(
                     }
 
                     if (u == null && _user.value == null) {
-                        _error.value = "Impossibile recuperare il profilo utente."
+                        _uiState.value = UiState.Error(context.getString(R.string.error_gitea_user_profile), retryAction = { fetchAll() })
+                    } else {
+                        _uiState.value = UiState.Success(Unit)
                     }
                 }
             } catch (e: Exception) {
-                _error.value = e.localizedMessage ?: "Errore di connessione a Gitea"
-            } finally {
-                _isLoading.value = false
+                val message = ErrorHandler.getMessage(context, e)
+                _uiState.value = UiState.Error(message, retryAction = { fetchAll() })
             }
         }
     }
 
     fun toggleSortOrder() {
         _sortOrder.value = if (_sortOrder.value == RepoSortOrder.RECENT) RepoSortOrder.ALPHA else RepoSortOrder.RECENT
-    }
-
-    fun clearError() {
-        _error.value = null
     }
 }

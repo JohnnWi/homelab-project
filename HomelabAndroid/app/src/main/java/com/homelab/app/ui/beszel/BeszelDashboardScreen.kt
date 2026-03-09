@@ -9,6 +9,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -38,6 +39,9 @@ import com.homelab.app.ui.theme.StatusOrange
 import com.homelab.app.ui.theme.StatusBlue
 import com.homelab.app.ui.theme.StatusPurple
 import com.homelab.app.util.ServiceType
+import com.homelab.app.util.ResourceFormatters
+import com.homelab.app.util.UiState
+import com.homelab.app.ui.common.ErrorScreen
 import java.text.NumberFormat
 import java.util.*
 
@@ -48,25 +52,13 @@ fun BeszelDashboardScreen(
     onNavigateToSystem: (String) -> Unit,
     viewModel: BeszelViewModel = hiltViewModel()
 ) {
-    val systems by viewModel.systems.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val error by viewModel.error.collectAsStateWithLifecycle()
-
-    val snackbarHostState = remember { SnackbarHostState() }
+    val systemsState by viewModel.systemsState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.fetchSystems()
     }
 
-    LaunchedEffect(error) {
-        error?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearError()
-        }
-    }
-
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.service_beszel), fontWeight = FontWeight.Bold) },
@@ -84,46 +76,65 @@ fun BeszelDashboardScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        if (isLoading && systems.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = ServiceType.BESZEL.primaryColor)
+        when (val state = systemsState) {
+            is UiState.Loading, is UiState.Idle -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = ServiceType.BESZEL.primaryColor)
+                }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                item {
-                    OverviewCard(systems = systems)
-                }
-
-                item {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(stringResource(R.string.beszel_background_update_info), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-
-                if (systems.isEmpty()) {
+            is UiState.Error -> {
+                ErrorScreen(
+                    message = state.message,
+                    onRetry = { viewModel.fetchSystems() },
+                    modifier = Modifier.padding(paddingValues)
+                )
+            }
+            is UiState.Offline -> {
+                ErrorScreen(
+                    message = "",
+                    onRetry = { viewModel.fetchSystems() },
+                    isOffline = true,
+                    modifier = Modifier.padding(paddingValues)
+                )
+            }
+            is UiState.Success -> {
+                val systems = state.data
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     item {
-                        Box(modifier = Modifier.fillMaxWidth().padding(top = 60.dp), contentAlignment = Alignment.Center) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Icon(Icons.Default.Dns, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(stringResource(R.string.beszel_no_systems), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
+                        OverviewCard(systems = systems)
+                    }
+
+                    item {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.beszel_background_update_info), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
-                } else {
-                    items(systems.size, key = { systems[it].id }) { idx ->
-                        val sys = systems[idx]
-                        SystemCard(system = sys, onClick = { onNavigateToSystem(sys.id) })
+
+                    if (systems.isEmpty()) {
+                        item {
+                            Box(modifier = Modifier.fillMaxWidth().padding(top = 60.dp), contentAlignment = Alignment.Center) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    Icon(Icons.Default.Dns, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(stringResource(R.string.beszel_no_systems), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        }
+                    } else {
+                        items(systems.size, key = { systems[it].id }) { idx ->
+                            val sys = systems[idx]
+                            SystemCard(system = sys, onClick = { onNavigateToSystem(sys.id) })
+                        }
                     }
                 }
             }
@@ -342,54 +353,4 @@ private fun NetworkLabel(icon: androidx.compose.ui.graphics.vector.ImageVector, 
     }
 }
 
-// Formatters assuming data in MB (containers, network)
-private fun formatMB(valMB: Double, compact: Boolean = false): String {
-    if (valMB == 0.0) return "0"
-    if (valMB > 10_000_000) {
-        val gb = valMB / (1024.0 * 1024.0) // Convert bytes to GB
-        if (gb >= 1.0) {
-            return String.format(if (compact) "%.1fG" else "%.1f GB", gb)
-        }
-        return String.format(if (compact) "%.0fM" else "%.0f MB", valMB / 1024.0)
-    }
-    
-    val gb = valMB / 1024.0
-    if (gb >= 1.0) {
-        return String.format(if (compact) "%.1fG" else "%.1f GB", gb)
-    }
-    return String.format(if (compact) "%.0fM" else "%.0f MB", valMB)
-}
-
-// Formatters assuming data in GB (system memory, system disk)
-private fun formatGB(valGB: Double, compact: Boolean = false): String {
-    if (valGB == 0.0) return "0"
-    if (valGB > 10_000_000) {
-        val tb = valGB / (1024.0 * 1024.0 * 1024.0)
-        if (tb >= 1.0) return String.format(if (compact) "%.1fT" else "%.1f TB", tb)
-        val gb = valGB / (1024.0 * 1024.0)
-        if (gb >= 1.0) return String.format(if (compact) "%.1fG" else "%.1f GB", gb)
-        return String.format(if (compact) "%.0fM" else "%.0f MB", valGB / 1024.0)
-    }
-    
-    if (valGB >= 1000.0) return String.format(if (compact) "%.1fT" else "%.1f TB", valGB / 1000.0)
-    if (valGB >= 1.0) return String.format(if (compact) "%.1fG" else "%.1f GB", valGB)
-    return String.format(if (compact) "%.0fM" else "%.0f MB", valGB * 1024)
-}
-
-private fun formatNetRate(value: Double): String {
-    if (value == 0.0) return "0 B/s"
-    if (value < 1.0) {
-        return "${String.format("%.0f", value * 1024)} KB/s"
-    }
-    return "${String.format("%.1f", value)} MB/s"
-}
-
-private fun formatUptimeHours(seconds: Double): String {
-    val days = (seconds / 86400).toInt()
-    val hours = ((seconds % 86400) / 3600).toInt()
-    if (days > 0) return "${days}d ${hours}h"
-    
-    val minutes = ((seconds % 3600) / 60).toInt()
-    if (hours > 0) return "${hours}h ${minutes}m"
-    return "${minutes}m"
-}
+// --- Formatters moved to ResourceFormatters ---

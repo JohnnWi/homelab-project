@@ -54,6 +54,19 @@ struct PiholeHistoryEntry: Codable, Identifiable {
     }
 }
 
+struct PiholeQueryLogEntry: Identifiable, Sendable, Hashable {
+    let id: String
+    let timestamp: Int
+    let domain: String
+    let client: String
+    let status: String
+
+    var isBlocked: Bool {
+        let raw = status.lowercased()
+        return raw.contains("block") || raw.contains("deny") || raw.contains("gravity")
+    }
+}
+
 struct PiholeUpstream: Codable {
     let upstreams: [String: PiholeUpstreamEntry]
     let total_queries: Int

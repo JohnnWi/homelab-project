@@ -77,4 +77,41 @@ class SettingsViewModel @Inject constructor(
             localPreferencesRepository.toggleServiceVisibility(type.name)
         }
     }
+
+    // Security
+    val biometricEnabled: StateFlow<Boolean> = localPreferencesRepository.biometricEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val isPinSet: StateFlow<Boolean> = localPreferencesRepository.appPin
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        .let { flow ->
+            kotlinx.coroutines.flow.combine(flow, kotlinx.coroutines.flow.flowOf(Unit)) { pin, _ -> pin != null }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+        }
+
+    fun setBiometricEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            localPreferencesRepository.setBiometricEnabled(enabled)
+        }
+    }
+
+    fun savePin(pin: String) {
+        viewModelScope.launch {
+            localPreferencesRepository.savePin(pin)
+        }
+    }
+
+    fun verifyPin(pin: String): Boolean {
+        // Synchronous check — pull the current value from the stateIn
+        val currentPin = kotlinx.coroutines.runBlocking {
+            localPreferencesRepository.appPin.firstOrNull()
+        }
+        return currentPin == pin
+    }
+
+    fun clearSecurity() {
+        viewModelScope.launch {
+            localPreferencesRepository.clearSecurity()
+        }
+    }
 }

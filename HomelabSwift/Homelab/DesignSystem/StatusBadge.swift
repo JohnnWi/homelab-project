@@ -6,8 +6,23 @@ struct StatusBadge: View {
     let status: String
     var compact: Bool = false
 
+    @Environment(Localizer.self) private var localizer
+
     private var color: Color {
         AppTheme.statusColor(for: status)
+    }
+
+    private var localizedStatus: String {
+        switch status.lowercased() {
+        case "running": return localizer.t.portainerRunning
+        case "exited", "stopped", "dead": return localizer.t.portainerStopped
+        case "paused": return localizer.t.actionPause
+        case "healthy": return localizer.t.portainerHealthy
+        case "unhealthy": return localizer.t.portainerUnhealthy
+        case "up": return localizer.t.beszelUp
+        case "down": return localizer.t.beszelDown
+        default: return status.capitalized
+        }
     }
 
     var body: some View {
@@ -17,7 +32,7 @@ struct StatusBadge: View {
                 .frame(width: compact ? 6 : 8, height: compact ? 6 : 8)
 
             if !compact {
-                Text(status.capitalized)
+                Text(localizedStatus)
                     .font(.caption.bold())
                     .foregroundStyle(color)
             }

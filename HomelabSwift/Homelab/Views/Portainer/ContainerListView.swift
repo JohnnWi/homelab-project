@@ -90,10 +90,10 @@ struct ContainerListView: View {
             }
         }
         .task { await fetchContainers() }
-        .alert("Error", isPresented: $showActionError) {
-            Button("OK", role: .cancel) { }
+        .alert(localizer.t.error, isPresented: $showActionError) {
+            Button(localizer.t.confirm, role: .cancel) { }
         } message: {
-            Text(actionError ?? "Unknown error")
+            Text(actionError ?? localizer.t.errorUnknown)
         }
     }
 

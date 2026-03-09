@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		001FA6007779556F8CF2BDC5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B518BC3D0A31F29612A69B75 /* Assets.xcassets */; };
+		05DD4EC182A77678B0C43757 /* EditCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3822176D6B136AD005C258B2 /* EditCategoryView.swift */; };
 		0E5566DAE01FB0E9F10E98C8 /* StatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5B6FAE42892F4BEB3097FD /* StatusBadge.swift */; };
 		0F634D9389BDB5467A64C25E /* GlassStatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735477DB04233B4FDA23469D /* GlassStatCard.swift */; };
 		1694BCD702C988AAF0F99127 /* BeszelModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B51084F8D0D0D7C999B8C3 /* BeszelModels.swift */; };
@@ -19,8 +20,10 @@
 		366228A5C9000FF822E289FB /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF6E7AF1CDC6676B7421A7B /* HapticManager.swift */; };
 		45563EB6F51F8EF1867CF1DC /* BeszelSystemDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141E9B530530A0BF0D52A289 /* BeszelSystemDetail.swift */; };
 		60845D39E8A2BD7753B767BB /* PortainerDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569655DA5311D77756775472 /* PortainerDashboard.swift */; };
+		6238B2607191C4FC8FABBBEA /* BookmarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 852311D2C00078388E8075CC /* BookmarksView.swift */; };
 		63A39B89AC9B8F48B3BC3147 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEF389260911EADF7079A97B /* APIClient.swift */; };
 		6B883FF0F9673181B59F8C83 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85D0D2A2905370C31F3A8ADE /* KeychainService.swift */; };
+		70068F8317C6647517AA6BB2 /* BookmarksStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C63BBF84BF49669B1B6CD224 /* BookmarksStore.swift */; };
 		703D6379BB37D3F83B0C21D5 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D1604CF631BC4DC369A42A5 /* HomeView.swift */; };
 		7E78EE55701AD004992579EF /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EBFFF57A15B47F78E81D04 /* Formatters.swift */; };
 		7E861F79CA67DDAD2078A333 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DB66F8274714A001051F1BE /* SettingsView.swift */; };
@@ -34,17 +37,22 @@
 		991F9F57CF5DAD5FA3AD929B /* DashboardSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1776C03666E80A17285732D /* DashboardSummary.swift */; };
 		9F77F33FFB5F27A3D1A8109E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0A64E52150CEEA94E249D7 /* ContentView.swift */; };
 		A283181CEA487B0C8346D967 /* PiHoleAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B236EC8434642BB311F3E1A8 /* PiHoleAPIClient.swift */; };
+		A2876BD7C97769D9E9DAF926 /* BookmarkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8051B73F27173CD3955D0069 /* BookmarkManager.swift */; };
 		A3E3BAB096611E807728CA89 /* ContainerListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3116D5544353B573C4C2B0B /* ContainerListView.swift */; };
 		AAA9BC382610A55D8E374C95 /* Translations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7692F78990DA606D426BA429 /* Translations.swift */; };
+		AABADDC9AFDE85DD54AAB3E3 /* Bookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66269A42B77821CF87E7B8D /* Bookmark.swift */; };
 		AD2F16BDA6D33B25BA1DD4B7 /* GiteaModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F6D851F1B957C876FD6F0B /* GiteaModels.swift */; };
 		B51871199ACBFB2987E2C165 /* PortainerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24ACF7FA86699161F1FFB10E /* PortainerModels.swift */; };
 		B52CC2ACDDD34ADB9ECCF77B /* GiteaRepoDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBA3D966E73220F618CD9038 /* GiteaRepoDetail.swift */; };
 		B75BA3C1B775D95298E0933B /* SyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD5A40912505AFD774ED713 /* SyntaxHighlighter.swift */; };
+		B87D64DB234A0C1802FA4530 /* PiholeDomainListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F8DFB70C52B49F7759D445F /* PiholeDomainListView.swift */; };
 		BAA4219103CC83A339C434BD /* ServicesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258507E3A00D686FDEF7E9CE /* ServicesStore.swift */; };
 		C18B23568F81455E4164835D /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 486E817863BA2B5DA5318488 /* GlassCard.swift */; };
+		C4BEDD3B0A910698966DE2F9 /* CategoryFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BC11450A84ABB9378A1152 /* CategoryFormView.swift */; };
 		C86FF5E6A543278A18B16E9B /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB95F4E19C7D3082B4D6484C /* APIError.swift */; };
 		CF0124025064FF55FAD14233 /* BeszelDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 408F0E514FDE46F6A78D0A58 /* BeszelDashboard.swift */; };
 		CFFCFA6F071D0F46DECAB36B /* ContainerDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC89D463559422B61BC300AF /* ContainerDetailView.swift */; };
+		D525E48BA3068E8CED44C2D5 /* PiholeDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5C4C40E64220DEFF15C7B1 /* PiholeDomain.swift */; };
 		D76DF8769FE2AE2032847D05 /* FormattersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB311F83CBAAC39C90D50E6D /* FormattersTests.swift */; };
 		D84F9D353E2953087A1E5F7D /* ModelDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94D7A0C04FD3A10D46F836A9 /* ModelDecodingTests.swift */; };
 		D99466C32D977BCE5D9A029E /* GiteaAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15D7F6591D7ABB7E8CB96944 /* GiteaAPIClient.swift */; };
@@ -52,8 +60,15 @@
 		E6E04DD8242F5252CD32CCAB /* ServiceType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E6FEE939313E58D34CE4BDB /* ServiceType.swift */; };
 		E75752B2EF79FC31623F21A3 /* ServicesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF72E451CED741576C2F4D /* ServicesStoreTests.swift */; };
 		EAD085672E3D6DD29C4F51D1 /* OfflineBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7A6237B741BF62F16D9F8B /* OfflineBanner.swift */; };
+		EAD2BFA167A908127589739B /* BookmarkFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3CDD98D8B34D601F2231E2 /* BookmarkFormView.swift */; };
 		EC9F7C6B42D988E3D6D1E8BB /* PiHoleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30BCF4718684D1491D028063 /* PiHoleModels.swift */; };
+		F0000101 /* LoadableState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000103 /* LoadableState.swift */; };
+		F0000102 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000104 /* Logger.swift */; };
 		F5EF663AA6770602771BD2F2 /* PortainerAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A576049FF063B4EC98E28D9 /* PortainerAPIClient.swift */; };
+		F0000004 /* EditBookmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 926A6BFB721AB80FE1A8F795 /* EditBookmarkView.swift */; };
+		F0000001 /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000011 /* LockScreenView.swift */; };
+		F0000002 /* PinEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000012 /* PinEntryView.swift */; };
+		F0000003 /* PinSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000013 /* PinSetupView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,14 +83,18 @@
 
 /* Begin PBXFileReference section */
 		0DB66F8274714A001051F1BE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		11BC11450A84ABB9378A1152 /* CategoryFormView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CategoryFormView.swift; path = Bookmarks/CategoryFormView.swift; sourceTree = "<group>"; };
 		141E9B530530A0BF0D52A289 /* BeszelSystemDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelSystemDetail.swift; sourceTree = "<group>"; };
 		151F3E3C716170F5B65A688F /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		15D7F6591D7ABB7E8CB96944 /* GiteaAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiteaAPIClient.swift; sourceTree = "<group>"; };
 		19F58DFAF2218D934F936D17 /* HomelabApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomelabApp.swift; sourceTree = "<group>"; };
+		1F8DFB70C52B49F7759D445F /* PiholeDomainListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PiholeDomainListView.swift; path = PiHole/PiholeDomainListView.swift; sourceTree = "<group>"; };
 		24ACF7FA86699161F1FFB10E /* PortainerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortainerModels.swift; sourceTree = "<group>"; };
 		258507E3A00D686FDEF7E9CE /* ServicesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesStore.swift; sourceTree = "<group>"; };
+		2B5C4C40E64220DEFF15C7B1 /* PiholeDomain.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PiholeDomain.swift; sourceTree = "<group>"; };
 		30BCF4718684D1491D028063 /* PiHoleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiHoleModels.swift; sourceTree = "<group>"; };
 		334BAFC4A25FD83F52E9CDD0 /* ServiceConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceConnection.swift; sourceTree = "<group>"; };
+		3822176D6B136AD005C258B2 /* EditCategoryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = EditCategoryView.swift; path = Bookmarks/EditCategoryView.swift; sourceTree = "<group>"; };
 		38F7AE0005466E2FF260B000 /* Translations+English.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Translations+English.swift"; sourceTree = "<group>"; };
 		3A088F5140A5297EA91E3821 /* Homelab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Homelab.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AD1D644D530DE462BB79AA2 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
@@ -89,6 +108,7 @@
 		569655DA5311D77756775472 /* PortainerDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortainerDashboard.swift; sourceTree = "<group>"; };
 		57CF72E451CED741576C2F4D /* ServicesStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesStoreTests.swift; sourceTree = "<group>"; };
 		5F1F09E5D4D69F8311840E4F /* ServiceLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceLoginView.swift; sourceTree = "<group>"; };
+		5F3CDD98D8B34D601F2231E2 /* BookmarkFormView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BookmarkFormView.swift; path = Bookmarks/BookmarkFormView.swift; sourceTree = "<group>"; };
 		64D8F0162AE327AA60600505 /* Translations+Italian.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Translations+Italian.swift"; sourceTree = "<group>"; };
 		6A576049FF063B4EC98E28D9 /* PortainerAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortainerAPIClient.swift; sourceTree = "<group>"; };
 		6AD5A40912505AFD774ED713 /* SyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntaxHighlighter.swift; sourceTree = "<group>"; };
@@ -97,9 +117,12 @@
 		7432B8C8ACBE47BDF26570DC /* ServiceDashboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceDashboardLayout.swift; sourceTree = "<group>"; };
 		7692F78990DA606D426BA429 /* Translations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Translations.swift; sourceTree = "<group>"; };
 		7E6FEE939313E58D34CE4BDB /* ServiceType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceType.swift; sourceTree = "<group>"; };
+		8051B73F27173CD3955D0069 /* BookmarkManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BookmarkManager.swift; path = Store/BookmarkManager.swift; sourceTree = "<group>"; };
+		852311D2C00078388E8075CC /* BookmarksView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BookmarksView.swift; path = Bookmarks/BookmarksView.swift; sourceTree = "<group>"; };
 		85D0D2A2905370C31F3A8ADE /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		88B51084F8D0D0D7C999B8C3 /* BeszelModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelModels.swift; sourceTree = "<group>"; };
 		8D1604CF631BC4DC369A42A5 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		926A6BFB721AB80FE1A8F795 /* EditBookmarkView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = EditBookmarkView.swift; path = Bookmarks/EditBookmarkView.swift; sourceTree = "<group>"; };
 		94D7A0C04FD3A10D46F836A9 /* ModelDecodingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDecodingTests.swift; sourceTree = "<group>"; };
 		A1776C03666E80A17285732D /* DashboardSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardSummary.swift; sourceTree = "<group>"; };
 		A3491FAD0D71DDB3C25D9D90 /* GiteaDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiteaDashboard.swift; sourceTree = "<group>"; };
@@ -110,14 +133,21 @@
 		B518BC3D0A31F29612A69B75 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BB7A6237B741BF62F16D9F8B /* OfflineBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineBanner.swift; sourceTree = "<group>"; };
 		BE0A64E52150CEEA94E249D7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		C63BBF84BF49669B1B6CD224 /* BookmarksStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BookmarksStore.swift; sourceTree = "<group>"; };
 		CBA3D966E73220F618CD9038 /* GiteaRepoDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiteaRepoDetail.swift; sourceTree = "<group>"; };
 		D7A7931FCA8BA5A9AA1BD3E6 /* Homelab.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Homelab.entitlements; sourceTree = "<group>"; };
 		DB311F83CBAAC39C90D50E6D /* FormattersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormattersTests.swift; sourceTree = "<group>"; };
 		DB56E3990A5DE62509F3F7C4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		F3116D5544353B573C4C2B0B /* ContainerListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerListView.swift; sourceTree = "<group>"; };
+		F66269A42B77821CF87E7B8D /* Bookmark.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Bookmark.swift; sourceTree = "<group>"; };
 		FC89D463559422B61BC300AF /* ContainerDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerDetailView.swift; sourceTree = "<group>"; };
 		FE7A7BFF374B6DE9CE7384EE /* PiHoleDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiHoleDashboard.swift; sourceTree = "<group>"; };
 		FEF389260911EADF7079A97B /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		F0000103 /* LoadableState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadableState.swift; sourceTree = "<group>"; };
+		F0000104 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		F0000011 /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
+		F0000012 /* PinEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinEntryView.swift; sourceTree = "<group>"; };
+		F0000013 /* PinSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinSetupView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -145,8 +175,21 @@
 				BD0DD51259101D7C7FCE5917 /* Theme */,
 				EB0C2E8A1FE201A265D4FC4A /* Utilities */,
 				B95B7C501526C761049BD34F /* Views */,
+				65862C61FE1E7555BD59B821 /* Store */,
 			);
 			path = Homelab;
+			sourceTree = "<group>";
+		};
+		12F56B41C1D2A1E1450A4A8E /* Bookmarks */ = {
+			isa = PBXGroup;
+			children = (
+				852311D2C00078388E8075CC /* BookmarksView.swift */,
+				5F3CDD98D8B34D601F2231E2 /* BookmarkFormView.swift */,
+				11BC11450A84ABB9378A1152 /* CategoryFormView.swift */,
+				3822176D6B136AD005C258B2 /* EditCategoryView.swift */,
+				926A6BFB721AB80FE1A8F795 /* EditBookmarkView.swift */,
+			);
+			name = Bookmarks;
 			sourceTree = "<group>";
 		};
 		1E866E8511A219B4C76B9235 /* Portainer */ = {
@@ -187,10 +230,13 @@
 			children = (
 				334BAFC4A25FD83F52E9CDD0 /* ServiceConnection.swift */,
 				7E6FEE939313E58D34CE4BDB /* ServiceType.swift */,
+				F0000103 /* LoadableState.swift */,
 				9C3998846D55F959084051D2 /* Beszel */,
 				981FC3E8A73DC27EF4792684 /* Gitea */,
 				F2BD8B68C5C78ECC6C3C024A /* PiHole */,
 				1E866E8511A219B4C76B9235 /* Portainer */,
+				F66269A42B77821CF87E7B8D /* Bookmark.swift */,
+				2B5C4C40E64220DEFF15C7B1 /* PiholeDomain.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -212,11 +258,20 @@
 			);
 			sourceTree = "<group>";
 		};
+		65862C61FE1E7555BD59B821 /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				8051B73F27173CD3955D0069 /* BookmarkManager.swift */,
+			);
+			name = Store;
+			sourceTree = "<group>";
+		};
 		7DAFCB2BF30198F989D7E950 /* Stores */ = {
 			isa = PBXGroup;
 			children = (
 				258507E3A00D686FDEF7E9CE /* ServicesStore.swift */,
 				151F3E3C716170F5B65A688F /* SettingsStore.swift */,
+				C63BBF84BF49669B1B6CD224 /* BookmarksStore.swift */,
 			);
 			path = Stores;
 			sourceTree = "<group>";
@@ -297,6 +352,9 @@
 				EB0D5A2B9725AD26C768879F /* Portainer */,
 				58F8A8040064B68291A0616F /* ServiceLogin */,
 				0484D4BF357548D950ABB56C /* Settings */,
+				12F56B41C1D2A1E1450A4A8E /* Bookmarks */,
+				CEE88851734FA609F64E149B /* Pihole */,
+				F0000020 /* Security */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -307,6 +365,14 @@
 				3AD1D644D530DE462BB79AA2 /* AppTheme.swift */,
 			);
 			path = Theme;
+			sourceTree = "<group>";
+		};
+		CEE88851734FA609F64E149B /* Pihole */ = {
+			isa = PBXGroup;
+			children = (
+				1F8DFB70C52B49F7759D445F /* PiholeDomainListView.swift */,
+			);
+			name = Pihole;
 			sourceTree = "<group>";
 		};
 		D43D23351242B6BFC6E743DC /* PiHole */ = {
@@ -362,6 +428,7 @@
 			children = (
 				B1EBFFF57A15B47F78E81D04 /* Formatters.swift */,
 				6EF6E7AF1CDC6676B7421A7B /* HapticManager.swift */,
+				F0000104 /* Logger.swift */,
 				6AD5A40912505AFD774ED713 /* SyntaxHighlighter.swift */,
 			);
 			path = Utilities;
@@ -394,6 +461,16 @@
 			path = PiHole;
 			sourceTree = "<group>";
 		};
+		F0000020 /* Security */ = {
+			isa = PBXGroup;
+			children = (
+				F0000011 /* LockScreenView.swift */,
+				F0000012 /* PinEntryView.swift */,
+				F0000013 /* PinSetupView.swift */,
+			);
+			path = Security;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -409,8 +486,6 @@
 				E751A0FDF492AD0D856EB483 /* PBXTargetDependency */,
 			);
 			name = HomelabTests;
-			packageProductDependencies = (
-			);
 			productName = HomelabTests;
 			productReference = 4E1A77FA193DE78992A80B91 /* HomelabTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -427,8 +502,6 @@
 			dependencies = (
 			);
 			name = Homelab;
-			packageProductDependencies = (
-			);
 			productName = Homelab;
 			productReference = 3A088F5140A5297EA91E3821 /* Homelab.app */;
 			productType = "com.apple.product-type.application";
@@ -457,6 +530,7 @@
 			);
 			mainGroup = 5A9E1D3A67703C812006DFAC;
 			minimizedProjectReferenceProxies = 1;
+			productRefGroup = E163496F466E06D0E015E1FD /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -504,6 +578,8 @@
 				703D6379BB37D3F83B0C21D5 /* HomeView.swift in Sources */,
 				826BA16B6B4D4F31C3CC2B5C /* HomelabApp.swift in Sources */,
 				6B883FF0F9673181B59F8C83 /* KeychainService.swift in Sources */,
+				F0000101 /* LoadableState.swift in Sources */,
+				F0000102 /* Logger.swift in Sources */,
 				EAD085672E3D6DD29C4F51D1 /* OfflineBanner.swift in Sources */,
 				A283181CEA487B0C8346D967 /* PiHoleAPIClient.swift in Sources */,
 				1C4457681E0F071045A8132C /* PiHoleDashboard.swift in Sources */,
@@ -525,6 +601,19 @@
 				8BE00328A6AC68DF3E40F05B /* Translations+Italian.swift in Sources */,
 				81457E8BF989BFB2851CDC66 /* Translations+OtherLanguages.swift in Sources */,
 				AAA9BC382610A55D8E374C95 /* Translations.swift in Sources */,
+				6238B2607191C4FC8FABBBEA /* BookmarksView.swift in Sources */,
+				EAD2BFA167A908127589739B /* BookmarkFormView.swift in Sources */,
+				C4BEDD3B0A910698966DE2F9 /* CategoryFormView.swift in Sources */,
+				70068F8317C6647517AA6BB2 /* BookmarksStore.swift in Sources */,
+				AABADDC9AFDE85DD54AAB3E3 /* Bookmark.swift in Sources */,
+				D525E48BA3068E8CED44C2D5 /* PiholeDomain.swift in Sources */,
+				B87D64DB234A0C1802FA4530 /* PiholeDomainListView.swift in Sources */,
+				A2876BD7C97769D9E9DAF926 /* BookmarkManager.swift in Sources */,
+				05DD4EC182A77678B0C43757 /* EditCategoryView.swift in Sources */,
+				F0000004 /* EditBookmarkView.swift in Sources */,
+				F0000001 /* LockScreenView.swift in Sources */,
+				F0000002 /* PinEntryView.swift in Sources */,
+				F0000003 /* PinSetupView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

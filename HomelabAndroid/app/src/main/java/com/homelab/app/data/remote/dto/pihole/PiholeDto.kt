@@ -87,6 +87,17 @@ data class PiholeTopClient(
     val count: Int
 )
 
+data class PiholeQueryLogEntry(
+    val id: String = java.util.UUID.randomUUID().toString(),
+    val timestamp: Long,
+    val domain: String,
+    val client: String,
+    val status: String
+) {
+    val isBlocked: Boolean
+        get() = status.lowercase().contains("block") || status.lowercase().contains("deny") || status.lowercase().contains("gravity")
+}
+
 @Serializable
 data class PiholeBlockingRequest(
     val blocking: Boolean,

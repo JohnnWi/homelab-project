@@ -179,6 +179,41 @@ final class ModelDecodingTests: XCTestCase {
         XCTAssertTrue(auth.session.valid)
     }
 
+    func testPiholeDomainListResponseV6Decoding() throws {
+        let json = """
+        {
+            "domains": [
+                {"id": 11, "domain": "good.example", "kind": "exact", "list": "allow"},
+                {"id": 12, "domain": "ads.example", "kind": "exact", "list": "deny"}
+            ]
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(PiholeDomainListResponse.self, from: json)
+        XCTAssertEqual(decoded.domains.count, 2)
+        XCTAssertEqual(decoded.domains[0].id, 11)
+        XCTAssertEqual(decoded.domains[0].type, .allow)
+        XCTAssertEqual(decoded.domains[1].type, .deny)
+    }
+
+    func testPiholeDomainListResponseLegacyDecoding() throws {
+        let json = """
+        {
+            "whitelist": ["allowed.example"],
+            "blacklist": ["blocked.example"],
+            "regex_whitelist": ["^safe\\\\.example$"],
+            "regex_blacklist": ["^ads\\\\.example$"]
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(PiholeDomainListResponse.self, from: json)
+
+        XCTAssertEqual(decoded.domains.count, 4)
+        XCTAssertEqual(decoded.domains.filter { $0.type == .allow }.count, 2)
+        XCTAssertEqual(decoded.domains.filter { $0.type == .deny }.count, 2)
+        XCTAssertEqual(decoded.domains.filter { $0.kind == "regex" }.count, 2)
+    }
+
     // MARK: - Beszel
 
     func testBeszelSystemDecoding() throws {
@@ -415,6 +450,56 @@ final class ModelDecodingTests: XCTestCase {
         XCTAssertEqual(decoded.url, "https://portainer.local")  // trailing slash stripped
         XCTAssertEqual(decoded.token, "jwt123")
         XCTAssertEqual(decoded.apiKey, "key456")
+    }
+
+    func testPiHoleServiceConnectionEncoding() throws {
+        let conn = ServiceConnection(
+            type: .pihole,
+            url: "https://pihole.local/",
+            token: "sid123",
+            piholePassword: "secret",
+            piholeAuthMode: .session
+        )
+        let data = try JSONEncoder().encode(conn)
+        let decoded = try JSONDecoder().decode(ServiceConnection.self, from: data)
+        XCTAssertEqual(decoded.url, "https://pihole.local")
+        XCTAssertEqual(decoded.token, "sid123")
+        XCTAssertEqual(decoded.piholePassword, "secret")
+        XCTAssertEqual(decoded.piholeAuthMode, .session)
+        XCTAssertEqual(decoded.piHoleStoredSecret, "secret")
+    }
+
+    func testPiHoleLegacyConnectionDecodingFallsBackToApiKey() throws {
+        let json = """
+        {
+            "type": "pihole",
+            "url": "https://pihole.local",
+            "token": "legacy-token",
+            "apiKey": "legacy-secret"
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(ServiceConnection.self, from: json)
+        XCTAssertEqual(decoded.type, .pihole)
+        XCTAssertEqual(decoded.token, "legacy-token")
+        XCTAssertEqual(decoded.piHoleStoredSecret, "legacy-secret")
+        XCTAssertNil(decoded.piholePassword)
+        XCTAssertNil(decoded.piholeAuthMode)
+    }
+
+    func testPiHoleUpdatingTokenPreservesSecretAndMode() {
+        let conn = ServiceConnection(
+            type: .pihole,
+            url: "https://pihole.local",
+            token: "old",
+            piholePassword: "secret",
+            piholeAuthMode: .legacy
+        )
+
+        let updated = conn.updatingToken("new", piholeAuthMode: .session)
+        XCTAssertEqual(updated.token, "new")
+        XCTAssertEqual(updated.piholePassword, "secret")
+        XCTAssertEqual(updated.piholeAuthMode, .session)
     }
 
     func testServiceConnectionFallbackUrl() throws {

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.homelab.app.data.local.SettingsManager
 import com.homelab.app.data.repository.PortainerRepository
 import com.homelab.app.domain.model.ServiceConnection
+import com.homelab.app.domain.model.PiHoleAuthMode
 import com.homelab.app.util.ServiceType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,11 +55,14 @@ class ServiceLoginViewModel @Inject constructor(
                         )
                     }
                     ServiceType.PIHOLE -> {
-                        val sid = piholeRepository.authenticate(url = cleanUrl, password = password)
+                        val secret = password.trim()
+                        val sid = piholeRepository.authenticate(url = cleanUrl, password = secret)
                         ServiceConnection(
                             type = ServiceType.PIHOLE,
                             url = cleanUrl,
-                            token = sid
+                            token = sid,
+                            piholePassword = secret,
+                            piholeAuthMode = if (sid == secret) PiHoleAuthMode.LEGACY else PiHoleAuthMode.SESSION
                         )
                     }
                     ServiceType.BESZEL -> {

@@ -13,11 +13,13 @@ struct PiHoleDashboard: View {
     @State private var topDomains: [PiholeTopItem] = []
     @State private var topClients: [PiholeTopClient] = []
     @State private var history: [PiholeHistoryEntry] = []
-    @State private var isLoading = true
-    @State private var error: Error?
+    @State private var state: LoadableState<Void> = .idle
     @State private var isToggling = false
     @State private var toggleError: String?
     @State private var showToggleError = false
+    @State private var showDisableOptions = false
+    @State private var showCustomDisablePrompt = false
+    @State private var customDisableMinutes = ""
 
     private let piholeColor = ServiceType.pihole.colors.primary
     private var isBlocking: Bool { blocking?.isEnabled ?? false }
@@ -25,8 +27,7 @@ struct PiHoleDashboard: View {
     var body: some View {
         ServiceDashboardLayout(
             serviceType: .pihole,
-            isLoading: isLoading && stats == nil,
-            error: error,
+            state: state,
             onRefresh: fetchAll
         ) {
             // Blocking toggle card
@@ -46,6 +47,51 @@ struct PiHoleDashboard: View {
 
                 // Gravity info
                 gravitySection(stats)
+                
+                // Domain Management Link
+                NavigationLink(destination: PiholeDomainListView()) {
+                    HStack {
+                        Image(systemName: "list.bullet.rectangle.portrait.fill")
+                            .font(.body)
+                            .foregroundStyle(piholeColor)
+                            .frame(width: 36, height: 36)
+                            .background(piholeColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        
+                        Text(localizer.t.piholeDomainManagement)
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color(.tertiaryLabel))
+                    }
+                    .padding(16)
+                    .glassCard()
+                }
+                .buttonStyle(.plain)
+
+                NavigationLink(destination: PiholeQueryLogView()) {
+                    HStack {
+                        Image(systemName: "text.append")
+                            .font(.body)
+                            .foregroundStyle(AppTheme.info)
+                            .frame(width: 36, height: 36)
+                            .background(AppTheme.info.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+                        Text(localizer.t.piholeQueryLog)
+                            .font(.headline)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color(.tertiaryLabel))
+                    }
+                    .padding(16)
+                    .glassCard()
+                }
+                .buttonStyle(.plain)
             }
 
             // Top blocked
@@ -69,10 +115,33 @@ struct PiHoleDashboard: View {
         }
         .navigationTitle("Pi-hole")
         .task { await fetchAll() }
-        .alert("Error", isPresented: $showToggleError) {
-            Button("OK", role: .cancel) { }
+        .alert(localizer.t.error, isPresented: $showToggleError) {
+            Button(localizer.t.confirm, role: .cancel) { }
         } message: {
-            Text(toggleError ?? "Unknown error")
+            Text(toggleError ?? localizer.t.errorUnknown)
+        }
+        .confirmationDialog(localizer.t.piholeDisableDesc, isPresented: $showDisableOptions, titleVisibility: .visible) {
+            Button(localizer.t.piholeDisablePermanently, role: .destructive) { handleToggle(timer: nil) }
+            Button(localizer.t.piholeDisable1h) { handleToggle(timer: 3600) }
+            Button(localizer.t.piholeDisable5m) { handleToggle(timer: 300) }
+            Button(localizer.t.piholeDisable1m) { handleToggle(timer: 60) }
+            Button(localizer.t.piholeDisableCustom) {
+                customDisableMinutes = ""
+                showCustomDisablePrompt = true
+            }
+            Button(localizer.t.cancel, role: .cancel) { }
+        }
+        .alert(localizer.t.piholeCustomDisableTitle, isPresented: $showCustomDisablePrompt) {
+            TextField(localizer.t.piholeCustomDisableMinutes, text: $customDisableMinutes)
+                .keyboardType(.numberPad)
+            Button(localizer.t.cancel, role: .cancel) { }
+            Button(localizer.t.confirm) {
+                if let minutes = Int(customDisableMinutes.trimmingCharacters(in: .whitespaces)), minutes > 0 {
+                    handleToggle(timer: minutes * 60)
+                }
+            }
+        } message: {
+            Text(localizer.t.piholeCustomDisableDesc)
         }
     }
 
@@ -80,7 +149,11 @@ struct PiHoleDashboard: View {
 
     private var blockingCard: some View {
         Button {
-            handleToggle()
+            if isBlocking {
+                showDisableOptions = true
+            } else {
+                handleToggle(timer: nil)
+            }
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: isBlocking ? "shield.fill" : "shield.slash.fill")
@@ -107,7 +180,7 @@ struct PiHoleDashboard: View {
 
                 Spacer()
 
-                Text(isBlocking ? "ON" : "OFF")
+                Text(isBlocking ? localizer.t.statusOn : localizer.t.statusOff)
                     .font(.caption.bold())
                     .foregroundStyle(.white)
                     .padding(.horizontal, 14)
@@ -253,13 +326,13 @@ struct PiHoleDashboard: View {
                     Spacer()
                     HStack(spacing: 6) {
                         RoundedRectangle(cornerRadius: 2).fill(AppTheme.running.opacity(0.7)).frame(width: 8, height: 8)
-                        Text("Allowed")
+                        Text(localizer.t.piholeFilterAllowed)
                             .font(.caption2)
                             .foregroundStyle(AppTheme.textMuted)
                     }
                     HStack(spacing: 6) {
                         RoundedRectangle(cornerRadius: 2).fill(piholeColor.opacity(0.8)).frame(width: 8, height: 8)
-                        Text("Blocked")
+                        Text(localizer.t.piholeFilterBlocked)
                             .font(.caption2)
                             .foregroundStyle(AppTheme.textMuted)
                     }
@@ -349,7 +422,7 @@ struct PiHoleDashboard: View {
                     .foregroundStyle(AppTheme.textMuted)
                     .textCase(.uppercase)
                 Spacer()
-                Text("\(Formatters.formatNumber(topDomains.reduce(0) { $0 + $1.count })) totali")
+                Text(Formatters.formatNumber(topDomains.reduce(0) { $0 + $1.count }))
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(AppTheme.textSecondary)
                     .padding(.horizontal, 8)
@@ -434,12 +507,16 @@ struct PiHoleDashboard: View {
 
     // MARK: - Toggle Blocking
 
-    private func handleToggle() {
+    private func handleToggle(timer: Int? = nil) {
         HapticManager.medium()
         isToggling = true
         Task {
             do {
-                try await servicesStore.piholeClient.setBlocking(enabled: !isBlocking)
+                if let timer = timer {
+                    try await servicesStore.piholeClient.setBlocking(enabled: false, timer: timer)
+                } else {
+                    try await servicesStore.piholeClient.setBlocking(enabled: !isBlocking)
+                }
                 HapticManager.success()
                 blocking = try? await servicesStore.piholeClient.getBlockingStatus()
                 stats = try? await servicesStore.piholeClient.getStats()
@@ -455,17 +532,19 @@ struct PiHoleDashboard: View {
     // MARK: - Data Fetching
 
     private func fetchAll() async {
-        isLoading = true
-        error = nil
-        defer { isLoading = false }
+        state = .loading
 
         do {
             async let s = servicesStore.piholeClient.getStats()
             async let b = servicesStore.piholeClient.getBlockingStatus()
             stats = try await s
             blocking = try await b
+            state = .loaded(())
+        } catch let apiError as APIError {
+            state = .error(apiError)
+            return
         } catch {
-            self.error = error
+            state = .error(.custom(error.localizedDescription))
             return
         }
 
@@ -479,5 +558,207 @@ struct PiHoleDashboard: View {
         topDomains = await td
         topClients = await tc
         if let h = await qh { history = h.history }
+    }
+}
+
+private enum PiholeQueryStatusFilter: CaseIterable, Identifiable {
+    case all
+    case blocked
+    case allowed
+
+    var id: Self { self }
+}
+
+private let piholeAllClientFilter = "__all__"
+
+struct PiholeQueryLogView: View {
+    @Environment(ServicesStore.self) private var servicesStore
+    @Environment(Localizer.self) private var localizer
+
+    @State private var entries: [PiholeQueryLogEntry] = []
+    @State private var searchText = ""
+    @State private var statusFilter: PiholeQueryStatusFilter = .all
+    @State private var clientFilter = piholeAllClientFilter
+    @State private var pollingTask: Task<Void, Never>?
+    @State private var state: LoadableState<Void> = .idle
+
+    private var availableClients: [String] {
+        let clients = Set(entries.map(\.client).filter { !$0.isEmpty && $0 != "unknown" })
+        return [piholeAllClientFilter] + clients.sorted()
+    }
+
+    private var filteredEntries: [PiholeQueryLogEntry] {
+        entries.filter { entry in
+            let matchesStatus: Bool = {
+                switch statusFilter {
+                case .all: return true
+                case .blocked: return entry.isBlocked
+                case .allowed: return !entry.isBlocked
+                }
+            }()
+
+            let matchesClient = clientFilter == piholeAllClientFilter || entry.client == clientFilter
+            let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let matchesSearch = query.isEmpty || entry.domain.lowercased().contains(query) || entry.client.lowercased().contains(query)
+            return matchesStatus && matchesClient && matchesSearch
+        }
+    }
+
+    var body: some View {
+        Group {
+            switch state {
+            case .idle, .loading:
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            case .offline:
+                ServiceErrorView(error: .networkError(NSError(domain: "Network", code: -1009))) {
+                    await loadRecent(showLoading: true)
+                }
+            case .error(let apiError):
+                ServiceErrorView(error: apiError) {
+                    await loadRecent(showLoading: true)
+                }
+            case .loaded:
+                VStack(spacing: 12) {
+                    Picker(localizer.t.piholeQueries, selection: $statusFilter) {
+                        ForEach(PiholeQueryStatusFilter.allCases) { filter in
+                            switch filter {
+                            case .all:
+                                Text(localizer.t.piholeFilterAll).tag(filter)
+                            case .blocked:
+                                Text(localizer.t.piholeFilterBlocked).tag(filter)
+                            case .allowed:
+                                Text(localizer.t.piholeFilterAllowed).tag(filter)
+                            }
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    HStack {
+                        Menu {
+                            ForEach(availableClients, id: \.self) { client in
+                                Button(client == piholeAllClientFilter ? localizer.t.piholeFilterAll : client) { clientFilter = client }
+                            }
+                        } label: {
+                            Label(String(format: localizer.t.piholeFilterClient, clientFilter == piholeAllClientFilter ? localizer.t.piholeFilterAll : clientFilter), systemImage: "desktopcomputer")
+                                .font(.subheadline.weight(.medium))
+                        }
+                        .buttonStyle(.bordered)
+
+                        Spacer()
+
+                        Text("\(filteredEntries.count)")
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.textSecondary)
+                    }
+
+                    if filteredEntries.isEmpty {
+                        ContentUnavailableView(
+                            localizer.t.piholeNoQueryResults,
+                            systemImage: "tray"
+                        )
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        List(filteredEntries) { entry in
+                            HStack(alignment: .top, spacing: 12) {
+                                Circle()
+                                    .fill(entry.isBlocked ? AppTheme.stopped : AppTheme.running)
+                                    .frame(width: 8, height: 8)
+                                    .padding(.top, 6)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(entry.domain)
+                                        .font(.body.weight(.medium))
+                                        .lineLimit(1)
+                                    Text(entry.client)
+                                        .font(.caption)
+                                        .foregroundStyle(AppTheme.textSecondary)
+                                        .lineLimit(1)
+                                }
+
+                                Spacer()
+
+                                VStack(alignment: .trailing, spacing: 2) {
+                                    Text(localizedStatus(entry.status))
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(entry.isBlocked ? AppTheme.stopped : AppTheme.running)
+                                    Text(Formatters.formatUnixDate(entry.timestamp))
+                                        .font(.caption2)
+                                        .foregroundStyle(AppTheme.textMuted)
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                        .listStyle(.insetGrouped)
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+        .navigationTitle(localizer.t.piholeQueryLog)
+        .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $searchText, prompt: localizer.t.piholeFilterSearch)
+        .task { startPolling() }
+        .onDisappear { stopPolling() }
+    }
+
+    private func startPolling() {
+        stopPolling()
+        pollingTask = Task {
+            await loadRecent(showLoading: true)
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(5))
+                guard !Task.isCancelled else { break }
+                await loadRecent(showLoading: false)
+            }
+        }
+    }
+
+    private func stopPolling() {
+        pollingTask?.cancel()
+        pollingTask = nil
+    }
+
+    private func loadRecent(showLoading: Bool) async {
+        if showLoading { state = .loading }
+
+        let until = Date()
+        let from: Date = {
+            if let latestTs = entries.first?.timestamp, latestTs > 0 {
+                // Delta polling: only request a small overlap window near latest known entry.
+                return Date(timeIntervalSince1970: TimeInterval(max(0, latestTs - 20)))
+            }
+            return until.addingTimeInterval(-15 * 60)
+        }()
+
+        do {
+            let fetched = try await servicesStore.piholeClient.getQueries(from: from, until: until)
+            var merged: [String: PiholeQueryLogEntry] = Dictionary(uniqueKeysWithValues: entries.map { ($0.id, $0) })
+            for item in fetched {
+                merged[item.id] = item
+            }
+            entries = merged.values.sorted { $0.timestamp > $1.timestamp }
+            if entries.count > 500 {
+                entries = Array(entries.prefix(500))
+            }
+            state = .loaded(())
+        } catch let apiError as APIError {
+            if entries.isEmpty { state = .error(apiError) }
+        } catch {
+            if entries.isEmpty { state = .error(.custom(error.localizedDescription)) }
+        }
+    }
+
+    private func localizedStatus(_ raw: String) -> String {
+        switch raw.lowercased() {
+        case "blocked":
+            return localizer.t.piholeFilterBlocked
+        case "allowed":
+            return localizer.t.piholeFilterAllowed
+        case "cached":
+            return localizer.t.piholeCached
+        default:
+            return raw.capitalized
+        }
     }
 }

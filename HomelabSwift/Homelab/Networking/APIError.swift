@@ -1,6 +1,6 @@
 import Foundation
 
-enum APIError: LocalizedError {
+public enum APIError: LocalizedError {
     case notConfigured
     case invalidURL
     case networkError(Error)
@@ -10,22 +10,23 @@ enum APIError: LocalizedError {
     case bothURLsFailed(primaryError: Error, fallbackError: Error)
     case custom(String)
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
+        let t = Translations.current()
         switch self {
         case .notConfigured:
-            return "Service not configured. Please connect first."
+            return t.errorNotConfigured
         case .invalidURL:
-            return "Invalid URL. Check the server address."
+            return t.errorInvalidURL
         case .networkError(let e):
-            return "Network error: \(e.localizedDescription)"
+            return String(format: t.errorNetwork, e.localizedDescription)
         case .httpError(let code, let body):
-            return "Server error \(code): \(body.isEmpty ? "Unknown error" : body)"
+            return String(format: t.errorHttp, code, body.isEmpty ? t.errorUnknown : body)
         case .decodingError(let e):
-            return "Data parsing error: \(e.localizedDescription)"
+            return String(format: t.errorDecoding, e.localizedDescription)
         case .unauthorized:
-            return "Unauthorized. Please reconnect."
+            return t.errorUnauthorized
         case .bothURLsFailed:
-            return "Connection failed on both primary and fallback URLs. Check your network."
+            return t.errorBothFailed
         case .custom(let msg):
             return msg
         }

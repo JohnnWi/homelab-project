@@ -98,10 +98,10 @@ struct GiteaRepoDetail: View {
         .sheet(isPresented: $showBranchSheet) {
             branchSelectorSheet
         }
-        .alert("Error", isPresented: $showFetchError) {
-            Button("OK", role: .cancel) { }
+        .alert(localizer.t.error, isPresented: $showFetchError) {
+            Button(localizer.t.confirm, role: .cancel) { }
         } message: {
-            Text(fetchError ?? "Unknown error")
+            Text(fetchError ?? localizer.t.errorUnknown)
         }
     }
 
@@ -166,9 +166,8 @@ struct GiteaRepoDetail: View {
             }
             .padding(.top, 4)
 
-            // Branch + size
             HStack(spacing: 6) {
-                Text("Branch:")
+                Text(localizer.t.giteaBranchLabel)
                     .font(.caption)
                     .foregroundStyle(AppTheme.textMuted)
 
@@ -412,7 +411,7 @@ struct GiteaRepoDetail: View {
                         Image(systemName: "doc.text")
                             .font(.system(size: 48))
                             .foregroundStyle(AppTheme.textMuted)
-                        Text("File too large for preview (\(Formatters.formatBytes(Double(file.size))))")
+                        Text(String(format: localizer.t.giteaFileTooLarge, Formatters.formatBytes(Double(file.size))))
                             .font(.subheadline)
                             .foregroundStyle(AppTheme.textSecondary)
                             .multilineTextAlignment(.center)
@@ -706,7 +705,7 @@ struct GiteaRepoDetail: View {
                 }
                 .listRowBackground(effectiveBranch == branch.name ? giteaColor.opacity(0.1) : .clear)
             }
-            .navigationTitle("Branch")
+            .navigationTitle(localizer.t.giteaBranches)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -879,6 +878,7 @@ struct GiteaRepoDetail: View {
 // MARK: - Date formatter
 
 private func formatCommitDate(_ dateString: String) -> String {
+    let t = Translations.current()
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     var date = formatter.date(from: dateString)
@@ -890,11 +890,10 @@ private func formatCommitDate(_ dateString: String) -> String {
 
     let diff = Date().timeIntervalSince(d)
     let hours = Int(diff / 3600)
-    if hours < 1 { return "now" }
-    if hours < 24 { return "\(hours)h ago" }
+    if hours < 1 { return t.timeNow }
+    if hours < 24 { return String(format: t.timeHoursAgo, hours) }
     let days = hours / 24
-    if days == 1 { return "1d ago" }
-    if days < 30 { return "\(days)d ago" }
+    if days < 30 { return String(format: t.timeDaysAgo, days) }
     let fmt = DateFormatter()
     fmt.dateFormat = "dd/MM/yy"
     return fmt.string(from: d)

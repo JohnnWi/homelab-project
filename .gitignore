@@ -1,65 +1,45 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# macOS
+.DS_Store
+*.pem
 
-# dependencies
-node_modules/
-
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
-
-# Native
-ios/Pods/
-ios/build/
-ios/Index/
-android/app/build/
-android/.gradle/
-android/build/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
+# Secrets / credentials
+*.env
+.env.*
+!.env.example
+credentials.json
+secrets.json
+**/GoogleService-Info.plist
 
 # App Bundles
 *.ipa
 *.apk
 *.aab
-build/
 
-# Metro
-.metro-health-check*
+# IDE / Editor
+.claude/
+.idea/
+.gradle/
+.kotlin/
+*.iml
 
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
+# Logs
+*.log
 
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
-.vercel
-
-.rork
-rork-eslint.config.js
-core
-
-# Xcode / Swift
+# ----------------------------
+# Xcode / Swift (HomelabSwift)
+# ----------------------------
 HomelabSwift/**/xcuserdata/
 HomelabSwift/**/DerivedData/
+HomelabSwift/**/build/
 HomelabSwift/**/*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
 HomelabSwift/**/*.xcodeproj/xcuserdata/
 HomelabSwift/**/*.xcodeproj/project.xcworkspace/xcuserdata/
+HomelabSwift/**/*.xcresult/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+*.moved-aside
 *.hmap
-*.ipa
 *.dSYM.zip
 *.dSYM
 *.swp
@@ -67,24 +47,20 @@ HomelabSwift/**/*.xcodeproj/project.xcworkspace/xcuserdata/
 
 # Swift Package Manager
 HomelabSwift/.build/
+HomelabSwift/.swiftpm/
 HomelabSwift/Packages/
 HomelabSwift/**/*.resolved
 
-# Secrets / credentials (safety net)
-*.env
-.env.*
-!.env.example
-credentials.json
-secrets.json
-**/GoogleService-Info.plist
-.claude/
-*.log
-changelog.txt
-
-# HomelabAndroid
+# ----------------------------
+# Android / Kotlin (HomelabAndroid)
+# ----------------------------
 HomelabAndroid/.gradle/
+HomelabAndroid/**/build/
 HomelabAndroid/app/build/
 HomelabAndroid/build/
+HomelabAndroid/.externalNativeBuild/
+HomelabAndroid/.cxx/
+HomelabAndroid/captures/
 HomelabAndroid/local.properties
 HomelabAndroid/.idea/
 HomelabAndroid/**/*.iml

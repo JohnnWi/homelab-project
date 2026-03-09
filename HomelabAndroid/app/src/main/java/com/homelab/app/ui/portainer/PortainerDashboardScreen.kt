@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,6 +40,9 @@ import com.homelab.app.data.remote.dto.portainer.DockerSnapshotRaw
 import com.homelab.app.ui.components.M3ExpressiveButtonCard
 import com.homelab.app.ui.theme.primaryColor
 import com.homelab.app.util.ServiceType
+import com.homelab.app.util.UiState
+import com.homelab.app.ui.common.ErrorScreen
+import com.homelab.app.util.ResourceFormatters
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 
@@ -50,11 +54,10 @@ fun PortainerDashboardScreen(
     viewModel: PortainerViewModel = hiltViewModel()
 ) {
     val haptic = LocalHapticFeedback.current
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val endpoints by viewModel.endpoints.collectAsStateWithLifecycle()
     val selectedEndpoint by viewModel.selectedEndpoint.collectAsStateWithLifecycle()
     val containers by viewModel.containers.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val error by viewModel.error.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.fetchAll()
@@ -84,88 +87,98 @@ fun PortainerDashboardScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        if (isLoading && containers.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+        when (val state = uiState) {
+            is UiState.Loading, is UiState.Idle -> {
+                Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = ServiceType.PORTAINER.primaryColor)
+                }
             }
-        } else if (error != null && endpoints.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-                Text(
-                    text = error ?: stringResource(R.string.error_unknown),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyLarge
+            is UiState.Error -> {
+                ErrorScreen(
+                    message = state.message,
+                    onRetry = { state.retryAction?.invoke() ?: viewModel.fetchAll() },
+                    modifier = Modifier.padding(paddingValues)
                 )
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Endpoint Picker if > 1
-                if (endpoints.size > 1) {
-                    item {
-                        Text(
-                            text = stringResource(R.string.portainer_endpoints),
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            items(endpoints) { ep ->
-                                EndpointCard(
-                                    endpoint = ep,
-                                    isSelected = selectedEndpoint?.id == ep.id,
-                                    onClick = { viewModel.selectEndpoint(ep) }
-                                )
-                            }
-                        }
-                    }
-                }
-
-                if (selectedEndpoint != null) {
-                    val raw = selectedEndpoint?.snapshots?.firstOrNull()?.dockerSnapshotRaw
-                    val hasInfo = (raw?.operatingSystem?.isNotBlank() == true && raw.operatingSystem != "N/A") ||
-                                  (raw?.serverVersion?.isNotBlank() == true && raw.serverVersion != "N/A") ||
-                                  (raw?.architecture?.isNotBlank() == true && raw.architecture != "N/A")
-
-                    if (hasInfo) {
+            is UiState.Offline -> {
+                ErrorScreen(
+                    message = "",
+                    onRetry = { viewModel.fetchAll() },
+                    isOffline = true,
+                    modifier = Modifier.padding(paddingValues)
+                )
+            }
+            is UiState.Success -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Endpoint Picker if > 1
+                    if (endpoints.size > 1) {
                         item {
                             Text(
-                                text = stringResource(R.string.beszel_info_title),
+                                text = stringResource(R.string.portainer_endpoints),
                                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
-                            ServerInfoSection(endpoint = selectedEndpoint!!, raw = raw!!)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                items(endpoints) { ep ->
+                                    EndpointCard(
+                                        endpoint = ep,
+                                        isSelected = selectedEndpoint?.id == ep.id,
+                                        onClick = { viewModel.selectEndpoint(ep) }
+                                    )
+                                }
+                            }
                         }
                     }
 
-                    item {
+                    if (selectedEndpoint != null) {
+                        val raw = selectedEndpoint?.snapshots?.firstOrNull()?.dockerSnapshotRaw
+                        val hasInfo = (raw?.operatingSystem?.isNotBlank() == true && raw.operatingSystem != "N/A") ||
+                                      (raw?.serverVersion?.isNotBlank() == true && raw.serverVersion != "N/A") ||
+                                      (raw?.architecture?.isNotBlank() == true && raw.architecture != "N/A")
+
+                        if (hasInfo) {
+                            item {
+                                Text(
+                                    text = stringResource(R.string.beszel_info_title),
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                ServerInfoSection(endpoint = selectedEndpoint!!, raw = raw!!)
+                            }
+                        }
+
+                        item {
+                            val snapshot = selectedEndpoint?.snapshots?.firstOrNull()
+                            ContainerStatsSection(containers = containers, stackCount = snapshot?.stackCount ?: 0)
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            M3ExpressiveButtonCard(
+                                text = stringResource(R.string.portainer_all_containers),
+                                icon = Icons.Default.ChevronRight,
+                                color = ServiceType.PORTAINER.primaryColor,
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = { onNavigateToContainers(selectedEndpoint!!.id) }
+                            )
+                        }
+
                         val snapshot = selectedEndpoint?.snapshots?.firstOrNull()
-                        ContainerStatsSection(containers = containers, stackCount = snapshot?.stackCount ?: 0)
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        M3ExpressiveButtonCard(
-                            text = stringResource(R.string.portainer_all_containers),
-                            icon = Icons.Default.ChevronRight,
-                            color = ServiceType.PORTAINER.primaryColor,
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = { onNavigateToContainers(selectedEndpoint!!.id) }
-                        )
-                    }
-
-                    val snapshot = selectedEndpoint?.snapshots?.firstOrNull()
-                    if (snapshot != null) {
-                        item {
-                            ResourcesSection(snapshot = snapshot)
-                        }
-                        item {
-                            HealthSection(snapshot = snapshot)
+                        if (snapshot != null) {
+                            item {
+                                ResourcesSection(snapshot = snapshot)
+                            }
+                            item {
+                                HealthSection(snapshot = snapshot)
+                            }
                         }
                     }
                 }
@@ -302,36 +315,28 @@ private fun ServerInfoSection(endpoint: PortainerEndpoint, raw: DockerSnapshotRa
                     
                     val snapshot = endpoint.snapshots?.firstOrNull()
                     val cpuCores = snapshot?.totalCpu?.toString() ?: stringResource(R.string.not_available)
-                    val totalMemory = snapshot?.totalMemory?.let { formatServerMemory(it) } ?: stringResource(R.string.not_available)
                     
-                    InfoRow(label = "OS", value = os)
+                    InfoRow(label = stringResource(R.string.portainer_os_label), value = os)
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     
-                    InfoRow(label = "Docker", value = docker)
+                    InfoRow(label = stringResource(R.string.portainer_docker_label), value = docker)
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     
-                    InfoRow(label = "Arch", value = arch)
+                    InfoRow(label = stringResource(R.string.portainer_arch_label), value = arch)
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     
-                    InfoRow(label = "CPU", value = "$cpuCores Cores")
+                    InfoRow(label = stringResource(R.string.portainer_cpu_label), value = "$cpuCores ${stringResource(R.string.beszel_cores)}")
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     
-                    InfoRow(label = "RAM", value = totalMemory)
+                    val context = LocalContext.current
+                    InfoRow(label = stringResource(R.string.portainer_ram_label), value = snapshot?.totalMemory?.let { ResourceFormatters.formatBytes(it.toDouble(), context) } ?: stringResource(R.string.not_available))
                 }
             }
         }
     }
 }
 
-private fun formatServerMemory(bytes: Long): String {
-    if (bytes == 0L) return "0 B"
-    val gb = bytes / (1024.0 * 1024.0 * 1024.0)
-    if (gb >= 1.0) {
-        return String.format("%.1f GB", gb)
-    }
-    val mb = bytes / (1024.0 * 1024.0)
-    return String.format("%.0f MB", mb)
-}
+// --- Formatters moved to ResourceFormatters ---
 
 @Composable
 private fun InfoRow(label: String, value: String) {
@@ -419,8 +424,9 @@ private fun ResourcesSection(snapshot: EndpointSnapshot) {
             ResourceCard(modifier = Modifier.weight(1f), icon = Icons.Default.SdStorage, value = "${snapshot.volumeCount}", label = stringResource(R.string.portainer_volumes), color = ServiceType.PORTAINER.primaryColor)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            val context = LocalContext.current
             ResourceCard(modifier = Modifier.weight(1f), icon = Icons.Default.Memory, value = "${snapshot.totalCpu}", label = "CPUs", color = Color(0xFF2196F3))
-            ResourceCard(modifier = Modifier.weight(1f), icon = Icons.Default.Storage, value = "${snapshot.totalMemory / (1024*1024*1024)}GB", label = stringResource(R.string.beszel_memory), color = Color(0xFF9C27B0))
+            ResourceCard(modifier = Modifier.weight(1f), icon = Icons.Default.Storage, value = ResourceFormatters.formatBytes(snapshot.totalMemory.toDouble(), context), label = stringResource(R.string.beszel_memory), color = Color(0xFF9C27B0))
         }
     }
 }
@@ -467,5 +473,4 @@ private fun HealthSection(snapshot: EndpointSnapshot) {
         }
     }
 }
-
 

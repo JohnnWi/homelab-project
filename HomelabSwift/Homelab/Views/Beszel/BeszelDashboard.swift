@@ -7,8 +7,7 @@ struct BeszelDashboard: View {
     @Environment(Localizer.self) private var localizer
 
     @State private var systems: [BeszelSystem] = []
-    @State private var isLoading = true
-    @State private var error: Error?
+    @State private var state: LoadableState<Void> = .idle
 
     private let beszelColor = Color(hex: "#0EA5E9")
     private let memoryColor = Color(hex: "#8B5CF6")
@@ -16,15 +15,14 @@ struct BeszelDashboard: View {
     var body: some View {
         ServiceDashboardLayout(
             serviceType: .beszel,
-            isLoading: isLoading,
-            error: error,
+            state: state,
             onRefresh: fetchSystems
         ) {
             overviewCard
 
             refreshHint
 
-            if systems.isEmpty && !isLoading {
+            if systems.isEmpty && !state.isLoading {
                 emptyState
             } else {
                 ForEach(systems) { system in
@@ -121,14 +119,16 @@ struct BeszelDashboard: View {
     // MARK: - Fetch
 
     private func fetchSystems() async {
+        state = .loading
         do {
             let response = try await servicesStore.beszelClient.getSystems()
             systems = response.items
-            error = nil
+            state = .loaded(())
+        } catch let apiError as APIError {
+            state = .error(apiError)
         } catch {
-            self.error = error
+            state = .error(.custom(error.localizedDescription))
         }
-        isLoading = false
     }
 }
 

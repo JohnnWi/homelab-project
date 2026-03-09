@@ -1,4 +1,5 @@
 import SwiftUI
+import LocalAuthentication
 
 // Maps to app/(tabs)/settings/index.tsx
 
@@ -10,6 +11,12 @@ struct SettingsView: View {
     @State private var fallbackInputs: [ServiceType: String] = [:]
     @State private var showDisconnectAlert: ServiceType? = nil
     @State private var showCopiedToast = false
+    @State private var showDisableSecurityAlert = false
+    @State private var showChangePinFlow = false
+    @State private var changePinStep: ChangePinStep = .currentPin
+    @State private var currentPinInput = ""
+    @State private var newPinInput = ""
+    @State private var changePinError: String? = nil
     @FocusState private var focusedField: ServiceType?
 
     private let cryptoAddress = "0x649641868e6876c2c1f04584a95679e01c1aaf0d"
@@ -33,6 +40,7 @@ struct SettingsView: View {
                             donationSection
                             themeSection
                             languageSection
+                            securitySection
                             servicesSection
                             contactsSection
                         }
@@ -227,6 +235,225 @@ struct SettingsView: View {
     }
 
 
+    // MARK: - Security Section
+
+    private var securitySection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(localizer.t.securityTitle.uppercased())
+                .font(.caption2)
+                .fontWeight(.bold)
+                .foregroundStyle(AppTheme.accent)
+                .padding(.leading, 8)
+                .padding(.top, 16)
+
+            VStack(spacing: 0) {
+                // Biometric toggle
+                if settingsStore.isPinSet {
+                    let context = LAContext()
+                    let canUseBiometric = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
+                    let biometricLabel = context.biometryType == .faceID ? "Face ID" : "Touch ID"
+
+                    if canUseBiometric {
+                        HStack {
+                            Image(systemName: context.biometryType == .faceID ? "faceid" : "touchid")
+                                .font(.title3)
+                                .foregroundStyle(AppTheme.accent)
+                                .frame(width: 32, height: 32)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(biometricLabel)
+                                    .font(.body.weight(.medium))
+                                Text(localizer.t.securityBiometricDesc)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer()
+
+                            Toggle("", isOn: Binding(
+                                get: { settingsStore.biometricEnabled },
+                                set: { settingsStore.biometricEnabled = $0 }
+                            ))
+                            .labelsHidden()
+                            .tint(AppTheme.accent)
+                        }
+                        .padding(16)
+
+                        Divider().padding(.horizontal, 16)
+                    }
+
+                    // Change PIN
+                    Button {
+                        changePinStep = .currentPin
+                        currentPinInput = ""
+                        newPinInput = ""
+                        changePinError = nil
+                        showChangePinFlow = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "key.fill")
+                                .font(.title3)
+                                .foregroundStyle(AppTheme.accent)
+                                .frame(width: 32, height: 32)
+
+                            Text(localizer.t.securityChangePin)
+                                .font(.body.weight(.medium))
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.caption.bold())
+                                .foregroundStyle(AppTheme.textMuted)
+                        }
+                        .padding(16)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+
+                    Divider().padding(.horizontal, 16)
+
+                    // Disable security
+                    Button {
+                        showDisableSecurityAlert = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "lock.slash.fill")
+                                .font(.title3)
+                                .foregroundStyle(AppTheme.danger)
+                                .frame(width: 32, height: 32)
+
+                            Text(localizer.t.securityDisable)
+                                .font(.body.weight(.medium))
+                                .foregroundStyle(AppTheme.danger)
+
+                            Spacer()
+                        }
+                        .padding(16)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    // No PIN set — offer to set up
+                    HStack {
+                        Image(systemName: "lock.open.fill")
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 32, height: 32)
+
+                        Text(localizer.t.securityNotConfigured)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+
+                        Spacer()
+                    }
+                    .padding(16)
+                }
+            }
+            .glassCard()
+        }
+        .alert(localizer.t.securityDisableConfirm, isPresented: $showDisableSecurityAlert) {
+            Button(localizer.t.cancel, role: .cancel) { }
+            Button(localizer.t.securityDisable, role: .destructive) {
+                settingsStore.clearSecurity()
+                HapticManager.medium()
+            }
+        } message: {
+            Text(localizer.t.securityDisableMessage)
+        }
+        .fullScreenCover(isPresented: $showChangePinFlow) {
+            changePinView
+        }
+    }
+
+    // MARK: - Change PIN Flow
+
+    @ViewBuilder
+    private var changePinView: some View {
+        ZStack {
+            AppTheme.background.ignoresSafeArea()
+
+            VStack {
+                HStack {
+                    Button {
+                        showChangePinFlow = false
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.title3)
+                            .foregroundStyle(.primary)
+                            .padding(12)
+                    }
+                    .buttonStyle(.plain)
+                    Spacer()
+                }
+                .padding(.horizontal, 8)
+
+                switch changePinStep {
+                case .currentPin:
+                    PinEntryView(
+                        pin: $currentPinInput,
+                        title: localizer.t.securityCurrentPin,
+                        subtitle: localizer.t.securityCurrentPinDesc,
+                        errorMessage: changePinError,
+                        onComplete: { pin in
+                            if settingsStore.verifyPin(pin) {
+                                changePinError = nil
+                                currentPinInput = ""
+                                withAnimation {
+                                    changePinStep = .newPin
+                                }
+                            } else {
+                                changePinError = localizer.t.securityWrongPin
+                                currentPinInput = ""
+                                HapticManager.error()
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                    changePinError = nil
+                                }
+                            }
+                        }
+                    )
+
+                case .newPin:
+                    PinEntryView(
+                        pin: $newPinInput,
+                        title: localizer.t.securityNewPin,
+                        subtitle: localizer.t.securityNewPinDesc,
+                        onComplete: { _ in
+                            withAnimation {
+                                changePinStep = .confirmNewPin
+                            }
+                        }
+                    )
+
+                case .confirmNewPin:
+                    PinEntryView(
+                        pin: .init(
+                            get: { currentPinInput },
+                            set: { currentPinInput = $0 }
+                        ),
+                        title: localizer.t.securityConfirmPin,
+                        subtitle: localizer.t.securityConfirmPinDesc,
+                        errorMessage: changePinError,
+                        onComplete: { pin in
+                            if pin == newPinInput {
+                                settingsStore.savePin(pin)
+                                HapticManager.success()
+                                showChangePinFlow = false
+                            } else {
+                                changePinError = localizer.t.securityPinMismatch
+                                currentPinInput = ""
+                                HapticManager.error()
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                    changePinError = nil
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
+
     // MARK: - Helpers
 
     @ViewBuilder
@@ -236,7 +463,6 @@ struct SettingsView: View {
 
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
-                // Icon (placeholder style as Android)
                 Text(String(type.displayName.prefix(1)))
                     .font(.headline)
                     .fontWeight(.bold)
@@ -264,7 +490,6 @@ struct SettingsView: View {
 
                 Spacer()
 
-                // Visibility toggle
                 Button {
                     settingsStore.toggleServiceVisibility(type)
                     HapticManager.light()
@@ -342,6 +567,12 @@ struct SettingsView: View {
         Task { await servicesStore.updateFallbackURL(for: type, fallbackUrl: value) }
         HapticManager.light()
     }
+}
+
+// MARK: - ChangePinStep
+
+enum ChangePinStep {
+    case currentPin, newPin, confirmNewPin
 }
 
 // MARK: - Subviews

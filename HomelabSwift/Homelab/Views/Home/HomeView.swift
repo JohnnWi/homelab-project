@@ -1,4 +1,5 @@
 import SwiftUI
+import Darwin
 
 // Maps to app/(tabs)/(home)/index.tsx — the launcher screen
 
@@ -12,12 +13,30 @@ struct HomeView: View {
 
     private let columns = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
 
+    private var hasServices: Bool {
+        ServiceType.allCases.contains { !settingsStore.isServiceHidden($0) && servicesStore.isConnected($0) }
+    }
+    
+    // Computed property to check if ANY active, un-hidden service is currently unreachable
+    private var hasUnreachableService: Bool {
+        ServiceType.allCases.contains { type in
+            !settingsStore.isServiceHidden(type) &&
+            servicesStore.isConnected(type) &&
+            servicesStore.reachability[type] == false
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     headerSection
-                    serviceGrid
+                    if hasServices {
+                        if hasUnreachableService || servicesStore.isTailscaleConnected {
+                            tailscaleSection
+                        }
+                        serviceGrid
+                    }
                     DashboardSummary()
                     footerSection
                 }
@@ -66,6 +85,72 @@ struct HomeView: View {
         .padding(.top, 8)
         .padding(.bottom, 16)
     }
+
+    // MARK: - Tailscale Section
+    
+    private var tailscaleSection: some View {
+        Button {
+            HapticManager.medium()
+            if let url = URL(string: "tailscale://app") {
+                UIApplication.shared.open(url, options: [:]) { success in
+                    if !success {
+                        if let appStoreUrl = URL(string: "https://apps.apple.com/app/tailscale/id1475387142") {
+                            UIApplication.shared.open(appStoreUrl)
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 16) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(servicesStore.isTailscaleConnected ? AppTheme.running : Color.black)
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: servicesStore.isTailscaleConnected ? "shield.checkered" : "network.badge.shield.half.filled")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(servicesStore.isTailscaleConnected ? localizer.t.tailscaleConnected : localizer.t.tailscaleOpen)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.primary)
+
+                    Text(servicesStore.isTailscaleConnected ? localizer.t.tailscaleSecure : localizer.t.tailscaleOpenDesc)
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textMuted)
+                }
+
+                Spacer(minLength: 0)
+
+                // Status indicator
+                if servicesStore.isTailscaleConnected {
+                    Image(systemName: "checkmark.seal.fill")
+                        .foregroundStyle(AppTheme.running)
+                        .font(.title3)
+                } else {
+                    HStack(spacing: 4) {
+                        Text("VPN")
+                            .font(.caption2.bold())
+                            .foregroundStyle(AppTheme.textMuted)
+                        Image(systemName: "chevron.right")
+                            .font(.caption2)
+                            .foregroundStyle(AppTheme.textMuted)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity)
+            .glassCard(tint: servicesStore.isTailscaleConnected ? AppTheme.running.opacity(0.05) : nil)
+        }
+        .buttonStyle(.plain)
+        .padding(.bottom, 16)
+    }
+
 
     // MARK: - Service Grid
 

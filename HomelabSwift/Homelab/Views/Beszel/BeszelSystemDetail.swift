@@ -46,10 +46,10 @@ struct BeszelSystemDetail: View {
         .navigationTitle(system?.name ?? localizer.t.beszelSystemDetail)
         .refreshable { await fetchAll() }
         .task { await fetchAll() }
-        .alert("Error", isPresented: $showFetchError) {
-            Button("OK", role: .cancel) { }
+        .alert(localizer.t.error, isPresented: $showFetchError) {
+            Button(localizer.t.confirm, role: .cancel) { }
         } message: {
-            Text(fetchError ?? "Unknown error")
+            Text(fetchError ?? localizer.t.errorUnknown)
         }
     }
 
@@ -440,36 +440,38 @@ private struct MiniBarGraph: View {
     }
 }
 
-// MARK: - Private formatters
-
-private func formatBeszelSize(_ val: Double, compact: Bool = false) -> String {
-    if val == 0 { return "0" }
+extension BeszelSystemDetail {
+    // MARK: - Private formatters
     
-    // Fallback per valori già in bytes (es. traffico o vecchie API)
-    if val > 10000 {
-        let formatted = Formatters.formatBytes(val)
-        return compact ? formatted.replacingOccurrences(of: "B", with: "").replacingOccurrences(of: " ", with: "") : formatted
+    private func formatBeszelSize(_ val: Double, compact: Bool = false) -> String {
+        if val == 0 { return "0" }
+        
+        // Fallback per valori già in bytes (es. traffico o vecchie API)
+        if val > 10000 {
+            let formatted = Formatters.formatBytes(val)
+            return compact ? formatted.replacingOccurrences(of: "B", with: "").replacingOccurrences(of: " ", with: "") : formatted
+        }
+        
+        if val < 0.01 { return compact ? "<0.01" : "< 0.01 \(localizer.t.unitGB)" }
+        if val < 1 {
+            let mb = String(format: "%.0f", val * 1024)
+            return compact ? mb : "\(mb) \(localizer.t.unitMB)"
+        }
+        let gb = String(format: "%.1f", val)
+        return compact ? gb : "\(gb) \(localizer.t.unitGB)"
     }
-    
-    if val < 0.01 { return compact ? "<0.01" : "< 0.01 GB" }
-    if val < 1 {
-        let mb = String(format: "%.0f", val * 1024)
-        return compact ? mb : "\(mb) MB"
+
+    private func formatNetRate(_ val: Double) -> String {
+        if val == 0 { return "0 B/s" }
+        return "\(Formatters.formatBytes(val))/s"
     }
-    let gb = String(format: "%.1f", val)
-    return compact ? gb : "\(gb) GB"
-}
 
-private func formatNetRate(_ val: Double) -> String {
-    if val == 0 { return "0 B/s" }
-    return "\(Formatters.formatBytes(val))/s"
-}
-
-private func formatUptimeHours(_ seconds: Double) -> String {
-    let days = Int(seconds / 86400)
-    let hours = Int(seconds.truncatingRemainder(dividingBy: 86400) / 3600)
-    if days > 0 { return "\(days)d \(hours)h" }
-    let minutes = Int(seconds.truncatingRemainder(dividingBy: 3600) / 60)
-    if hours > 0 { return "\(hours)h \(minutes)m" }
-    return "\(minutes)m"
+    private func formatUptimeHours(_ seconds: Double) -> String {
+        let days = Int(seconds / 86400)
+        let hours = Int(seconds.truncatingRemainder(dividingBy: 86400) / 3600)
+        if days > 0 { return "\(days)\(localizer.t.unitDays) \(hours)\(localizer.t.unitHours)" }
+        let minutes = Int(seconds.truncatingRemainder(dividingBy: 3600) / 60)
+        if hours > 0 { return "\(hours)\(localizer.t.unitHours) \(minutes)\(localizer.t.unitMinutes)" }
+        return "\(minutes)\(localizer.t.unitMinutes)"
+    }
 }

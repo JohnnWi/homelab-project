@@ -5,10 +5,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.homelab.app.data.remote.dto.gitea.*
 import com.homelab.app.data.repository.GiteaRepository
+import com.homelab.app.util.ErrorHandler
+import com.homelab.app.util.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import com.homelab.app.util.Logger
 import javax.inject.Inject
 
 enum class GiteaRepoTab { FILES, COMMITS, ISSUES, BRANCHES }
@@ -17,14 +24,15 @@ enum class GiteaViewMode { PREVIEW, CODE }
 @HiltViewModel
 class GiteaRepoDetailViewModel @Inject constructor(
     private val repository: GiteaRepository,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     val owner: String = checkNotNull(savedStateHandle["owner"])
     val repoName: String = checkNotNull(savedStateHandle["repo"])
 
-    private val _repo = MutableStateFlow<GiteaRepo?>(null)
-    val repo: StateFlow<GiteaRepo?> = _repo
+    private val _uiState = MutableStateFlow<UiState<GiteaRepo>>(UiState.Loading)
+    val uiState: StateFlow<UiState<GiteaRepo>> = _uiState
 
     private val _activeTab = MutableStateFlow(GiteaRepoTab.FILES)
     val activeTab: StateFlow<GiteaRepoTab> = _activeTab
@@ -56,40 +64,30 @@ class GiteaRepoDetailViewModel @Inject constructor(
     private val _branches = MutableStateFlow<List<GiteaBranch>>(emptyList())
     val branches: StateFlow<List<GiteaBranch>> = _branches
 
-    private val _isLoadingRepo = MutableStateFlow(true)
-    val isLoadingRepo: StateFlow<Boolean> = _isLoadingRepo
-
     private val _isLoadingContent = MutableStateFlow(false)
     val isLoadingContent: StateFlow<Boolean> = _isLoadingContent
 
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
+    private val _actionError = MutableStateFlow<String?>(null)
+    val actionError: StateFlow<String?> = _actionError
 
     val effectiveBranch: String
-        get() = _selectedBranch.value ?: _repo.value?.default_branch ?: "main"
+        get() = _selectedBranch.value ?: (uiState.value as? UiState.Success)?.data?.default_branch ?: "main"
 
     init {
-        initializeData()
+        _uiState.onEach { Logger.stateTransition("GiteaRepoDetailViewModel", "uiState", it) }.launchIn(viewModelScope)
+        fetchRepo()
     }
 
-    private fun initializeData() {
+    fun fetchRepo() {
         viewModelScope.launch {
-            _isLoadingRepo.value = true
-            _error.value = null
+            _uiState.value = UiState.Loading
             try {
-                // Fetch independently
-                _repo.value = runCatching { repository.getRepo(owner, repoName) }.getOrNull()
+                val r = repository.getRepo(owner, repoName)
                 _branches.value = runCatching { repository.getRepoBranches(owner, repoName) }.getOrDefault(emptyList())
-
-                if (_repo.value != null) {
-                    fetchFiles()
-                } else {
-                    _error.value = "Impossibile caricare il repository."
-                }
+                _uiState.value = UiState.Success(r)
+                fetchFiles()
             } catch (e: Exception) {
-                _error.value = e.localizedMessage ?: "Errore caricamento repository"
-            } finally {
-                _isLoadingRepo.value = false
+                _uiState.value = UiState.Error(ErrorHandler.getMessage(context, e))
             }
         }
     }
@@ -151,8 +149,8 @@ class GiteaRepoDetailViewModel @Inject constructor(
         _viewMode.value = mode
     }
 
-    fun clearError() {
-        _error.value = null
+    fun clearActionError() {
+        _actionError.value = null
     }
 
     fun fetchTabContent() {
@@ -168,7 +166,7 @@ class GiteaRepoDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoadingContent.value = true
             _viewingFile.value = null
-            _error.value = null
+            _actionError.value = null
             try {
                 val contents = repository.getRepoContents(owner, repoName, path, effectiveBranch)
                 // Sort folders first
@@ -184,7 +182,7 @@ class GiteaRepoDetailViewModel @Inject constructor(
                     _readme.value = null
                 }
             } catch (e: Exception) {
-                _error.value = e.localizedMessage ?: "Errore caricamento file"
+                _actionError.value = ErrorHandler.getMessage(context, e)
                 _files.value = emptyList()
             } finally {
                 _isLoadingContent.value = false
@@ -195,11 +193,11 @@ class GiteaRepoDetailViewModel @Inject constructor(
     private fun loadFileContent(path: String) {
         viewModelScope.launch {
             _isLoadingContent.value = true
-            _error.value = null
+            _actionError.value = null
             try {
                 _viewingFile.value = repository.getFileContent(owner, repoName, path, effectiveBranch)
             } catch (e: Exception) {
-                _error.value = e.localizedMessage ?: "Errore apertura file"
+                _actionError.value = ErrorHandler.getMessage(context, e)
             } finally {
                 _isLoadingContent.value = false
             }
@@ -209,11 +207,11 @@ class GiteaRepoDetailViewModel @Inject constructor(
     private fun fetchCommits() {
         viewModelScope.launch {
             _isLoadingContent.value = true
-            _error.value = null
+            _actionError.value = null
             try {
                 _commits.value = repository.getRepoCommits(owner, repoName, ref = effectiveBranch)
             } catch (e: Exception) {
-                _error.value = e.localizedMessage ?: "Errore caricamento commits"
+                _actionError.value = ErrorHandler.getMessage(context, e)
             } finally {
                 _isLoadingContent.value = false
             }
@@ -223,11 +221,11 @@ class GiteaRepoDetailViewModel @Inject constructor(
     private fun fetchIssues() {
         viewModelScope.launch {
             _isLoadingContent.value = true
-            _error.value = null
+            _actionError.value = null
             try {
                 _issues.value = repository.getRepoIssues(owner, repoName)
             } catch (e: Exception) {
-                _error.value = e.localizedMessage ?: "Errore caricamento issues"
+                _actionError.value = ErrorHandler.getMessage(context, e)
             } finally {
                 _isLoadingContent.value = false
             }
@@ -237,11 +235,11 @@ class GiteaRepoDetailViewModel @Inject constructor(
     private fun fetchBranches() {
         viewModelScope.launch {
             _isLoadingContent.value = true
-            _error.value = null
+            _actionError.value = null
             try {
                 _branches.value = repository.getRepoBranches(owner, repoName)
             } catch (e: Exception) {
-                _error.value = e.localizedMessage ?: "Errore caricamento branches"
+                _actionError.value = ErrorHandler.getMessage(context, e)
             } finally {
                 _isLoadingContent.value = false
             }

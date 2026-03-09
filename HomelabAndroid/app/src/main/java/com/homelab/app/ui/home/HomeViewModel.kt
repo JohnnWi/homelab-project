@@ -50,8 +50,23 @@ class HomeViewModel @Inject constructor(
         .map { map -> map.values.count { it } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    val isTailscaleConnected: StateFlow<Boolean> = servicesRepository.isTailscaleConnected
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     val hiddenServices: StateFlow<Set<String>> = localPreferencesRepository.hiddenServices
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    init {
+        // Start periodic polling every 3 minutes
+        viewModelScope.launch {
+            while (true) {
+                // Wait 3 minutes
+                kotlinx.coroutines.delay(180_000L)
+                checkAllReachability()
+                fetchSummaryData()
+            }
+        }
+    }
 
     fun checkReachability(type: ServiceType) {
         viewModelScope.launch {

@@ -139,7 +139,7 @@ fun ServiceLoginScreen(
             // Hint
             val hint = when (serviceType) {
                 ServiceType.PORTAINER -> "Create an Access token in Portainer under My account -> Access tokens."
-                ServiceType.PIHOLE -> "Use the API Token found in Settings -> API / Web interface."
+                ServiceType.PIHOLE -> "Use the password or API token configured in Pi-hole under Settings -> API / Web interface."
                 ServiceType.GITEA -> "If 2FA is enabled, use an App Token instead of your password."
                 else -> null
             }
@@ -259,7 +259,7 @@ fun ServiceLoginScreen(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text(if (serviceType == ServiceType.PIHOLE) "API Token" else stringResource(R.string.login_password_hint)) },
+                    label = { Text(stringResource(R.string.login_password_hint)) },
                     leadingIcon = { Icon(Icons.Default.Lock, null) },
                     trailingIcon = {
                         IconButton(onClick = { showPassword = !showPassword }) {

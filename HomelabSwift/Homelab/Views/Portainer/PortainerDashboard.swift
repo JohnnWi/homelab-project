@@ -9,16 +9,14 @@ struct PortainerDashboard: View {
     @State private var endpoints: [PortainerEndpoint] = []
     @State private var selectedEndpoint: PortainerEndpoint?
     @State private var containers: [PortainerContainer] = []
-    @State private var isLoading = true
-    @State private var error: Error?
+    @State private var state: LoadableState<Void> = .idle
 
     private let portainerColor = ServiceType.portainer.colors.primary
 
     var body: some View {
         ServiceDashboardLayout(
             serviceType: .portainer,
-            isLoading: isLoading && containers.isEmpty,
-            error: error,
+            state: state,
             onRefresh: fetchAll
         ) {
             // Endpoint picker (only if multiple endpoints)
@@ -144,7 +142,7 @@ struct PortainerDashboard: View {
             // Server details card (Simplified per user request)
             if let raw = ep.Snapshots?.first?.DockerSnapshotRaw, let name = raw.Name {
                 VStack(spacing: 0) {
-                    serverInfoRow(label: "Host", value: name)
+                    serverInfoRow(label: localizer.t.portainerHost, value: name)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 4)
@@ -250,7 +248,7 @@ struct PortainerDashboard: View {
     private func healthSection(_ snapshot: EndpointSnapshot) -> some View {
         if snapshot.HealthyContainerCount > 0 || snapshot.UnhealthyContainerCount > 0 {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Health Status")
+                Text(localizer.t.portainerHealthStatus)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(AppTheme.textMuted)
                     .textCase(.uppercase)
@@ -288,18 +286,18 @@ struct PortainerDashboard: View {
     // MARK: - Data Fetching
 
     private func fetchAll() async {
-        isLoading = true
-        error = nil
-        defer { isLoading = false }
-
+        state = .loading
         do {
             endpoints = try await servicesStore.portainerClient.getEndpoints()
             if selectedEndpoint == nil, let first = endpoints.first {
                 selectedEndpoint = first
             }
             await fetchContainers()
+            state = .loaded(())
+        } catch let apiError as APIError {
+            state = .error(apiError)
         } catch {
-            self.error = error
+            state = .error(.custom(error.localizedDescription))
         }
     }
 
@@ -307,10 +305,14 @@ struct PortainerDashboard: View {
         guard let ep = selectedEndpoint else { return }
         do {
             containers = try await servicesStore.portainerClient.getContainers(endpointId: ep.Id)
-        } catch {
+        } catch let apiError as APIError {
             // Keep existing containers if we have them, only show error on first load
             if containers.isEmpty {
-                self.error = error
+                state = .error(apiError)
+            }
+        } catch {
+            if containers.isEmpty {
+                state = .error(.custom(error.localizedDescription))
             }
         }
     }

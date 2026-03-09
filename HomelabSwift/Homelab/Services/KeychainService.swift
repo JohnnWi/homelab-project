@@ -4,6 +4,7 @@ import Security
 enum KeychainService {
     private static let service = "com.homelab.homelab.services"
     private static let account = "homelab_user"
+    private static let pinAccount = "homelab_pin"
 
     static func saveConnections(_ connections: [ServiceType: ServiceConnection]) {
         guard let data = try? JSONEncoder().encode(connections) else { return }
@@ -47,6 +48,52 @@ enum KeychainService {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+
+    // MARK: - PIN Storage
+
+    static func savePin(_ pin: String) {
+        guard let data = pin.data(using: .utf8) else { return }
+
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: pinAccount
+        ]
+        SecItemDelete(query as CFDictionary)
+
+        var addQuery = query
+        addQuery[kSecValueData as String] = data
+        SecItemAdd(addQuery as CFDictionary, nil)
+    }
+
+    static func loadPin() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: pinAccount,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+
+        guard status == errSecSuccess,
+              let data = result as? Data,
+              let pin = String(data: data, encoding: .utf8)
+        else { return nil }
+
+        return pin
+    }
+
+    static func deletePin() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: pinAccount
         ]
         SecItemDelete(query as CFDictionary)
     }

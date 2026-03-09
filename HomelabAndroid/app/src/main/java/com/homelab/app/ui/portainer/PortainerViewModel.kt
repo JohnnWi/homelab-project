@@ -5,16 +5,27 @@ import androidx.lifecycle.viewModelScope
 import com.homelab.app.data.remote.dto.portainer.PortainerContainer
 import com.homelab.app.data.remote.dto.portainer.PortainerEndpoint
 import com.homelab.app.data.repository.PortainerRepository
+import com.homelab.app.util.ErrorHandler
+import com.homelab.app.util.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import com.homelab.app.util.Logger
 import javax.inject.Inject
+import android.content.Context
 
 @HiltViewModel
 class PortainerViewModel @Inject constructor(
-    private val repository: PortainerRepository
+    private val repository: PortainerRepository,
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
+
+    private val _uiState = MutableStateFlow<UiState<Unit>>(UiState.Loading)
+    val uiState: StateFlow<UiState<Unit>> = _uiState
 
     private val _endpoints = MutableStateFlow<List<PortainerEndpoint>>(emptyList())
     val endpoints: StateFlow<List<PortainerEndpoint>> = _endpoints
@@ -25,16 +36,13 @@ class PortainerViewModel @Inject constructor(
     private val _containers = MutableStateFlow<List<PortainerContainer>>(emptyList())
     val containers: StateFlow<List<PortainerContainer>> = _containers
 
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
+    init {
+        _uiState.onEach { Logger.stateTransition("PortainerViewModel", "uiState", it) }.launchIn(viewModelScope)
+    }
 
     fun fetchAll() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
+            _uiState.value = UiState.Loading
             try {
                 val eps = repository.getEndpoints()
                 _endpoints.value = eps
@@ -42,10 +50,10 @@ class PortainerViewModel @Inject constructor(
                     _selectedEndpoint.value = eps.first()
                 }
                 fetchContainers()
+                _uiState.value = UiState.Success(Unit)
             } catch (e: Exception) {
-                _error.value = e.localizedMessage ?: "Errore caricamento Portainer"
-            } finally {
-                _isLoading.value = false
+                val message = ErrorHandler.getMessage(context, e)
+                _uiState.value = UiState.Error(message, retryAction = { fetchAll() })
             }
         }
     }
@@ -53,7 +61,6 @@ class PortainerViewModel @Inject constructor(
     fun selectEndpoint(endpoint: PortainerEndpoint) {
         _selectedEndpoint.value = endpoint
         viewModelScope.launch {
-            _error.value = null
             fetchContainers() 
         }
     }
@@ -65,7 +72,8 @@ class PortainerViewModel @Inject constructor(
             _containers.value = conts
         } catch (e: Exception) {
             if (_containers.value.isEmpty()) {
-                _error.value = e.localizedMessage ?: "Errore recupero containers"
+                val message = ErrorHandler.getMessage(context, e)
+                _uiState.value = UiState.Error(message, retryAction = { fetchAll() })
             }
         }
     }

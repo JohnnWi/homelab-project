@@ -3,6 +3,7 @@ package com.homelab.app.data.remote
 import com.homelab.app.data.local.SettingsManager
 import com.homelab.app.util.GlobalEventBus
 import com.homelab.app.util.ServiceType
+import com.homelab.app.domain.model.PiHoleAuthMode
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
@@ -53,8 +54,8 @@ class AuthInterceptor @Inject constructor(
                         }
                     }
                     ServiceType.PIHOLE -> {
-                        // Support Pi-hole v6 X-FTL-SID header and v5 sid query param fallback (handled in Repo)
-                        if (connection.token.isNotBlank()) {
+                        // Session auth uses X-FTL-SID. Legacy auth is provided via query param in the repository.
+                        if (connection.token.isNotBlank() && connection.piholeAuthMode != PiHoleAuthMode.LEGACY) {
                             requestBuilder.addHeader("X-FTL-SID", connection.token)
                         }
                     }
@@ -82,7 +83,11 @@ class AuthInterceptor @Inject constructor(
         request = requestBuilder.build()
         val response = chain.proceed(request)
 
-        if (response.code == 401 && bypassHeader != "true" && serviceType != ServiceType.UNKNOWN) {
+        if (response.code == 401 &&
+            bypassHeader != "true" &&
+            serviceType != ServiceType.UNKNOWN &&
+            serviceType != ServiceType.PIHOLE
+        ) {
             // Emits specific service failure replacing iOS NotificationCenter(.serviceUnauthorized)
             // Only if NOT bypassing (e.g. login) and service is known
             globalEventBus.emitAuthError(serviceType)

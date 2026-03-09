@@ -202,7 +202,13 @@ private fun DetailTabContent(
             Spacer(modifier = Modifier.height(8.dp))
             InfoRow(stringResource(R.string.portainer_image), detail.config.image)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            InfoRow(stringResource(R.string.portainer_status), detail.state.status.uppercase())
+            val statusLabel = when (detail.state.status.lowercase()) {
+                "running" -> stringResource(R.string.portainer_running)
+                "exited", "dead" -> stringResource(R.string.portainer_stopped)
+                "paused" -> stringResource(R.string.pihole_status_disabled)
+                else -> detail.state.status.uppercase()
+            }
+            InfoRow(stringResource(R.string.portainer_status), statusLabel)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             InfoRow(stringResource(R.string.portainer_created), detail.created.take(10))
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -240,9 +246,13 @@ private fun StatsTabContent(stats: com.homelab.app.data.remote.dto.portainer.Con
         Column(modifier = Modifier.padding(16.dp)) {
             Text(stringResource(R.string.portainer_cpu_ram), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(16.dp))
+            val context = androidx.compose.ui.platform.LocalContext.current
             InfoRow(stringResource(R.string.portainer_cpu_usage), String.format("%.2f%%", cpuPercent))
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            InfoRow(stringResource(R.string.beszel_memory), "${memUsage / (1024 * 1024)} MB / ${memLimit / (1024 * 1024)} MB")
+            InfoRow(
+                stringResource(R.string.beszel_memory), 
+                "${com.homelab.app.util.ResourceFormatters.formatBytes(memUsage.toDouble(), context)} / ${com.homelab.app.util.ResourceFormatters.formatBytes(memLimit.toDouble(), context)}"
+            )
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             InfoRow(stringResource(R.string.portainer_memory_percent), String.format("%.2f%%", memPercent))
         }

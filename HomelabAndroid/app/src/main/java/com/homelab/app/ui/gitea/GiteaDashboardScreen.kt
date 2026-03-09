@@ -35,8 +35,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homelab.app.R
 import com.homelab.app.data.remote.dto.gitea.*
-import com.homelab.app.ui.theme.primaryColor
 import com.homelab.app.util.ServiceType
+import com.homelab.app.util.UiState
+import com.homelab.app.ui.common.ErrorScreen
+import com.homelab.app.ui.theme.primaryColor
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.max
@@ -95,10 +97,8 @@ fun GiteaDashboardScreen(
     val heatmap by viewModel.heatmap.collectAsStateWithLifecycle()
     val totalBranches by viewModel.totalBranches.collectAsStateWithLifecycle()
     val sortOrder by viewModel.sortOrder.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val error by viewModel.error.collectAsStateWithLifecycle()
-
     val repos by viewModel.repos.collectAsStateWithLifecycle()
 
     val sortedRepos = remember(repos, sortOrder) {
@@ -112,21 +112,11 @@ fun GiteaDashboardScreen(
         Pair(repos.size, repos.sumOf { it.stars_count })
     }
 
-    val snackbarHostState = remember { SnackbarHostState() }
-
     LaunchedEffect(Unit) {
         viewModel.fetchAll()
     }
 
-    LaunchedEffect(error) {
-        error?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearError()
-        }
-    }
-
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.service_gitea), fontWeight = FontWeight.Bold) },
@@ -148,71 +138,89 @@ fun GiteaDashboardScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        if (isLoading && user == null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = ServiceType.GITEA.primaryColor)
+        when (val state = uiState) {
+            is UiState.Loading, is UiState.Idle -> {
+                Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = ServiceType.GITEA.primaryColor)
+                }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                user?.let { u ->
-                    item { UserCard(user = u) }
-                }
-
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        MiniStat(icon = Icons.Default.Folder, iconColor = Color(0xFF4CAF50), value = "${repoStats.first}", label = stringResource(R.string.gitea_repos), modifier = Modifier.weight(1f))
-                        MiniStat(icon = Icons.Default.Star, iconColor = Color(0xFFFF9800), value = "${repoStats.second}", label = stringResource(R.string.gitea_stars), modifier = Modifier.weight(1f))
-                        MiniStat(icon = Icons.AutoMirrored.Filled.CallMerge, iconColor = Color(0xFF2196F3), value = "$totalBranches", label = stringResource(R.string.gitea_branches), modifier = Modifier.weight(1f))
+            is UiState.Error -> {
+                ErrorScreen(
+                    message = state.message,
+                    onRetry = { state.retryAction?.invoke() ?: viewModel.fetchAll() },
+                    modifier = Modifier.padding(paddingValues)
+                )
+            }
+            is UiState.Offline -> {
+                ErrorScreen(
+                    message = "",
+                    onRetry = { viewModel.fetchAll() },
+                    isOffline = true,
+                    modifier = Modifier.padding(paddingValues)
+                )
+            }
+            is UiState.Success -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    user?.let { u ->
+                        item { UserCard(user = u) }
                     }
-                }
 
-                if (heatmap.isNotEmpty()) {
-                    item { HeatmapSection(heatmap = heatmap) }
-                }
-
-                if (orgs.isNotEmpty()) {
-                    item { OrgsSection(orgs = orgs) }
-                }
-
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("${stringResource(R.string.gitea_repos)} (${repoStats.first})", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(modifier = Modifier.weight(1f))
-                        val haptic = LocalHapticFeedback.current
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            modifier = Modifier.clickable {
-                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                                viewModel.toggleSortOrder()
-                            }
-                        ) {
-                            Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(if (sortOrder == RepoSortOrder.RECENT) Icons.Default.AccessTime else Icons.Default.SortByAlpha, contentDescription = null, modifier = Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(if (sortOrder == RepoSortOrder.RECENT) stringResource(R.string.gitea_sort_recent) else stringResource(R.string.gitea_sort_alpha), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                    }
-                }
-
-                if (sortedRepos.isEmpty() && !isLoading) {
                     item {
-                        Box(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Icon(Icons.AutoMirrored.Filled.CallMerge, contentDescription = null, modifier = Modifier.size(40.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(stringResource(R.string.gitea_no_repos), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            MiniStat(icon = Icons.Default.Folder, iconColor = Color(0xFF4CAF50), value = "${repoStats.first}", label = stringResource(R.string.gitea_repos), modifier = Modifier.weight(1f))
+                            MiniStat(icon = Icons.Default.Star, iconColor = Color(0xFFFF9800), value = "${repoStats.second}", label = stringResource(R.string.gitea_stars), modifier = Modifier.weight(1f))
+                            MiniStat(icon = Icons.AutoMirrored.Filled.CallMerge, iconColor = Color(0xFF2196F3), value = "$totalBranches", label = stringResource(R.string.gitea_branches), modifier = Modifier.weight(1f))
+                        }
+                    }
+
+                    if (heatmap.isNotEmpty()) {
+                        item { HeatmapSection(heatmap = heatmap) }
+                    }
+
+                    if (orgs.isNotEmpty()) {
+                        item { OrgsSection(orgs = orgs) }
+                    }
+
+                    item {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("${stringResource(R.string.gitea_repos)} (${repoStats.first})", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(modifier = Modifier.weight(1f))
+                            val haptic = LocalHapticFeedback.current
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.clickable {
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                    viewModel.toggleSortOrder()
+                                }
+                            ) {
+                                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(if (sortOrder == RepoSortOrder.RECENT) Icons.Default.AccessTime else Icons.Default.SortByAlpha, contentDescription = null, modifier = Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(if (sortOrder == RepoSortOrder.RECENT) stringResource(R.string.gitea_sort_recent) else stringResource(R.string.gitea_sort_alpha), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
                             }
                         }
                     }
-                } else {
-                    items(sortedRepos, key = { it.id }) { repo ->
-                        RepoCard(repo = repo, onClick = { onNavigateToRepo(repo.owner.login, repo.name) })
+
+                    if (sortedRepos.isEmpty()) {
+                        item {
+                            Box(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    Icon(Icons.AutoMirrored.Filled.CallMerge, contentDescription = null, modifier = Modifier.size(40.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(stringResource(R.string.gitea_no_repos), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        }
+                    } else {
+                        items(sortedRepos, key = { it.id }) { repo ->
+                            RepoCard(repo = repo, onClick = { onNavigateToRepo(repo.owner.login, repo.name) })
+                        }
                     }
                 }
             }
@@ -456,8 +464,11 @@ private fun formatRelativeDate(dateString: String?, context: android.content.Con
         val diff = (System.currentTimeMillis() - date.time) / 1000
         val days = (diff / 86400).toInt()
         
-        if (days == 0) return context.getString(R.string.gitea_date_today)
-        if (days == 1) return context.getString(R.string.gitea_date_days_ago).format(1)
+        if (days == 0) {
+            val hours = (diff / 3600).toInt()
+            if (hours > 0) return context.getString(R.string.gitea_date_hours_ago).format(hours)
+            return context.getString(R.string.gitea_date_today)
+        }
         if (days < 30) return context.getString(R.string.gitea_date_days_ago).format(days)
         val months = days / 30
         return context.getString(R.string.gitea_date_months_ago).format(months)

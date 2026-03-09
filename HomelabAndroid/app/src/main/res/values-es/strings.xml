@@ -84,6 +84,26 @@
     <string name="pihole_top_queries">DOMINIOS MÁS SOLICITADOS</string>
     <string name="pihole_top_clients">CLIENTES MÁS ACTIVOS</string>
     <string name="pihole_total_suffix">%s en total</string>
+    <string name="pihole_domain_management">Gestión de Dominios</string>
+    <string name="pihole_allowed">Permitidos</string>
+    <string name="pihole_blocked_list">Bloqueados</string>
+    <string name="pihole_add_domain">Añadir Dominio</string>
+    <string name="pihole_no_domains">No se encontraron dominios</string>
+    <string name="pihole_add_domain_desc">Añade un nuevo dominio a la lista %s.</string>
+    <string name="pihole_disable_permanently">Desactivar indefinidamente</string>
+    <string name="pihole_disable_1m">Desactivar por 1 minuto</string>
+    <string name="pihole_disable_5m">Desactivar por 5 minutos</string>
+    <string name="pihole_disable_1h">Desactivar por 1 hora</string>
+    <string name="pihole_disable_custom">Temporizador personalizado…</string>
+    <string name="pihole_custom_disable_title">Temporizador personalizado</string>
+    <string name="pihole_custom_disable_desc">Configura una duración personalizada en minutos.</string>
+    <string name="pihole_custom_disable_minutes">Minutos</string>
+    <string name="pihole_query_log">Registro de consultas</string>
+    <string name="pihole_filter_search">Filtrar dominio o cliente</string>
+    <string name="pihole_filter_blocked">Bloqueadas</string>
+    <string name="pihole_filter_allowed">Permitidas</string>
+    <string name="pihole_filter_client">Cliente: %s</string>
+    <string name="pihole_no_query_results">Ninguna consulta coincide con los filtros actuales</string>
     
     <!-- Beszel -->
     <string name="beszel_cpu">CPU</string>
@@ -145,8 +165,16 @@
     <string name="gitea_file_too_large">Archivo demasiado grande para la vista previa.</string>
     <string name="gitea_image_decode_error">Error al decodificar la imagen.</string>
     <string name="gitea_date_today">hoy</string>
+    <string name="gitea_date_hours_ago">hace %d h</string>
     <string name="gitea_date_days_ago">hace %d d</string>
     <string name="gitea_date_months_ago">hace %d m</string>
+
+    <string name="unit_gb">GB</string>
+    <string name="unit_mb">MB</string>
+    <string name="unit_kb">KB</string>
+    <string name="unit_days">d</string>
+    <string name="unit_hours">h</string>
+    <string name="unit_minutes">m</string>
 
     <!-- Portainer -->
     <string name="portainer_endpoints">Endpoints</string>
@@ -176,4 +204,64 @@
     <string name="portainer_cpu_ram">CPU y RAM</string>
     <string name="portainer_cpu_usage">Uso de CPU</string>
     <string name="portainer_memory_percent">Memoria %%</string>
+
+    <!-- Security -->
+    <string name="security_title">Seguridad</string>
+    <string name="security_setup_pin">Crear PIN</string>
+    <string name="security_setup_pin_desc">Establece un PIN de 6 dígitos para proteger tu app</string>
+    <string name="security_confirm_pin">Confirmar PIN</string>
+    <string name="security_confirm_pin_desc">Introduce tu PIN de nuevo para confirmar</string>
+    <string name="security_enter_pin">Introduce el PIN</string>
+    <string name="security_enter_pin_desc">Introduce tu PIN de 6 dígitos para desbloquear</string>
+    <string name="security_wrong_pin">PIN incorrecto. Inténtalo de nuevo.</string>
+    <string name="security_enable_biometric">Activar biometría</string>
+    <string name="security_biometric_desc">Desbloquea rápidamente con biometría</string>
+    <string name="security_change_pin">Cambiar PIN</string>
+    <string name="security_disable">Desactivar Seguridad</string>
+    <string name="security_disable_confirm">¿Desactivar la Seguridad?</string>
+    <string name="security_disable_message">Se eliminarán tu PIN y los ajustes biométricos. Cualquiera podrá acceder a la app.</string>
+    <string name="security_pin_mismatch">Los PIN no coinciden. Inténtalo de nuevo.</string>
+    <string name="biometric_reason">Desbloquear Homelab</string>
+    <string name="security_new_pin">Nuevo PIN</string>
+    <string name="security_new_pin_desc">Introduce tu nuevo PIN de 6 dígitos</string>
+    <string name="security_current_pin">PIN actual</string>
+    <string name="security_current_pin_desc">Introduce tu PIN actual para continuar</string>
+    <string name="security_not_configured">Ningún PIN configurado</string>
+    <string name="security_skip">Omitir por ahora</string>
+
+    <!-- Tailscale -->
+    <string name="tailscale_connect">Conectar a Tailscale</string>
+    <string name="tailscale_desc">Abre la VPN Tailscale para acceder a tu homelab de forma segura</string>
+
+    <!-- Marcadores -->
+    <string name="bookmark_title">Título</string>
+    <string name="bookmark_desc">Descripción (Opcional)</string>
+    <string name="bookmark_url">URL</string>
+    <string name="bookmark_category">Categoría</string>
+    <string name="bookmark_category_new">Nueva Categoría</string>
+    <string name="bookmark_icon">Icono</string>
+    <string name="bookmark_add">Añadir Marcador</string>
+    <string name="bookmark_edit">Editar Marcador</string>
+    <string name="category_name">Nombre de la Categoría</string>
+    <string name="category_add">Añadir Categoría</string>
+    <string name="category_edit">Editar Categoría</string>
+    <string name="category_delete">Eliminar Categoría</string>
+    <string name="category_delete_confirm">¿Seguro que deseas eliminar esta categoría y todos sus marcadores?</string>
+    <string name="category_empty">No hay marcadores en esta categoría</string>
+    <string name="category_uncategorized">Sin categorizar</string>
+    <string name="nav_bookmarks">Marcadores</string>
+    <string name="bookmark_tags">Etiquetas (separadas por comas)</string>
+    <string name="bookmark_icon_type">Tipo de Icono</string>
+    <string name="bookmark_selfhst">Selfh.st</string>
+    <string name="bookmark_symbol_name">Nombre Símbolo Material</string>
+    <string name="bookmark_selfhst_name">Nombre de ícono Selfh.st (ej. pi-hole)</string>
+    <string name="bookmark_selfhst_preview">Vista previa de Selfh.st</string>
+    <string name="bookmark_delete_confirm">¿Estás seguro de que quieres eliminar este marcador?</string>
+    <string name="bookmark_search">Buscar títulos o etiquetas...</string>
+    <!-- Onboarding v2 -->
+    <string name="onboarding_welcome">Bienvenido</string>
+    <string name="onboarding_welcome_desc">Tu hogar digital, organizado e intuitivo.</string>
+    <string name="onboarding_ask_pin">¿Deseas configurar un código de bloqueo para proteger la aplicación?</string>
+    <string name="onboarding_ask_pin_yes">Sí, configurar código</string>
+    <string name="onboarding_ask_pin_no">No, omitir por ahora</string>
 </resources>
