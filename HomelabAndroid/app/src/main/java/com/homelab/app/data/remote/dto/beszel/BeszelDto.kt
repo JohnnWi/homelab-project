@@ -7,6 +7,8 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
+private const val BESZEL_MB_TO_BYTES = 1024.0 * 1024.0
+
 @Serializable
 data class BeszelSystem(
     val id: String,
@@ -43,7 +45,6 @@ data class BeszelSystemInfo(
     val h: String? = null,
     val t: Double? = null,
     val c: Int? = null,
-    // For /systems: aggregated filesystem percentages per extra drive (e.g. "drive_1": 71.8)
     val efs: Map<String, Double?>? = null
 ) {
     val cpuValue: Double get() = cpu ?: 0.0
@@ -90,11 +91,18 @@ data class BeszelRecordStats(
     val cpu: Double? = null,
     val mp: Double? = null,
     val m: Double? = null,
+    val mu: Double? = null,
+    val mb: Double? = null,
     val mt: Double? = null,
+    val s: Double? = null,
+    val su: Double? = null,
     val dp: Double? = null,
     val d: Double? = null,
     val du: Double? = null,
     val dt: Double? = null,
+    val dr: Double? = null,
+    val dw: Double? = null,
+    val b: List<Double>? = null,
     val ns: Double? = null,
     val nr: Double? = null,
     val t: JsonElement? = null,
@@ -103,19 +111,29 @@ data class BeszelRecordStats(
     val ni: Map<String, List<Double>>? = null,
     val dio: List<Double>? = null,
     val bat: List<Double>? = null,
+    val cpub: List<Double>? = null,
+    val cpus: List<Double>? = null,
     val dc: List<BeszelContainer>? = null,
     val g: Map<String, BeszelGpuEntry>? = null
 ) {
     val cpuValue: Double get() = cpu ?: 0.0
     val mpValue: Double get() = mp ?: 0.0
     val mValue: Double get() = m ?: 0.0
-    val mtValue: Double get() = mt ?: 0.0
     val dpValue: Double get() = dp ?: 0.0
     val dValue: Double get() = d ?: 0.0
     val duValue: Double get() = du ?: 0.0
-    val dtValue: Double get() = dt ?: 0.0
-    val nsValue: Double get() = ns ?: 0.0
-    val nrValue: Double get() = nr ?: 0.0
+
+    val memoryUsedGb: Double?
+        get() = mu ?: if (m != null && mp != null) m * mp / 100.0 else null
+
+    val memoryTotalGb: Double?
+        get() = m?.takeIf { it > 0.0 }
+
+    val swapUsedGb: Double?
+        get() = su?.takeIf { it >= 0.0 }
+
+    val swapTotalGb: Double?
+        get() = s?.takeIf { it > 0.0 }
 
     val maxTempCelsius: Double?
         get() = t
@@ -124,16 +142,47 @@ data class BeszelRecordStats(
             ?.mapNotNull { it.jsonPrimitive.doubleOrNull }
             ?.maxOrNull()
 
+    val temperatureSensors: Map<String, Double>
+        get() = t
+            ?.jsonObject
+            ?.mapNotNull { (name, value) ->
+                value.jsonPrimitive.doubleOrNull?.let { name to it }
+            }
+            ?.toMap()
+            .orEmpty()
+
     val loadAvgValues: List<Double> get() = la ?: emptyList()
 
-    val netRxBytes: Double?
-        get() = ni?.values?.sumOf { it.getOrNull(2) ?: 0.0 }
+    val cpuBreakdownValues: List<Double> get() = cpub ?: emptyList()
 
-    val netTxBytes: Double?
-        get() = ni?.values?.sumOf { it.getOrNull(3) ?: 0.0 }
+    val cpuCoreUsageValues: List<Double> get() = cpus ?: emptyList()
 
-    val diskReadIO: Double? get() = dio?.getOrNull(0)
-    val diskWriteIO: Double? get() = dio?.getOrNull(1)
+    val networkInterfaces: Map<String, BeszelNetworkInterface>
+        get() = ni
+            ?.mapNotNull { (name, values) ->
+                val uploadRate = values.getOrNull(0) ?: return@mapNotNull null
+                val downloadRate = values.getOrNull(1) ?: return@mapNotNull null
+                name to BeszelNetworkInterface(
+                    uploadRateBytesPerSec = uploadRate,
+                    downloadRateBytesPerSec = downloadRate,
+                    uploadTotalBytes = values.getOrNull(2),
+                    downloadTotalBytes = values.getOrNull(3)
+                )
+            }
+            ?.toMap()
+            .orEmpty()
+
+    val bandwidthUpBytesPerSec: Double?
+        get() = b?.getOrNull(0) ?: ns?.times(BESZEL_MB_TO_BYTES)
+
+    val bandwidthDownBytesPerSec: Double?
+        get() = b?.getOrNull(1) ?: nr?.times(BESZEL_MB_TO_BYTES)
+
+    val diskReadBytesPerSec: Double?
+        get() = dr ?: dio?.getOrNull(0)
+
+    val diskWriteBytesPerSec: Double?
+        get() = dw ?: dio?.getOrNull(1)
 
     val batteryLevel: Int?
         get() = bat?.getOrNull(0)?.toInt()
@@ -187,19 +236,40 @@ data class BeszelFsEntry(
     val w: Double? = null,
     val rb: Double? = null,
     val wb: Double? = null
-)
+) {
+    val readBytesPerSec: Double?
+        get() = rb ?: r
+
+    val writeBytesPerSec: Double?
+        get() = wb ?: w
+}
 
 @Serializable
 data class BeszelContainer(
     val n: String,
     val cpu: Double? = null,
-    val m: Double? = null
+    val m: Double? = null,
+    val b: List<Double>? = null,
+    val ns: Double? = null,
+    val nr: Double? = null
 ) {
     val id: String get() = n
     val name: String get() = n
     val cpuValue: Double get() = cpu ?: 0.0
     val mValue: Double get() = m ?: 0.0
+    val bandwidthUpBytesPerSec: Double?
+        get() = b?.getOrNull(0) ?: ns?.times(BESZEL_MB_TO_BYTES)
+
+    val bandwidthDownBytesPerSec: Double?
+        get() = b?.getOrNull(1) ?: nr?.times(BESZEL_MB_TO_BYTES)
 }
+
+data class BeszelNetworkInterface(
+    val uploadRateBytesPerSec: Double,
+    val downloadRateBytesPerSec: Double,
+    val uploadTotalBytes: Double?,
+    val downloadTotalBytes: Double?
+)
 
 @Serializable
 data class BeszelRecordsResponse(

@@ -13,6 +13,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,6 +37,7 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material.icons.filled.Wifi
@@ -287,6 +290,9 @@ internal fun ResourcesSection(
     cpu: Double,
     mp: Double,
     dp: Double,
+    memoryUsedGb: Double? = null,
+    memoryTotalGb: Double? = null,
+    memoryUsedHistory: List<Double> = emptyList(),
     diskUsed: Double? = null,
     diskTotal: Double? = null,
     externalFileSystems: List<DiskFsUsage> = emptyList(),
@@ -313,7 +319,12 @@ internal fun ResourcesSection(
             iconColor = StatusPurple,
             title = stringResource(R.string.beszel_memory),
             percent = mp,
-            history = memHistory,
+            detailLeft = if (memoryUsedGb != null && memoryTotalGb != null && memoryTotalGb > 0.0) {
+                "${formatGB(memoryUsedGb)} / ${formatGB(memoryTotalGb)}"
+            } else {
+                null
+            },
+            history = memoryUsedHistory.ifEmpty { memHistory },
             onClick = onMemClick
         )
 
@@ -467,11 +478,12 @@ internal fun ExtraMetricsSection(
 ) {
     val hasTemp = latest.maxTempCelsius != null
     val hasLoad = latest.loadAvgValues.isNotEmpty()
-    val hasNet = latest.netRxBytes != null || latest.netTxBytes != null
-    val hasDisk = latest.diskReadIO != null || latest.diskWriteIO != null
+    val hasNet = latest.bandwidthDownBytesPerSec != null || latest.bandwidthUpBytesPerSec != null
+    val hasDisk = latest.diskReadBytesPerSec != null || latest.diskWriteBytesPerSec != null
     val hasBattery = latest.batteryLevel != null
+    val hasSwap = latest.swapTotalGb != null
 
-    if (!hasTemp && !hasLoad && !hasNet && !hasDisk && !hasBattery) return
+    if (!hasTemp && !hasLoad && !hasNet && !hasDisk && !hasBattery && !hasSwap) return
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionHeader(icon = Icons.Default.Insights, title = stringResource(R.string.beszel_extra_title))
@@ -523,9 +535,8 @@ internal fun ExtraMetricsSection(
                 if (hasNet || hasDisk) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         if (hasNet) {
-                            // ns/nr are precomputed Beszel rates in MB/s
-                            val rxRateBytes = (latest.nr ?: 0.0) * 1024 * 1024
-                            val txRateBytes = (latest.ns ?: 0.0) * 1024 * 1024
+                            val rxRateBytes = latest.bandwidthDownBytesPerSec ?: 0.0
+                            val txRateBytes = latest.bandwidthUpBytesPerSec ?: 0.0
                             ExtraMetricChip(
                                 modifier = Modifier.weight(1f),
                                 icon = Icons.Default.NetworkCheck,
@@ -536,39 +547,58 @@ internal fun ExtraMetricsSection(
                             )
                         }
                         if (hasDisk) {
-                            val read = latest.diskReadIO ?: 0.0
-                            val write = latest.diskWriteIO ?: 0.0
+                            val read = latest.diskReadBytesPerSec ?: 0.0
+                            val write = latest.diskWriteBytesPerSec ?: 0.0
                             ExtraMetricChip(
                                 modifier = Modifier.weight(1f),
                                 icon = Icons.Default.Speed,
                                 accentColor = StatusOrange,
                                 label = stringResource(R.string.beszel_disk_io),
-                                value = "R ${read.toLong()}  W ${write.toLong()}",
+                                value = "R ${formatNetRateBytesPerSec(read)}  W ${formatNetRateBytesPerSec(write)}",
                                 onClick = { onMetricClick(ExtraMetricType.DISK) }
                             )
                         }
                     }
                 }
 
-                if (hasBattery) {
-                    val level = latest.batteryLevel ?: 0
-                    val minutes = latest.batteryMinutes
-                    val value = if (minutes != null && minutes > 0) "$level% · ${minutes}m" else "$level%"
-                    val batteryColor = when {
-                        level <= 15 -> StatusRed
-                        level <= 35 -> StatusOrange
-                        else -> StatusGreen
+                if (hasBattery || hasSwap) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        if (hasBattery) {
+                            val level = latest.batteryLevel ?: 0
+                            val minutes = latest.batteryMinutes
+                            val value = if (minutes != null && minutes > 0) "$level% · ${minutes}m" else "$level%"
+                            val batteryColor = when {
+                                level <= 15 -> StatusRed
+                                level <= 35 -> StatusOrange
+                                else -> StatusGreen
+                            }
+                            ExtraMetricChip(
+                                modifier = Modifier.weight(1f),
+                                icon = Icons.Default.BatteryStd,
+                                accentColor = batteryColor,
+                                label = stringResource(R.string.beszel_battery),
+                                value = value,
+                                showProgress = true,
+                                progress = level / 100.0,
+                                onClick = { onMetricClick(ExtraMetricType.BATTERY) }
+                            )
+                        }
+                        if (hasSwap) {
+                            val used = latest.swapUsedGb ?: 0.0
+                            val total = latest.swapTotalGb ?: 0.0
+                            val progress = if (total > 0.0) used / total else 0.0
+                            ExtraMetricChip(
+                                modifier = Modifier.weight(1f),
+                                icon = Icons.Default.SwapVert,
+                                accentColor = StatusOrange,
+                                label = stringResource(R.string.beszel_swap),
+                                value = "${formatGB(used)} / ${formatGB(total)}",
+                                showProgress = true,
+                                progress = progress,
+                                onClick = { onMetricClick(ExtraMetricType.SWAP) }
+                            )
+                        }
                     }
-                    ExtraMetricChip(
-                        modifier = Modifier.fillMaxWidth(),
-                        icon = Icons.Default.BatteryStd,
-                        accentColor = batteryColor,
-                        label = stringResource(R.string.beszel_battery),
-                        value = value,
-                        showProgress = true,
-                        progress = level / 100.0,
-                        onClick = { onMetricClick(ExtraMetricType.BATTERY) }
-                    )
                 }
 
             }
@@ -861,6 +891,189 @@ internal fun ResourceCard(
 
             if (history.isNotEmpty()) {
                 SmoothLineGraph(data = history, graphColor = iconColor)
+            }
+        }
+    }
+}
+
+@Composable
+internal fun DockerMetricsSection(
+    summary: DockerMetricSummary,
+    hasNetwork: Boolean,
+    onCpuClick: () -> Unit,
+    onMemoryClick: () -> Unit,
+    onNetworkClick: () -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionHeader(icon = Icons.Default.Inventory2, title = stringResource(R.string.beszel_docker_metrics_title))
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            ExtraMetricChip(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Default.Memory,
+                accentColor = ServiceType.BESZEL.primaryColor,
+                label = stringResource(R.string.beszel_docker_cpu_usage),
+                value = String.format("%.1f%%", summary.cpuPercent),
+                onClick = onCpuClick
+            )
+            ExtraMetricChip(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Default.Dns,
+                accentColor = StatusPurple,
+                label = stringResource(R.string.beszel_docker_memory_usage),
+                value = formatMB(summary.memoryMb),
+                onClick = onMemoryClick
+            )
+        }
+
+        if (hasNetwork) {
+            ExtraMetricChip(
+                modifier = Modifier.fillMaxWidth(),
+                icon = Icons.Default.NetworkCheck,
+                accentColor = StatusOrange,
+                label = stringResource(R.string.beszel_docker_network_io),
+                value = "↓ ${formatNetRateBytesPerSec(summary.bandwidthDownBytesPerSec ?: 0.0)}  ↑ ${formatNetRateBytesPerSec(summary.bandwidthUpBytesPerSec ?: 0.0)}",
+                onClick = onNetworkClick
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun PerCoreCpuSection(cores: List<Double>) {
+    if (cores.isEmpty()) return
+    var expanded by remember { mutableStateOf(false) }
+    val avg = cores.average()
+    val peak = cores.maxOrNull() ?: 0.0
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionHeader(icon = Icons.Default.Memory, title = stringResource(R.string.beszel_per_core_cpu))
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded },
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = ServiceType.BESZEL.primaryColor.copy(alpha = 0.12f),
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Memory,
+                                contentDescription = null,
+                                tint = ServiceType.BESZEL.primaryColor,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = stringResource(R.string.beszel_per_core_cpu),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = stringResource(
+                                R.string.beszel_per_core_summary,
+                                cores.size,
+                                avg,
+                                peak
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Icon(
+                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                AnimatedVisibility(
+                    visible = expanded,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        maxItemsInEachRow = 2
+                    ) {
+                        cores.forEachIndexed { index, value ->
+                            PerCoreUsageTile(
+                                label = stringResource(R.string.beszel_cpu_core_label, index),
+                                value = value
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PerCoreUsageTile(label: String, value: Double) {
+    val accent = when {
+        value >= 90.0 -> StatusRed
+        value >= 70.0 -> StatusOrange
+        else -> ServiceType.BESZEL.primaryColor
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(0.48f),
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = String.format("%.0f%%", value),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = accent
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(5.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(3.dp))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth((value / 100.0).coerceIn(0.0, 1.0).toFloat())
+                        .height(5.dp)
+                        .background(accent, RoundedCornerShape(3.dp))
+                )
             }
         }
     }

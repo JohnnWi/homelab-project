@@ -2,12 +2,10 @@ package com.homelab.app.ui.beszel
 
 import android.graphics.Paint
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,30 +74,18 @@ internal fun SmoothLineGraph(
                 .height(48.dp)
                 .pointerInput(enableScrub, data.size) {
                     if (!enableScrub || onSelectedIndexChange == null || data.isEmpty()) return@pointerInput
-                    var lastIndex: Int? = null
-                    detectDragGestures(
-                        onDragStart = { offset ->
-                            val widthPx = size.width.toFloat().coerceAtLeast(1f)
-                            val fraction = (offset.x / widthPx).coerceIn(0f, 1f)
-                            val idx = ((fraction * (data.size - 1)).roundToInt()).coerceIn(0, data.size - 1)
-                            if (idx != lastIndex) {
-                                lastIndex = idx
-                                onSelectedIndexChange(idx)
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            }
-                        },
-                        onDrag = { change, _ ->
-                            val widthPx = size.width.toFloat().coerceAtLeast(1f)
-                            val fraction = (change.position.x / widthPx).coerceIn(0f, 1f)
-                            val idx = ((fraction * (data.size - 1)).roundToInt()).coerceIn(0, data.size - 1)
-                            if (idx != lastIndex) {
-                                lastIndex = idx
-                                onSelectedIndexChange(idx)
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            }
-                        },
-                        onDragEnd = { },
-                        onDragCancel = { }
+                    fun updateSelection(x: Float) {
+                        val widthPx = size.width.toFloat().coerceAtLeast(1f)
+                        val fraction = (x / widthPx).coerceIn(0f, 1f)
+                        val idx = ((fraction * (data.size - 1)).roundToInt()).coerceIn(0, data.size - 1)
+                        onSelectedIndexChange(idx)
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    }
+
+                    detectTapGestures(
+                        onTap = { offset ->
+                            updateSelection(offset.x)
+                        }
                     )
                 }
         ) {
