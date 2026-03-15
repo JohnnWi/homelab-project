@@ -92,6 +92,9 @@ Manage your code natively. Browse repositories, view contribution heatmaps, read
 ### 🔐 Tailscale
 Integrated Tailscale support helps you securely reach your homelab from anywhere, with quick launch actions and connection status surfaced directly inside the app experience.
 
+### 🔀 Nginx Proxy Manager
+Manage your reverse proxy directly from your phone. Browse proxy hosts, redirection hosts, dead hosts, streams, access lists, and SSL certificates — all in one native interface.
+
 ### 🔖 Bookmarks
 Keep all your most-used homelab links in one place with a native bookmarks feature that supports organization, quick access, and a cleaner daily workflow.
 
