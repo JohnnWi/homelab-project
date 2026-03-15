@@ -145,6 +145,12 @@
     <!-- Beszel -->
     <string name="beszel_cpu">CPU</string>
     <string name="beszel_ram">RAM</string>
+    <string name="beszel_gpu_title">GPU</string>
+    <string name="beszel_gpu_usage_label">Utilizzo (%)</string>
+    <string name="beszel_gpu_power_label">Potenza (W)</string>
+    <string name="beszel_gpu_usage_label_full">Utilizzo GPU</string>
+    <string name="beszel_gpu_power_label_full">Potenza GPU</string>
+    <string name="beszel_gpu_vram_label_full">VRAM GPU</string>
     <string name="beszel_disk">DISCO</string>
     <string name="beszel_network">RETE</string>
     <string name="beszel_uptime">UPTIME</string>
@@ -160,10 +166,49 @@
     <string name="beszel_hostname">Hostname</string>
     <string name="beszel_cores">Cores</string>
     <string name="beszel_memory">Memoria</string>
+    <string name="beszel_memory_usage">Utilizzo memoria</string>
+    <string name="beszel_swap">Swap</string>
+    <string name="beszel_swap_usage">Utilizzo swap</string>
+    <string name="beszel_podman">Podman</string>
+    <string name="beszel_extra_title">METRICHE EXTRA</string>
+    <string name="beszel_docker_metrics_title">METRICHE DOCKER</string>
+    <string name="beszel_docker_cpu_usage">Utilizzo CPU Docker</string>
+    <string name="beszel_docker_memory_usage">Utilizzo memoria Docker</string>
+    <string name="beszel_docker_network_io">I/O rete Docker</string>
+    <string name="beszel_temps">Temperature</string>
+    <string name="beszel_load_avg">Load avg</string>
+    <string name="beszel_network_io">Banda</string>
+    <string name="beszel_disk_io">IO Disco</string>
+    <string name="beszel_battery">Batteria</string>
+    <string name="beszel_download">Download</string>
+    <string name="beszel_upload">Upload</string>
+    <string name="beszel_total_download">Download totale</string>
+    <string name="beszel_total_upload">Upload totale</string>
+    <string name="beszel_read">Lettura</string>
+    <string name="beszel_write">Scrittura</string>
+    <string name="beszel_per_core_cpu">Utilizzo CPU per core</string>
+    <string name="beszel_per_core_summary">%1$d thread • Media %2$.1f%% • Picco %3$.1f%%</string>
+    <string name="beszel_cpu_breakdown">Suddivisione CPU</string>
+    <string name="beszel_cpu_core_label">Core %1$d</string>
+    <string name="beszel_cpu_user">Utente</string>
+    <string name="beszel_cpu_system">Sistema</string>
+    <string name="beszel_cpu_nice">Nice</string>
+    <string name="beszel_cpu_wait">Attesa</string>
+    <string name="beszel_cpu_idle">Inattiva</string>
+    <string name="beszel_temp_sensors">Sensori</string>
+    <string name="beszel_network_interfaces">Interfacce</string>
+
     <string name="beszel_background_update_info">I dati si aggiornano automaticamente in background.</string>
     <string name="beszel_no_systems">Nessun sistema collegato a Beszel.</string>
     <string name="beszel_systems_online">Sistemi Online</string>
     <string name="beszel_monitored_servers">SERVER MONITORATI</string>
+
+    <string name="beszel_smart_title">S.M.A.R.T.</string>
+    <string name="beszel_smart_title_device">S.M.A.R.T. • %s</string>
+    <string name="beszel_smart_power_on">Acceso: %dg</string>
+    <string name="beszel_smart_cycles">Cicli: %d</string>
+    <string name="beszel_smart_attributes_title">Attributi</string>
+    <string name="beszel_time_axis_hint">Dal più vecchio al più recente</string>
 
     <!-- Gitea -->
     <string name="error_gitea_user_profile">Impossibile recuperare il profilo utente.</string>

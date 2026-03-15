@@ -257,18 +257,31 @@ private fun SystemCard(system: BeszelSystem, onClick: () -> Unit) {
 
             if (isUp && system.info != null) {
                 val info = system.info
+                val extraDiskPercent = info.efs
+                    ?.values
+                    ?.filterNotNull()
+                    ?.maxOrNull()
+                    ?: 0.0
+
                 // Metrics
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     MetricBar(icon = Icons.Default.Memory, iconColor = beszelColor, label = stringResource(R.string.beszel_cpu), value = info.cpuValue, barColor = beszelColor)
                     MetricBar(icon = Icons.Default.SdCard, iconColor = memoryColor, label = stringResource(R.string.beszel_ram), value = info.mpValue, barColor = memoryColor)
-                    MetricBar(icon = Icons.Default.Storage, iconColor = StatusOrange, label = stringResource(R.string.beszel_disk), value = info.dpValue, barColor = StatusOrange)
+                    DualDiskMetricBar(
+                        icon = Icons.Default.Storage,
+                        iconColor = StatusOrange,
+                        label = stringResource(R.string.beszel_disk),
+                        rootPercent = info.dpValue,
+                        extraPercent = extraDiskPercent,
+                        barColor = StatusOrange
+                    )
                 }
                 
                 Spacer(modifier = Modifier.height(14.dp))
             }
 
             // Host text
-            Text("${system.host}:${system.portValue ?: ""}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(system.host, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -284,17 +297,57 @@ private fun MetricBar(icon: androidx.compose.ui.graphics.vector.ImageVector, ico
             Text(String.format("%.1f%%", value), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
         }
 
-        val pct = (value / 100.0).coerceIn(0.0, 1.0).toFloat()
-        val animatedPct by animateFloatAsState(targetValue = pct, animationSpec = spring(dampingRatio = 0.8f))
+        SingleBar(percent = value, barColor = barColor)
+    }
+}
 
-        Surface(
-            shape = RoundedCornerShape(3.dp),
-            color = if (isThemeDark()) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier.fillMaxWidth().height(6.dp)
-        ) {
-            Row {
-                Box(modifier = Modifier.fillMaxHeight().fillMaxWidth(animatedPct).background(barColor))
+@Composable
+private fun DualDiskMetricBar(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconColor: Color,
+    label: String,
+    rootPercent: Double,
+    extraPercent: Double,
+    barColor: Color
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp), tint = iconColor)
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.weight(1f))
+            // Root disk percentage (primary)
+            Text(String.format("%.1f%%", rootPercent), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+        }
+
+        // Root bar
+        SingleBar(percent = rootPercent, barColor = barColor)
+
+        if (extraPercent > 0.0) {
+            // Extra filesystems percentage, same style as other metrics
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                Text(
+                    String.format("%.1f%%", extraPercent),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                )
             }
+            SingleBar(percent = extraPercent, barColor = barColor.copy(alpha = 0.85f))
+        }
+    }
+}
+
+@Composable
+private fun SingleBar(percent: Double, barColor: Color) {
+    val pct = (percent / 100.0).coerceIn(0.0, 1.0).toFloat()
+    val animatedPct by animateFloatAsState(targetValue = pct, animationSpec = spring(dampingRatio = 0.8f))
+
+    Surface(
+        shape = RoundedCornerShape(3.dp),
+        color = if (isThemeDark()) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier.fillMaxWidth().height(6.dp)
+    ) {
+        Row {
+            Box(modifier = Modifier.fillMaxHeight().fillMaxWidth(animatedPct).background(barColor))
         }
     }
 }

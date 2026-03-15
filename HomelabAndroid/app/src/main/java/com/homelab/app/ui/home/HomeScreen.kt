@@ -3,10 +3,15 @@ package com.homelab.app.ui.home
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import java.text.NumberFormat
+import java.util.Locale
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +43,10 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Source
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
@@ -58,8 +66,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
@@ -523,20 +534,229 @@ fun TailscaleCard(isConnected: Boolean) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(statusColor))
+                    Text(
+                        text = stringResource(if (isConnected) R.string.tailscale_connected else R.string.tailscale_not_connected),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = statusColor
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun DashboardSummary(viewModel: HomeViewModel) {
+    val portainer by viewModel.portainerSummary.collectAsStateWithLifecycle()
+    val pihole by viewModel.piholeSummary.collectAsStateWithLifecycle()
+    val beszel by viewModel.beszelSummary.collectAsStateWithLifecycle()
+    val gitea by viewModel.giteaSummary.collectAsStateWithLifecycle()
+    val connectionStatus by viewModel.connectionStatus.collectAsStateWithLifecycle()
+
+    val hasAny = connectionStatus.values.any { it }
+
+    if (hasAny) {
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(stringResource(R.string.home_summary_title), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Column(
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            if (connectionStatus[ServiceType.PORTAINER] == true) {
+                SummaryRow(title = stringResource(R.string.portainer_containers), value = portainer?.running?.toString() ?: "—", subValue = portainer?.let { "/ ${it.total}" }, icon = Icons.Default.Widgets, color = ServiceType.PORTAINER.primaryColor)
+            }
+            if (connectionStatus[ServiceType.PIHOLE] == true) {
+                val q = pihole?.totalQueries
+                val formattedStr = if(q != null) NumberFormat.getInstance(Locale.ITALY).format(q) else "—"
+                SummaryRow(title = stringResource(R.string.pihole_total_queries), value = formattedStr, subValue = null, icon = Icons.Default.Security, color = ServiceType.PIHOLE.primaryColor)
+            }
+            if (connectionStatus[ServiceType.BESZEL] == true) {
+                SummaryRow(title = stringResource(R.string.beszel_systems_online), value = beszel?.online?.toString() ?: "—", subValue = beszel?.let { "/ ${it.total}" }, icon = Icons.Default.Storage, color = ServiceType.BESZEL.primaryColor)
+            }
+            if (connectionStatus[ServiceType.GITEA] == true) {
+                SummaryRow(title = stringResource(R.string.gitea_repos), value = gitea?.totalRepos?.toString() ?: "—", subValue = null, icon = Icons.Default.Source, color = ServiceType.GITEA.primaryColor)
+            }
+        }
+    }
+}
+
+@Composable
+fun SummaryRow(title: String, value: String, subValue: String?, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Surface(shape = RoundedCornerShape(12.dp), color = color.copy(alpha = 0.15f), modifier = Modifier.size(42.dp)) {
+            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.padding(10.dp))
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
+                if (subValue != null) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(subValue, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 2.dp))
+                }
+            }
+            Text(title, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+fun ServiceCard(
+    type: ServiceType,
+    isConnected: Boolean,
+    isReachable: Boolean?,
+    isPinging: Boolean,
+    onClick: () -> Unit,
+    onRefresh: () -> Unit
+) {
+    // M3 Expressive Spring animation state
+    var isPressed by remember { mutableStateOf(false) }
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "card_bounce"
+    )
+
+    // Base colors based on type (simulating iOS theme)
+    val cardBgColor = MaterialTheme.colorScheme.surfaceContainerLow
+    val iconColor = type.primaryColor
+    val iconBgColor = iconColor.copy(alpha = 0.15f)
+
+    val serviceIcon = when(type) {
+        ServiceType.PORTAINER -> Icons.Default.Widgets
+        ServiceType.PIHOLE -> Icons.Default.Security
+        ServiceType.BESZEL -> Icons.Default.Storage
+        ServiceType.GITEA -> Icons.Default.Source
+        else -> Icons.Default.Widgets
+    }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(130.dp)
+            .scale(scale)
+            .clip(RoundedCornerShape(24.dp))
+            .pointerInput(onClick) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        val success = tryAwaitRelease()
+                        isPressed = false
+                        if (success) {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                            onClick()
+                        }
+                    }
+                )
+            }
+        ,
+        color = cardBgColor,
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Surface(
+                    color = iconBgColor,
+                    shape = RoundedCornerShape(18.dp),
+                    modifier = Modifier.size(50.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = serviceIcon,
+                            contentDescription = type.displayName,
+                            tint = iconColor,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                }
+
+                if (isPinging) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    IconButton(onClick = onRefresh, modifier = Modifier.size(28.dp)) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = stringResource(R.string.refresh),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = type.displayName,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            val statusText = when {
+                isConnected && isReachable == false -> stringResource(R.string.error_server_unreachable)
+                isConnected -> stringResource(R.string.home_status_online)
+                else -> stringResource(R.string.home_status_offline)
+            }
+
+            val statusColor = when {
+                isConnected && isReachable == false -> MaterialTheme.colorScheme.error
+                isConnected -> StatusGreen
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
                 Box(
                     modifier = Modifier
                         .size(8.dp)
                         .background(statusColor, CircleShape)
                 )
                 Text(
-                    text = stringResource(
-                        if (isConnected) R.string.tailscale_connected else R.string.tailscale_not_connected
-                    ),
+                    text = statusText,
                     style = MaterialTheme.typography.labelSmall,
                     color = statusColor,
                     fontWeight = FontWeight.Bold
                 )
             }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                contentDescription = type.displayName,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.End)
+            )
         }
     }
 }

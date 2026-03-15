@@ -849,7 +849,11 @@ private fun ServiceInstanceRow(
                         modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
                     ) {
-                        Text(stringResource(R.string.settings_set_default))
+                        Text(
+                            text = stringResource(R.string.home_default_badge),
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
                     }
                 }
                 OutlinedButton(

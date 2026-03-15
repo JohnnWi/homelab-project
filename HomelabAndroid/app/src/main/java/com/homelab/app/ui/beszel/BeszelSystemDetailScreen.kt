@@ -1,49 +1,43 @@
 package com.homelab.app.ui.beszel
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.homelab.app.util.ServiceType
-import com.homelab.app.ui.theme.isThemeDark
-import com.homelab.app.ui.theme.primaryColor
-import com.homelab.app.ui.theme.StatusGreen
-import com.homelab.app.ui.theme.StatusRed
-import com.homelab.app.ui.theme.StatusOrange
-import com.homelab.app.ui.theme.StatusBlue
-import com.homelab.app.ui.theme.StatusPurple
-import com.homelab.app.data.remote.dto.beszel.BeszelSystem
-import com.homelab.app.data.remote.dto.beszel.BeszelSystemInfo
-import com.homelab.app.data.remote.dto.beszel.BeszelSystemRecord
-import com.homelab.app.data.remote.dto.beszel.BeszelContainer
-import androidx.compose.ui.res.stringResource
 import com.homelab.app.R
-import com.homelab.app.util.ResourceFormatters
-import com.homelab.app.util.UiState
+import com.homelab.app.data.remote.dto.beszel.BeszelRecordStats
+import com.homelab.app.data.remote.dto.beszel.BeszelSmartDevice
 import com.homelab.app.ui.common.ErrorScreen
-import java.util.*
+import com.homelab.app.ui.theme.StatusOrange
+import com.homelab.app.ui.theme.StatusPurple
+import com.homelab.app.ui.theme.primaryColor
+import com.homelab.app.util.ServiceType
+import com.homelab.app.util.UiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,12 +47,15 @@ fun BeszelSystemDetailScreen(
     viewModel: BeszelViewModel = hiltViewModel()
 ) {
     val systemDetailState by viewModel.systemDetailState.collectAsStateWithLifecycle()
-    val records by viewModel.records.collectAsStateWithLifecycle()
-    
-    val systemName = (systemDetailState as? UiState.Success)?.data?.name ?: stringResource(R.string.beszel_system_details)
+    val detailUiModel by viewModel.systemDetailUiModel.collectAsStateWithLifecycle()
 
     LaunchedEffect(systemId) {
         viewModel.fetchSystemDetail(systemId)
+    }
+
+    val systemName = when (val state = systemDetailState) {
+        is UiState.Success -> state.data.name
+        else -> stringResource(R.string.beszel_system_details)
     }
 
     Scaffold(
@@ -67,12 +64,18 @@ fun BeszelSystemDetailScreen(
                 title = { Text(systemName, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = { viewModel.fetchSystemDetail(systemId) }) {
-                        Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh))
+                        Icon(
+                            imageVector = Icons.Filled.Refresh,
+                            contentDescription = stringResource(R.string.refresh)
+                        )
                     }
                 }
             )
@@ -80,18 +83,26 @@ fun BeszelSystemDetailScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         when (val state = systemDetailState) {
-            is UiState.Loading, is UiState.Idle -> {
-                Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+            is UiState.Idle,
+            is UiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
                     CircularProgressIndicator(color = ServiceType.BESZEL.primaryColor)
                 }
             }
+
             is UiState.Error -> {
                 ErrorScreen(
                     message = state.message,
-                    onRetry = { viewModel.fetchSystemDetail(systemId) },
+                    onRetry = { state.retryAction?.invoke() ?: viewModel.fetchSystemDetail(systemId) },
                     modifier = Modifier.padding(paddingValues)
                 )
             }
+
             is UiState.Offline -> {
                 ErrorScreen(
                     message = "",
@@ -100,45 +111,10 @@ fun BeszelSystemDetailScreen(
                     modifier = Modifier.padding(paddingValues)
                 )
             }
+
             is UiState.Success -> {
-                val s = state.data
-                val info = s.info
-                val latestStats = records.firstOrNull()?.stats
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Header Card
-                    item { HeaderCard(s) }
-
-                    if (info != null) {
-                        // System Info
-                        item { SystemInfoSection(info) }
-
-                        // Resources
-                        item {
-                            ResourcesSection(
-                                cpu = info.cpuValue,
-                                mp = info.mpValue,
-                                dp = info.dpValue,
-                                cpuHistory = records.takeLast(30).map { it.stats.cpuValue },
-                                memHistory = records.takeLast(30).map { it.stats.mpValue }
-                            )
-                        }
-
-                        // Containers
-                        val containers = latestStats?.dc ?: emptyList()
-                        if (containers.isNotEmpty()) {
-                            item { ContainersSection(containers) }
-                        }
-
-                        // Uptime
-                        item { UptimeCard(info.uValue) }
-                    }
+                detailUiModel?.let { model ->
+                    BeszelSystemDetailContent(model = model, paddingValues = paddingValues)
                 }
             }
         }
@@ -146,373 +122,209 @@ fun BeszelSystemDetailScreen(
 }
 
 @Composable
-private fun HeaderCard(system: BeszelSystem) {
-    val isUp = system.isOnline
-    val statusColor = if (isUp) StatusGreen else StatusRed
+private fun BeszelSystemDetailContent(
+    model: BeszelSystemDetailUiModel,
+    paddingValues: PaddingValues
+) {
+    val info = model.system.info
+    val expandedMetric = remember { mutableStateOf<ExtraMetricType?>(null) }
+    val expandedResourceMetric = remember { mutableStateOf<ResourceMetricType?>(null) }
+    val expandedDockerMetric = remember { mutableStateOf<DockerMetricType?>(null) }
+    val expandedDiskFs = remember { mutableStateOf<DiskFsUsage?>(null) }
+    val expandedSmartDevice = remember { mutableStateOf<BeszelSmartDevice?>(null) }
+    val gpuDetailsMetric = remember { mutableStateOf<GpuMetricType?>(null) }
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(18.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = statusColor.copy(alpha = 0.1f),
-                modifier = Modifier.size(52.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        if (isUp) Icons.Default.Wifi else Icons.Default.WifiOff,
-                        contentDescription = if (isUp) stringResource(R.string.beszel_online) else stringResource(R.string.beszel_offline),
-                        tint = statusColor,
-                        modifier = Modifier.size(24.dp)
+        item {
+            BeszelHeaderCard(model.system)
+        }
+
+        if (info != null || model.systemDetails != null) {
+            item {
+                SystemInfoSection(info = info, details = model.systemDetails)
+            }
+        }
+
+        if (info != null) {
+            item {
+                ResourcesSection(
+                    cpu = info.cpuValue,
+                    mp = info.mpValue,
+                    dp = info.dpValue,
+                    memoryUsedGb = model.memoryUsedGb,
+                    memoryTotalGb = model.memoryTotalGb,
+                    memoryUsedHistory = model.memoryUsedHistoryGb,
+                    diskUsed = model.diskUsedGb,
+                    diskTotal = model.diskTotalGb,
+                    externalFileSystems = model.externalFileSystems,
+                    cpuHistory = model.cpuHistoryPercent,
+                    memHistory = model.memoryHistoryPercent,
+                    onCpuClick = { expandedResourceMetric.value = ResourceMetricType.CPU },
+                    onMemClick = { expandedResourceMetric.value = ResourceMetricType.MEMORY },
+                    onDiskFsClick = { fs -> expandedDiskFs.value = fs }
+                )
+            }
+
+            if (model.smartDevices.isNotEmpty()) {
+                item {
+                    SmartDevicesSection(
+                        devices = model.smartDevices,
+                        onDeviceClick = { device -> expandedSmartDevice.value = device }
                     )
                 }
             }
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(system.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text("${system.host}:${system.portValue ?: 80}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            model.dockerSummary?.let { summary ->
+                item {
+                    DockerMetricsSection(
+                        summary = summary,
+                        hasNetwork = model.hasDockerNetwork,
+                        onCpuClick = { expandedDockerMetric.value = DockerMetricType.CPU },
+                        onMemoryClick = { expandedDockerMetric.value = DockerMetricType.MEMORY },
+                        onNetworkClick = { expandedDockerMetric.value = DockerMetricType.NETWORK }
+                    )
+                }
             }
 
-            Surface(
-                shape = RoundedCornerShape(14.dp),
-                color = statusColor.copy(alpha = 0.1f)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(statusColor))
-                    Text(
-                        if (isUp) stringResource(R.string.beszel_online) else stringResource(R.string.beszel_offline),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = statusColor
+            model.perCoreCpuPercent.takeIf { it.isNotEmpty() }?.let { cores ->
+                item {
+                    PerCoreCpuSection(cores = cores)
+                }
+            }
+
+            if (model.containers.isNotEmpty()) {
+                item {
+                    ContainersSection(containers = model.containers)
+                }
+            }
+
+            model.latestStats?.let { latestStats ->
+                item {
+                    GpuMetricsSection(
+                        latest = latestStats,
+                        history = model.statsHistory,
+                        onUsageClick = { gpuDetailsMetric.value = GpuMetricType.USAGE },
+                        onPowerClick = { gpuDetailsMetric.value = GpuMetricType.POWER },
+                        onVramClick = { gpuDetailsMetric.value = GpuMetricType.VRAM }
+                    )
+                }
+                item {
+                    ExtraMetricsSectionHost(
+                        latest = latestStats,
+                        history = model.statsHistory,
+                        onMetricClick = { expandedMetric.value = it }
                     )
                 }
             }
         }
     }
-}
 
-@Composable
-private fun SystemInfoSection(info: BeszelSystemInfo) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SectionHeader(icon = Icons.Default.Info, title = stringResource(R.string.beszel_info_title))
-        
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                info.os?.let { if (it.isNotEmpty()) InfoRow(stringResource(R.string.beszel_os), it) }
-                info.k?.let { if (it.isNotEmpty()) { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant); InfoRow(stringResource(R.string.beszel_kernel), it) } }
-                info.h?.let { if (it.isNotEmpty()) { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant); InfoRow(stringResource(R.string.beszel_hostname), it) } }
-                info.cm?.let { if (it.isNotEmpty()) { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant); InfoRow(stringResource(R.string.beszel_cpu), it) } }
-                info.c?.let { if (it > 0) { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant); InfoRow(stringResource(R.string.beszel_cores), "$it") } }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ResourcesSection(
-    cpu: Double, 
-    mp: Double, 
-    dp: Double, 
-    cpuHistory: List<Double> = emptyList(),
-    memHistory: List<Double> = emptyList()
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SectionHeader(icon = Icons.Default.Layers, title = stringResource(R.string.beszel_resources_title))
-
-        ResourceCard(
-            icon = Icons.Default.Memory,
-            iconColor = ServiceType.BESZEL.primaryColor,
-            title = stringResource(R.string.beszel_cpu),
-            percent = cpu,
-            history = cpuHistory
-        )
-
-        ResourceCard(
-            icon = Icons.Default.Dns,
-            iconColor = StatusPurple,
-            title = stringResource(R.string.beszel_memory),
-            percent = mp,
-            history = memHistory
-        )
-
-        ResourceCard(
-            icon = Icons.Default.Storage,
-            iconColor = StatusOrange,
-            title = stringResource(R.string.beszel_disk),
-            percent = dp
+    expandedMetric.value?.let { metric ->
+        ExtraMetricDetailsSheet(
+            metric = metric,
+            history = model.statsHistory,
+            onDismiss = { expandedMetric.value = null }
         )
     }
-}
 
-@Composable
-private fun ResourceCard(
-    icon: ImageVector,
-    iconColor: Color,
-    title: String,
-    percent: Double,
-    detailLeft: String? = null,
-    detailRight: String? = null,
-    history: List<Double> = emptyList()
-) {
-    val progressColor = when {
-        percent > 90 -> StatusRed
-        percent > 70 -> StatusOrange
-        else -> StatusGreen
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-    ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = iconColor.copy(alpha = 0.1f),
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(icon, contentDescription = title, tint = iconColor, modifier = Modifier.size(20.dp))
-                    }
-                }
-
-                Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.weight(1f))
-                Text(String.format("%.1f%%", percent), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = progressColor)
-            }
-
-            // Progress Bar
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(if (isThemeDark()) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                val animatedProgress by animateFloatAsState(
-                    targetValue = (percent.toFloat() / 100f).coerceIn(0f, 1f),
-                    animationSpec = spring(stiffness = Spring.StiffnessLow),
-                    label = "resource_progress"
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(animatedProgress)
-                        .background(Brush.horizontalGradient(listOf(progressColor.copy(alpha = 0.7f), progressColor)))
+    expandedResourceMetric.value?.let { metric ->
+        when (metric) {
+            ResourceMetricType.CPU -> {
+                CpuDetailsSheet(
+                    history = model.statsHistory,
+                    onDismiss = { expandedResourceMetric.value = null }
                 )
             }
 
-            if (detailLeft != null && detailRight != null) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(detailLeft, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(detailRight, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            
-            if (history.isNotEmpty()) {
-                SmoothLineGraph(data = history, graphColor = iconColor)
+            ResourceMetricType.MEMORY -> {
+                ResourceMetricDetailsSheet(
+                    title = stringResource(R.string.beszel_memory_usage),
+                    data = model.memoryUsedHistoryGb,
+                    accent = StatusPurple,
+                    unitFormatter = { value -> formatGB(value) },
+                    onDismiss = { expandedResourceMetric.value = null }
+                )
             }
         }
+    }
+
+    expandedDockerMetric.value?.let { metric ->
+        when (metric) {
+            DockerMetricType.CPU -> {
+                ResourceMetricDetailsSheet(
+                    title = stringResource(R.string.beszel_docker_cpu_usage),
+                    data = model.dockerCpuHistoryPercent,
+                    accent = ServiceType.BESZEL.primaryColor,
+                    unitFormatter = { value -> String.format("%.1f%%", value) },
+                    onDismiss = { expandedDockerMetric.value = null }
+                )
+            }
+
+            DockerMetricType.MEMORY -> {
+                ResourceMetricDetailsSheet(
+                    title = stringResource(R.string.beszel_docker_memory_usage),
+                    data = model.dockerMemoryUsedHistoryMb,
+                    accent = StatusPurple,
+                    unitFormatter = { value -> formatMB(value) },
+                    onDismiss = { expandedDockerMetric.value = null }
+                )
+            }
+
+            DockerMetricType.NETWORK -> {
+                DualMetricDetailsSheet(
+                    title = stringResource(R.string.beszel_docker_network_io),
+                    data = model.dockerDownloadRateHistoryBytesPerSec,
+                    secondaryData = model.dockerUploadRateHistoryBytesPerSec,
+                    accent = StatusOrange,
+                    secondaryColor = StatusPurple,
+                    unitFormatter = { value -> formatNetRateBytesPerSec(value) },
+                    primaryLegend = stringResource(R.string.beszel_download),
+                    secondaryLegend = stringResource(R.string.beszel_upload),
+                    onDismiss = { expandedDockerMetric.value = null }
+                )
+            }
+        }
+    }
+
+    expandedDiskFs.value?.let { fs ->
+        DiskFsDetailsSheet(
+            drive = fs,
+            history = model.statsHistory,
+            onDismiss = { expandedDiskFs.value = null }
+        )
+    }
+
+    expandedSmartDevice.value?.let { device ->
+        SmartDetailsSheet(
+            device = device,
+            onDismiss = { expandedSmartDevice.value = null }
+        )
+    }
+
+    gpuDetailsMetric.value?.let { metric ->
+        GpuDetailsSheet(
+            metric = metric,
+            history = model.statsHistory,
+            onDismiss = { gpuDetailsMetric.value = null }
+        )
     }
 }
 
 @Composable
-private fun SmoothLineGraph(data: List<Double>, graphColor: Color) {
-    if (data.size < 2) return
-    
-    val maxVal = (data.maxOrNull() ?: 1.0).coerceAtLeast(1.0)
-    val minVal = (data.minOrNull() ?: 0.0).coerceAtMost(maxVal - 0.1) // Ensure small gap
-    val range = (maxVal - minVal).coerceAtLeast(0.1) // Prevent division by zero when stats are stagnant
-    
-    // Scale up animation
-    val animationProgress by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
-        label = "graph_appear"
+private fun ExtraMetricsSectionHost(
+    latest: BeszelRecordStats,
+    history: List<BeszelRecordStats>,
+    onMetricClick: (ExtraMetricType) -> Unit
+) {
+    ExtraMetricsSection(
+        latest = latest,
+        history = history,
+        onMetricClick = onMetricClick
     )
-
-    Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        androidx.compose.foundation.Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-        ) {
-            val width = size.width
-            val height = size.height
-            val stepX = width / (data.size - 1).coerceAtLeast(1)
-
-            val path = androidx.compose.ui.graphics.Path()
-            val fillPath = androidx.compose.ui.graphics.Path()
-
-            var previousX = 0f
-            var previousY = height - ((data.first() - minVal) / range * height).toFloat() * animationProgress
-
-            path.moveTo(previousX, previousY)
-            fillPath.moveTo(0f, height)
-            fillPath.lineTo(0f, previousY)
-
-            for (i in 1 until data.size) {
-                val x = i * stepX
-                val y = height - ((data[i] - minVal) / range * height).toFloat() * animationProgress
-
-                val controlX1 = previousX + (x - previousX) / 2f
-                val controlY1 = previousY
-                val controlX2 = previousX + (x - previousX) / 2f
-                val controlY2 = y
-
-                path.cubicTo(controlX1, controlY1, controlX2, controlY2, x, y)
-                fillPath.cubicTo(controlX1, controlY1, controlX2, controlY2, x, y)
-
-                previousX = x
-                previousY = y
-            }
-
-            fillPath.lineTo(width, height)
-            fillPath.close()
-
-            // Draw Area
-            drawPath(
-                path = fillPath,
-                brush = Brush.verticalGradient(
-                    colors = listOf(graphColor.copy(alpha = 0.4f), Color.Transparent),
-                    startY = 0f,
-                    endY = height
-                )
-            )
-
-            // Draw Line
-            drawPath(
-                path = path,
-                color = graphColor,
-                style = androidx.compose.ui.graphics.drawscope.Stroke(
-                    width = 2.dp.toPx(),
-                    cap = androidx.compose.ui.graphics.StrokeCap.Round,
-                    join = androidx.compose.ui.graphics.StrokeJoin.Round
-                )
-            )
-        }
-    }
 }
-
-
-
-@Composable
-private fun ContainersSection(containers: List<BeszelContainer>) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SectionHeader(icon = Icons.Default.Inventory2, title = stringResource(R.string.beszel_containers_title).format(containers.count()))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-        ) {
-            Column {
-                containers.forEachIndexed { index, container ->
-                    Row(
-                        modifier = Modifier.padding(14.dp).fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = ServiceType.BESZEL.primaryColor.copy(alpha = 0.08f),
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Inventory2, contentDescription = stringResource(R.string.beszel_containers_title).format(containers.count()), tint = ServiceType.BESZEL.primaryColor, modifier = Modifier.size(16.dp))
-                            }
-                        }
-
-                        Text(container.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            val context = LocalContext.current
-                            ContainerStat(icon = Icons.Default.Memory, value = String.format("%.1f%%", container.cpuValue), label = stringResource(R.string.beszel_cpu))
-                            ContainerStat(icon = Icons.Default.Dns, value = ResourceFormatters.formatMB(container.mValue, context), label = stringResource(R.string.beszel_memory))
-                        }
-                    }
-                    if (index < containers.size - 1) {
-                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = MaterialTheme.colorScheme.outlineVariant)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ContainerStat(icon: ImageVector, value: String, label: String? = null) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Icon(icon, contentDescription = label, modifier = Modifier.size(10.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
-    }
-}
-
-@Composable
-private fun UptimeCard(seconds: Double) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Icon(Icons.Default.Schedule, contentDescription = stringResource(R.string.beszel_uptime), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            Column {
-                Text(stringResource(R.string.beszel_uptime), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(ResourceFormatters.formatUptimeHours(seconds, LocalContext.current), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@Composable
-private fun SectionHeader(icon: ImageVector, title: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Icon(icon, contentDescription = title, tint = ServiceType.BESZEL.primaryColor, modifier = Modifier.size(16.dp))
-        Text(title, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
-private fun InfoRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(
-            value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(start = 16.dp)
-        )
-    }
-}
-
-// --- Formatters moved to ResourceFormatters ---
