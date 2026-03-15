@@ -16,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -78,29 +79,31 @@ class NpmDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             _dashboardState.value = UiState.Loading
             try {
-                val reportDeferred = async { repository.getHostReport(instanceId) }
-                val hostsDeferred = async { repository.getProxyHosts(instanceId) }
-                val redirectionsDeferred = async { repository.getRedirectionHosts(instanceId) }
-                val streamsDeferred = async { repository.getStreams(instanceId) }
-                val deadHostsDeferred = async { repository.getDeadHosts(instanceId) }
-                val certsDeferred = async { repository.getCertificates(instanceId) }
-                val accessListsDeferred = async { repository.getAccessLists(instanceId) }
-                val usersDeferred = async { repository.getUsers(instanceId) }
-                val auditLogsDeferred = async { repository.getAuditLogs(instanceId) }
+                coroutineScope {
+                    val reportDeferred = async { repository.getHostReport(instanceId) }
+                    val hostsDeferred = async { repository.getProxyHosts(instanceId) }
+                    val redirectionsDeferred = async { repository.getRedirectionHosts(instanceId) }
+                    val streamsDeferred = async { repository.getStreams(instanceId) }
+                    val deadHostsDeferred = async { repository.getDeadHosts(instanceId) }
+                    val certsDeferred = async { repository.getCertificates(instanceId) }
+                    val accessListsDeferred = async { repository.getAccessLists(instanceId) }
+                    val usersDeferred = async { repository.getUsers(instanceId) }
+                    val auditLogsDeferred = async { repository.getAuditLogs(instanceId) }
 
-                _dashboardState.value = UiState.Success(
-                    NpmDashboardData(
-                        hostReport = reportDeferred.await(),
-                        proxyHosts = hostsDeferred.await(),
-                        redirectionHosts = redirectionsDeferred.await(),
-                        streams = streamsDeferred.await(),
-                        deadHosts = deadHostsDeferred.await(),
-                        certificates = certsDeferred.await(),
-                        accessLists = accessListsDeferred.await(),
-                        users = runCatching { usersDeferred.await() }.getOrDefault(emptyList()),
-                        auditLogs = runCatching { auditLogsDeferred.await() }.getOrDefault(emptyList())
+                    _dashboardState.value = UiState.Success(
+                        NpmDashboardData(
+                            hostReport = reportDeferred.await(),
+                            proxyHosts = hostsDeferred.await(),
+                            redirectionHosts = redirectionsDeferred.await(),
+                            streams = streamsDeferred.await(),
+                            deadHosts = deadHostsDeferred.await(),
+                            certificates = certsDeferred.await(),
+                            accessLists = accessListsDeferred.await(),
+                            users = runCatching { usersDeferred.await() }.getOrDefault(emptyList()),
+                            auditLogs = runCatching { auditLogsDeferred.await() }.getOrDefault(emptyList())
+                        )
                     )
-                )
+                }
             } catch (error: Exception) {
                 val message = ErrorHandler.getMessage(context, error)
                 _dashboardState.value = UiState.Error(message, retryAction = { fetchDashboard() })
