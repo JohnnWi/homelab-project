@@ -71,7 +71,5 @@ HomelabAndroid/.idea/
 HomelabAndroid/**/*.iml
 HomelabAndroid/.kotlin/
 
-# Media / Screenshots
-media-docs/
-foto-android/
-foto-ios/
+# Media / Docs (keep screenshots, ignore API docs)
+media-docs/docs-api-services/
