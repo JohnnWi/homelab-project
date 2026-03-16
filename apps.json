@@ -1,0 +1,57 @@
+{
+  "name": "Homelab Dashboard",
+  "subtitle": "Monitor and manage your homelab",
+  "description": "A premium, fully native iOS app for monitoring and managing your personal Homelab ecosystem. Built with Swift 6 and SwiftUI, featuring the Liquid Glass design system.",
+  "iconURL": "https://raw.githubusercontent.com/JohnnWi/homelab-project/main/media-docs/foto-ios/IMG_9186.PNG",
+  "website": "https://github.com/JohnnWi/homelab-project",
+  "tintColor": "#4A90D9",
+  "apps": [
+    {
+      "name": "Homelab",
+      "bundleIdentifier": "homelab.foreverhomelab",
+      "developerName": "JohnnWi",
+      "subtitle": "Your homelab, in your pocket.",
+      "localizedDescription": "A premium, fully native iOS app for monitoring and managing your personal Homelab ecosystem.\n\nIntegrated services:\n• Portainer — Monitor Docker containers, CPU/Memory usage, Start/Stop/Restart\n• Pi-hole — Real-time query stats, blocked domains, toggle ad-blocking\n• Beszel — System monitor with CPU, Memory, Disk usage across nodes\n• Gitea — Browse repos, contribution heatmaps, syntax-highlighted code\n• Nginx Proxy Manager — Proxy hosts, redirections, SSL certificates\n• Tailscale — VPN connectivity status and quick launch\n• Bookmarks — Save and organize your homelab links\n\nFeatures:\n• Multi-instance support for all services\n• Multilingual: English, Italian, French, Spanish, German\n• Liquid Glass UI design\n• Face ID / biometric unlock",
+      "iconURL": "https://raw.githubusercontent.com/JohnnWi/homelab-project/main/media-docs/foto-ios/IMG_9186.PNG",
+      "tintColor": "#4A90D9",
+      "category": "utilities",
+      "screenshots": [
+        "https://raw.githubusercontent.com/JohnnWi/homelab-project/main/media-docs/foto-ios/IMG_9186.PNG",
+        "https://raw.githubusercontent.com/JohnnWi/homelab-project/main/media-docs/foto-ios/IMG_9187.PNG",
+        "https://raw.githubusercontent.com/JohnnWi/homelab-project/main/media-docs/foto-ios/IMG_9193.PNG",
+        "https://raw.githubusercontent.com/JohnnWi/homelab-project/main/media-docs/foto-ios/IMG_9190.PNG",
+        "https://raw.githubusercontent.com/JohnnWi/homelab-project/main/media-docs/foto-ios/IMG_9199.PNG",
+        "https://raw.githubusercontent.com/JohnnWi/homelab-project/main/media-docs/foto-ios/IMG_9200.jpg"
+      ],
+      "versions": [
+        {
+          "version": "0.4.0",
+          "date": "2026-03-16",
+          "localizedDescription": "What's New in v0.4.0:\n\n• Redesigned dashboard UI for all services\n• New Beszel containers view and system detail\n• Line graph visualizations\n• Debug logging and improved error handling\n• Multi-language support updates\n• Various bug fixes and stability improvements",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v0.4.0/Homelab.ipa",
+          "size": 9601122,
+          "minOSVersion": "18.0"
+        }
+      ],
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {
+          "NSFaceIDUsageDescription": "Homelab uses Face ID to quickly unlock the app.",
+          "NSLocalNetworkUsageDescription": "Homelab needs to access your local network to communicate with your self-hosted services."
+        }
+      }
+    }
+  ],
+  "news": [
+    {
+      "title": "v0.4.0 — New UI for All Services",
+      "identifier": "release-0.4.0",
+      "caption": "Redesigned dashboard UI, new Beszel features, and improved error handling.",
+      "date": "2026-03-16",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v0.4.0",
+      "appID": "homelab.foreverhomelab"
+    }
+  ]
+}

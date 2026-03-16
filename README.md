@@ -151,6 +151,24 @@ If you find this dashboard useful, consider supporting my studies with a donatio
 
 ---
 
+## 📲 Install via AltStore / SideStore
+
+You can install the iOS app directly on your iPhone without Xcode using **AltStore** or **SideStore**.
+
+1. Copy the source URL:
+   ```
+   https://raw.githubusercontent.com/JohnnWi/homelab-project/main/apps.json
+   ```
+2. Open **AltStore** or **SideStore** on your device.
+3. Go to **Sources** → **Add Source** and paste the URL above.
+4. Find **Homelab** in the source and tap **Install**.
+
+The app will update automatically when new versions are released.
+
+> **Note:** SideStore can re-sign the app automatically without needing a Mac every 7 days.
+
+---
+
 ## 🚀 Getting Started
 
 ### 🍎 Build for iOS
