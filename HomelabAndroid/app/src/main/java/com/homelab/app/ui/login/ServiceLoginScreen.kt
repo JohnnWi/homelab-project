@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.homelab.app.R
+import com.homelab.app.ui.components.ServiceIcon
 import com.homelab.app.util.ServiceType
 import kotlinx.coroutines.launch
 
@@ -152,20 +153,12 @@ fun ServiceLoginScreen(
                 .offset(x = shakeOffset.value.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                modifier = Modifier.size(80.dp)
-            ) {
-                androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = serviceType.displayName.first().toString(),
-                        style = MaterialTheme.typography.displayMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+            ServiceIcon(
+                type = serviceType,
+                size = 80.dp,
+                iconSize = 52.dp,
+                cornerRadius = 24.dp
+            )
 
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
 
@@ -185,6 +178,7 @@ fun ServiceLoginScreen(
             val hint = when (serviceType) {
                 ServiceType.PORTAINER -> stringResource(R.string.login_hint_portainer_multi)
                 ServiceType.PIHOLE -> stringResource(R.string.login_hint_pihole_multi)
+                ServiceType.ADGUARD_HOME -> stringResource(R.string.login_hint_adguard)
                 ServiceType.GITEA -> stringResource(R.string.login_hint_gitea_multi)
                 ServiceType.NGINX_PROXY_MANAGER -> stringResource(R.string.login_hint_npm)
                 else -> null

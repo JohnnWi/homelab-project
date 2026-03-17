@@ -111,6 +111,24 @@ class AuthInterceptor @Inject constructor(
                     builder.addHeader("X-FTL-SID", instance.token)
                 }
             }
+            ServiceType.ADGUARD_HOME -> {
+                if (!hasAuthorization) {
+                    val username = instance.username.orEmpty()
+                    val password = instance.password.orEmpty()
+                    if (username.isNotBlank() || password.isNotBlank()) {
+                        val creds = "$username:$password"
+                        val encoded = java.util.Base64.getEncoder().encodeToString(creds.toByteArray(Charsets.UTF_8))
+                        builder.addHeader("Authorization", "Basic $encoded")
+                    } else if (instance.token.isNotBlank()) {
+                        if (instance.token.startsWith("basic:")) {
+                            val encoded = instance.token.removePrefix("basic:")
+                            builder.addHeader("Authorization", "Basic $encoded")
+                        } else {
+                            builder.addHeader("Authorization", "Basic ${instance.token}")
+                        }
+                    }
+                }
+            }
             ServiceType.BESZEL -> {
                 if (!hasAuthorization && instance.token.isNotBlank()) {
                     builder.addHeader("Authorization", "Bearer ${instance.token}")

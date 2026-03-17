@@ -43,6 +43,7 @@ import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.homelab.app.ui.components.ServiceIcon
 import com.homelab.app.domain.model.ServiceInstance
 import com.homelab.app.util.ServiceType
 import kotlinx.coroutines.launch
@@ -856,20 +857,11 @@ private fun ServiceInstanceRow(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.size(42.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = instance.type.displayName.take(1),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
+                ServiceIcon(
+                    type = instance.type,
+                    size = 42.dp,
+                    cornerRadius = 12.dp
+                )
 
                 Spacer(modifier = Modifier.width(12.dp))
 

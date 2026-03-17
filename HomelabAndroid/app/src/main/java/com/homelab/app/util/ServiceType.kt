@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 enum class ServiceType(val displayName: String) {
     PORTAINER("Portainer"),
     PIHOLE("Pi-hole"),
+    ADGUARD_HOME("AdGuard Home"),
     BESZEL("Beszel"),
     GITEA("Gitea"),
     NGINX_PROXY_MANAGER("Nginx Proxy Manager"),

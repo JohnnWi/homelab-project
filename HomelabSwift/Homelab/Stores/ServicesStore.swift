@@ -5,6 +5,7 @@ import Darwin
 private final class ServiceClientManager {
     private var portainerClients: [UUID: PortainerAPIClient] = [:]
     private var piholeClients: [UUID: PiHoleAPIClient] = [:]
+    private var adguardClients: [UUID: AdGuardHomeAPIClient] = [:]
     private var beszelClients: [UUID: BeszelAPIClient] = [:]
     private var giteaClients: [UUID: GiteaAPIClient] = [:]
     private var npmClients: [UUID: NginxProxyManagerAPIClient] = [:]
@@ -24,6 +25,15 @@ private final class ServiceClientManager {
         }
         let client = PiHoleAPIClient(instanceId: id)
         piholeClients[id] = client
+        return client
+    }
+
+    func adguardClient(id: UUID) -> AdGuardHomeAPIClient {
+        if let client = adguardClients[id] {
+            return client
+        }
+        let client = AdGuardHomeAPIClient(instanceId: id)
+        adguardClients[id] = client
         return client
     }
 
@@ -60,6 +70,8 @@ private final class ServiceClientManager {
             portainerClients.removeValue(forKey: id)
         case .pihole:
             piholeClients.removeValue(forKey: id)
+        case .adguardHome:
+            adguardClients.removeValue(forKey: id)
         case .beszel:
             beszelClients.removeValue(forKey: id)
         case .gitea:
@@ -266,6 +278,11 @@ final class ServicesStore {
         return clientManager.piholeClient(id: instance.id)
     }
 
+    func adguardClient(instanceId: UUID) async -> AdGuardHomeAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .adguardHome else { return nil }
+        return clientManager.adguardClient(id: instance.id)
+    }
+
     func beszelClient(instanceId: UUID) async -> BeszelAPIClient? {
         guard let instance = instancesById[instanceId], instance.type == .beszel else { return nil }
         return clientManager.beszelClient(id: instance.id)
@@ -294,6 +311,8 @@ final class ServicesStore {
             ok = await clientManager.portainerClient(id: instanceId).ping()
         case .pihole:
             ok = await clientManager.piholeClient(id: instanceId).ping()
+        case .adguardHome:
+            ok = await clientManager.adguardClient(id: instanceId).ping()
         case .beszel:
             ok = await clientManager.beszelClient(id: instanceId).ping()
         case .gitea:
@@ -421,7 +440,7 @@ final class ServicesStore {
            !password.isEmpty {
             do {
                 let client = clientManager.piholeClient(id: instanceId)
-                let refreshedSID = try await client.authenticate(url: current.url, password: password)
+                let refreshedSID = try await client.authenticate(url: current.url, password: password, fallbackUrl: current.fallbackUrl)
                 let authMode: PiHoleAuthMode = refreshedSID == password ? .legacy : .session
                 let refreshed = current.updatingToken(refreshedSID, piholeAuthMode: authMode)
                 instancesById[instanceId] = refreshed
@@ -434,7 +453,7 @@ final class ServicesStore {
         }
 
         // Beszel/Gitea/NPM: auto-refresh handled by client retry logic — don't delete
-        if current.type == .beszel || current.type == .gitea || current.type == .nginxProxyManager {
+        if current.type == .beszel || current.type == .gitea || current.type == .nginxProxyManager || current.type == .adguardHome {
             if let username = current.username, !username.isEmpty,
                let password = current.password, !password.isEmpty {
                 // Credentials exist — client retry will handle re-auth
@@ -464,7 +483,7 @@ final class ServicesStore {
                let password = instance.piHoleStoredSecret,
                !password.isEmpty {
                 do {
-                    configuredSID = try await client.authenticate(url: instance.url, password: password)
+                    configuredSID = try await client.authenticate(url: instance.url, password: password, fallbackUrl: instance.fallbackUrl)
                     authMode = configuredSID == password ? .legacy : .session
                     let refreshed = instance.updatingToken(configuredSID, piholeAuthMode: authMode)
                     if refreshed != instance {
@@ -479,6 +498,10 @@ final class ServicesStore {
             }
 
             await client.configure(url: instance.url, sid: configuredSID, authMode: authMode, fallbackUrl: instance.fallbackUrl)
+
+        case .adguardHome:
+            let client = clientManager.adguardClient(id: instance.id)
+            await client.configure(url: instance.url, username: instance.username ?? "", password: instance.password ?? "", fallbackUrl: instance.fallbackUrl)
 
         case .beszel:
             let client = clientManager.beszelClient(id: instance.id)

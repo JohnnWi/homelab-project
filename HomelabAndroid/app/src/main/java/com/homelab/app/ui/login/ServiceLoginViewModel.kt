@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.homelab.app.R
 import com.homelab.app.data.repository.BeszelRepository
 import com.homelab.app.data.repository.GiteaRepository
+import com.homelab.app.data.repository.AdGuardHomeRepository
 import com.homelab.app.data.repository.NginxProxyManagerRepository
 import com.homelab.app.data.repository.PiholeRepository
 import com.homelab.app.data.repository.PortainerRepository
@@ -32,6 +33,7 @@ class ServiceLoginViewModel @Inject constructor(
     private val serviceInstancesRepository: ServiceInstancesRepository,
     private val portainerRepository: PortainerRepository,
     private val piholeRepository: PiholeRepository,
+    private val adGuardHomeRepository: AdGuardHomeRepository,
     private val beszelRepository: BeszelRepository,
     private val giteaRepository: GiteaRepository,
     private val nginxProxyManagerRepository: NginxProxyManagerRepository
@@ -118,6 +120,26 @@ class ServiceLoginViewModel @Inject constructor(
                                 token = token,
                                 piholePassword = secret,
                                 piholeAuthMode = if (token == secret) PiHoleAuthMode.LEGACY else PiHoleAuthMode.SESSION,
+                                fallbackUrl = cleanFallbackUrl
+                            )
+                        }
+                        ServiceType.ADGUARD_HOME -> {
+                            require(trimmedUsername.isNotBlank()) { context.getString(R.string.login_error_username_required) }
+                            val authPassword = trimmedPassword.ifBlank {
+                                if (existing != null && existing.url == cleanUrl && existing.username == trimmedUsername) {
+                                    return@ifBlank existing.password.orEmpty()
+                                }
+                                throw IllegalArgumentException(context.getString(R.string.login_error_password_required))
+                            }
+                            require(authPassword.isNotBlank()) { context.getString(R.string.login_error_password_required) }
+                            adGuardHomeRepository.authenticate(cleanUrl, trimmedUsername, authPassword)
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                username = trimmedUsername,
+                                password = authPassword,
                                 fallbackUrl = cleanFallbackUrl
                             )
                         }

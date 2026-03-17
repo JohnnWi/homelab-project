@@ -73,9 +73,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import coil3.compose.AsyncImage
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -91,8 +89,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.homelab.app.R
 import com.homelab.app.domain.model.ServiceInstance
 import com.homelab.app.ui.theme.StatusGreen
+import com.homelab.app.ui.components.ServiceIcon
 import com.homelab.app.ui.theme.backgroundColor
-import com.homelab.app.ui.theme.iconUrl
+import com.homelab.app.ui.theme.fallbackIcon
 import com.homelab.app.ui.theme.primaryColor
 import com.homelab.app.util.ServiceType
 import kotlinx.coroutines.delay
@@ -300,6 +299,7 @@ private fun InstanceCard(
         when (s.label) {
             "containers" -> stringResource(R.string.portainer_containers)
             "total_queries" -> stringResource(R.string.pihole_total_queries)
+            "adguard_total_queries" -> stringResource(R.string.adguard_total_queries)
             "systems_online" -> stringResource(R.string.beszel_systems_online)
             "repos" -> stringResource(R.string.gitea_repos)
             "proxy_hosts" -> stringResource(R.string.npm_proxy_hosts)
@@ -321,20 +321,12 @@ private fun InstanceCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top
             ) {
-                Surface(
-                    shape = RoundedCornerShape(14.dp),
-                    color = type.backgroundColor,
-                    modifier = Modifier.size(56.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        AsyncImage(
-                            model = type.iconUrl,
-                            contentDescription = type.displayName,
-                            modifier = Modifier.size(36.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
-                }
+                ServiceIcon(
+                    type = type,
+                    size = 56.dp,
+                    iconSize = 36.dp,
+                    cornerRadius = 14.dp
+                )
 
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -497,9 +489,10 @@ private fun ConnectInstanceCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Surface(
-                    shape = RoundedCornerShape(14.dp),
-                    color = type.backgroundColor,
+                ServiceIcon(
+                    type = type,
+                    size = 56.dp,
+                    cornerRadius = 14.dp,
                     modifier = Modifier.size(56.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
@@ -632,6 +625,7 @@ fun TailscaleCard(isConnected: Boolean) {
 fun DashboardSummary(viewModel: HomeViewModel) {
     val portainer by viewModel.portainerSummary.collectAsStateWithLifecycle()
     val pihole by viewModel.piholeSummary.collectAsStateWithLifecycle()
+    val adguard by viewModel.adguardSummary.collectAsStateWithLifecycle()
     val beszel by viewModel.beszelSummary.collectAsStateWithLifecycle()
     val gitea by viewModel.giteaSummary.collectAsStateWithLifecycle()
     val connectionStatus by viewModel.connectionStatus.collectAsStateWithLifecycle()
@@ -654,6 +648,11 @@ fun DashboardSummary(viewModel: HomeViewModel) {
                 val q = pihole?.totalQueries
                 val formattedStr = if(q != null) NumberFormat.getInstance(Locale.ITALY).format(q) else "—"
                 SummaryRow(title = stringResource(R.string.pihole_total_queries), value = formattedStr, subValue = null, icon = Icons.Default.Security, color = ServiceType.PIHOLE.primaryColor)
+            }
+            if (connectionStatus[ServiceType.ADGUARD_HOME] == true) {
+                val q = adguard?.totalQueries
+                val formattedStr = if (q != null) NumberFormat.getInstance(Locale.ITALY).format(q) else "—"
+                SummaryRow(title = stringResource(R.string.adguard_total_queries), value = formattedStr, subValue = null, icon = Icons.Default.Security, color = ServiceType.ADGUARD_HOME.primaryColor)
             }
             if (connectionStatus[ServiceType.BESZEL] == true) {
                 SummaryRow(title = stringResource(R.string.beszel_systems_online), value = beszel?.online?.toString() ?: "—", subValue = beszel?.let { "/ ${it.total}" }, icon = Icons.Default.Storage, color = ServiceType.BESZEL.primaryColor)
@@ -711,13 +710,7 @@ fun ServiceCard(
     val iconColor = type.primaryColor
     val iconBgColor = iconColor.copy(alpha = 0.15f)
 
-    val serviceIcon = when(type) {
-        ServiceType.PORTAINER -> Icons.Default.Widgets
-        ServiceType.PIHOLE -> Icons.Default.Security
-        ServiceType.BESZEL -> Icons.Default.Storage
-        ServiceType.GITEA -> Icons.Default.Source
-        else -> Icons.Default.Widgets
-    }
+    val serviceIcon = type.fallbackIcon
 
     Surface(
         modifier = Modifier
@@ -894,6 +887,7 @@ private fun DashboardSummary(
     serviceOrder: List<ServiceType>,
     portainer: HomeViewModel.PortainerSummary?,
     pihole: HomeViewModel.PiholeSummary?,
+    adguard: HomeViewModel.AdGuardSummary?,
     beszel: HomeViewModel.BeszelSummary?,
     gitea: HomeViewModel.GiteaSummary?,
     npm: HomeViewModel.NpmSummary?
@@ -918,6 +912,7 @@ private fun DashboardSummary(
             val summary = when (type) {
                 ServiceType.PORTAINER -> portainer
                 ServiceType.PIHOLE -> pihole
+                ServiceType.ADGUARD_HOME -> adguard
                 ServiceType.BESZEL -> beszel
                 ServiceType.GITEA -> gitea
                 ServiceType.NGINX_PROXY_MANAGER -> npm
@@ -949,6 +944,14 @@ private fun DashboardSummary(
                                         type = type,
                                         value = s.totalQueries.toString(),
                                         label = stringResource(R.string.pihole_total_queries)
+                                    )
+                                }
+                                ServiceType.ADGUARD_HOME -> {
+                                    val s = summary as HomeViewModel.AdGuardSummary
+                                    DashboardSummaryCard(
+                                        type = type,
+                                        value = s.totalQueries.toString(),
+                                        label = stringResource(R.string.adguard_total_queries)
                                     )
                                 }
                                 ServiceType.BESZEL -> {
@@ -996,11 +999,6 @@ private fun DashboardSummary(
 }
 
 @Composable
-private fun typeInitial(type: ServiceType): String {
-    return type.displayName.first().toString()
-}
-
-@Composable
 private fun DashboardSummaryCard(
     type: ServiceType,
     value: String,
@@ -1015,20 +1013,12 @@ private fun DashboardSummaryCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Surface(
-                shape = RoundedCornerShape(14.dp),
-                color = type.backgroundColor,
-                modifier = Modifier.size(56.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    AsyncImage(
-                        model = type.iconUrl,
-                        contentDescription = type.displayName,
-                        modifier = Modifier.size(36.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                }
-            }
+            ServiceIcon(
+                type = type,
+                size = 56.dp,
+                iconSize = 36.dp,
+                cornerRadius = 14.dp
+            )
 
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(

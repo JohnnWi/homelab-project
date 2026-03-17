@@ -252,6 +252,7 @@ struct HomeView: View {
         switch route.type {
         case .portainer:         PortainerDashboard(instanceId: route.instanceId)
         case .pihole:            PiHoleDashboard(instanceId: route.instanceId)
+        case .adguardHome:       AdGuardHomeDashboard(instanceId: route.instanceId)
         case .beszel:            BeszelDashboard(instanceId: route.instanceId)
         case .gitea:             GiteaDashboard(instanceId: route.instanceId)
         case .nginxProxyManager: NpmDashboard(instanceId: route.instanceId)
@@ -292,6 +293,10 @@ struct HomeView: View {
                 guard let client = await servicesStore.piholeClient(instanceId: instanceId) else { return nil }
                 let stats = try await client.getStats()
                 return ServiceSummaryInfo(value: Formatters.formatNumber(stats.queries.total), label: localizer.t.summaryQueryTotal)
+            case .adguardHome:
+                guard let client = await servicesStore.adguardClient(instanceId: instanceId) else { return nil }
+                let stats = try await client.getStats()
+                return ServiceSummaryInfo(value: Formatters.formatNumber(stats.totalQueries), label: localizer.t.summaryQueryTotal)
             case .beszel:
                 guard let client = await servicesStore.beszelClient(instanceId: instanceId) else { return nil }
                 let response = try await client.getSystems()
@@ -399,16 +404,7 @@ private struct ServiceCardContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
-                AsyncImage(url: URL(string: type.iconUrl)) { phase in
-                    if let image = phase.image {
-                        image.resizable().scaledToFit()
-                    } else {
-                        Image(systemName: type.symbolName)
-                            .font(.title2)
-                            .foregroundStyle(type.colors.primary)
-                    }
-                }
-                .frame(width: 34, height: 34)
+                ServiceIconView(type: type, size: 34)
                 .frame(width: 56, height: 56)
                 .background(type.colors.bg, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .accessibilityHidden(true)
@@ -540,3 +536,51 @@ private struct ServiceCardContent: View {
         }
     }
 }
+
+// MARK: - Reusable Components
+
+struct ServiceIconView: View {
+    let type: ServiceType
+    let size: CGFloat
+
+    @State private var index: Int = 0
+
+    var body: some View {
+        ZStack {
+            if type.iconCandidates.indices.contains(index) {
+                AsyncImage(url: type.iconCandidates[index]) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .renderingMode(.original)
+                            .scaledToFit()
+                    case .failure:
+                        if index < type.iconCandidates.count - 1 {
+                            Color.clear
+                                .onAppear { index += 1 }
+                        } else {
+                            fallbackView
+                        }
+                    default:
+                        ProgressView()
+                            .scaleEffect(0.7)
+                            .tint(type.colors.primary)
+                    }
+                }
+                .id(index)
+            } else {
+                fallbackView
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    private var fallbackView: some View {
+        Image(systemName: type.symbolName)
+            .font(.system(size: size * 0.6))
+            .foregroundStyle(type.colors.primary)
+    }
+}
+

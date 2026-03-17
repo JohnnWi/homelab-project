@@ -163,6 +163,12 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideAdGuardHomeApi(retrofit: Retrofit): com.homelab.app.data.remote.api.AdGuardHomeApi {
+        return retrofit.create(com.homelab.app.data.remote.api.AdGuardHomeApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideBeszelApi(retrofit: Retrofit): com.homelab.app.data.remote.api.BeszelApi {
         return retrofit.create(com.homelab.app.data.remote.api.BeszelApi::class.java)
     }

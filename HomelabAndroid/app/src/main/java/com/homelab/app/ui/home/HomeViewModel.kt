@@ -7,6 +7,7 @@ import com.homelab.app.data.repository.BeszelRepository
 import com.homelab.app.data.repository.GiteaRepository
 import com.homelab.app.data.repository.LocalPreferencesRepository
 import com.homelab.app.data.repository.NginxProxyManagerRepository
+import com.homelab.app.data.repository.AdGuardHomeRepository
 import com.homelab.app.data.repository.PiholeRepository
 import com.homelab.app.data.repository.PortainerRepository
 import com.homelab.app.data.repository.ServicesRepository
@@ -27,6 +28,7 @@ class HomeViewModel @Inject constructor(
     private val servicesRepository: ServicesRepository,
     private val portainerRepository: PortainerRepository,
     private val piholeRepository: PiholeRepository,
+    private val adGuardHomeRepository: AdGuardHomeRepository,
     private val beszelRepository: BeszelRepository,
     private val giteaRepository: GiteaRepository,
     private val nginxProxyManagerRepository: NginxProxyManagerRepository,
@@ -35,6 +37,7 @@ class HomeViewModel @Inject constructor(
 
     data class PortainerSummary(val running: Int, val total: Int)
     data class PiholeSummary(val totalQueries: Int)
+    data class AdGuardSummary(val totalQueries: Long)
     data class BeszelSummary(val online: Int, val total: Int)
     data class GiteaSummary(val totalRepos: Int)
     data class NpmSummary(val proxyHosts: Int, val total: Int)
@@ -84,6 +87,9 @@ class HomeViewModel @Inject constructor(
 
     private val _piholeSummary = MutableStateFlow<PiholeSummary?>(null)
     val piholeSummary: StateFlow<PiholeSummary?> = _piholeSummary
+
+    private val _adguardSummary = MutableStateFlow<AdGuardSummary?>(null)
+    val adguardSummary: StateFlow<AdGuardSummary?> = _adguardSummary
 
     private val _beszelSummary = MutableStateFlow<BeszelSummary?>(null)
     val beszelSummary: StateFlow<BeszelSummary?> = _beszelSummary
@@ -171,6 +177,12 @@ class HomeViewModel @Inject constructor(
                 _piholeSummary.value = PiholeSummary(stats.queries.total)
                 val formatted = java.text.NumberFormat.getInstance().format(stats.queries.total)
                 InstanceSummary(formatted, null, "total_queries")
+            }
+            ServiceType.ADGUARD_HOME -> {
+                val stats = adGuardHomeRepository.getStats(instanceId)
+                _adguardSummary.value = AdGuardSummary(stats.numDnsQueries)
+                val formatted = java.text.NumberFormat.getInstance().format(stats.numDnsQueries)
+                InstanceSummary(formatted, null, "adguard_total_queries")
             }
             ServiceType.BESZEL -> {
                 val systems = beszelRepository.getSystems(instanceId)

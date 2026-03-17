@@ -1,5 +1,6 @@
 import SwiftUI
 import LocalAuthentication
+import UIKit
 
 // Maps to app/(tabs)/settings/index.tsx
 
@@ -559,13 +560,9 @@ struct SettingsView: View {
         let preferredId = servicesStore.preferredInstance(for: type)?.id
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
-                Text(String(type.displayName.prefix(1)))
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundStyle(AppTheme.accent)
+                ServiceIconView(type: type, size: 20)
                     .frame(width: 32, height: 32)
-                    .frame(width: 32, height: 32)
-                    .glassCard(cornerRadius: 10)
+                    .background(type.colors.bg, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 8) {
@@ -871,6 +868,7 @@ struct ToastView: View {
 
 struct DebugLogsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(Localizer.self) private var localizer
     @State private var logStore = LogStore.shared
     @State private var showCopiedBanner = false
     
@@ -880,9 +878,16 @@ struct DebugLogsView: View {
                 AppTheme.premiumGradient().ignoresSafeArea()
                 
                 VStack(spacing: 0) {
+                    let entries = Array(logStore.entries.reversed())
+                    if let latestError = entries.first(where: { $0.level == .error }) {
+                        errorBanner(latestError)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                    }
+
                     ScrollViewReader { proxy in
                         List {
-                            ForEach(logStore.entries) { entry in
+                            ForEach(entries) { entry in
                                 logRow(entry)
                                     .listRowBackground(Color.clear)
                                     .listRowSeparator(.hidden)
@@ -891,10 +896,10 @@ struct DebugLogsView: View {
                         }
                         .listStyle(.plain)
                         .background(Color.clear)
-                        .onChange(of: logStore.entries.count) { oldVal, newVal in
-                            if let last = logStore.entries.last {
+                        .onChange(of: logStore.entries.count) { _, _ in
+                            if let first = entries.first {
                                 withAnimation {
-                                    proxy.scrollTo(last.id, anchor: .bottom)
+                                    proxy.scrollTo(first.id, anchor: .top)
                                 }
                             }
                         }
@@ -904,7 +909,7 @@ struct DebugLogsView: View {
                 if showCopiedBanner {
                     VStack {
                         Spacer()
-                        Text("Logs Copied to Clipboard")
+                        Text(localizer.t.debugLogsCopied)
                             .font(.subheadline.bold())
                             .foregroundStyle(.white)
                             .padding(.vertical, 12)
@@ -918,11 +923,11 @@ struct DebugLogsView: View {
                     .zIndex(1)
                 }
             }
-            .navigationTitle("Debug Logs")
+            .navigationTitle(localizer.t.settingsDebugLogs)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Close") { dismiss() }
+                    Button(localizer.t.close) { dismiss() }
                 }
                 
                 ToolbarItem(placement: .topBarTrailing) {
@@ -943,6 +948,26 @@ struct DebugLogsView: View {
                 }
             }
         }
+    }
+
+    private func errorBanner(_ entry: LogStore.LogEntry) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(localizer.t.debugLogsErrorTitle)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.textMuted)
+            Text(entry.message)
+                .font(.caption)
+                .foregroundStyle(.primary)
+                .lineLimit(3)
+            Button(localizer.t.debugLogsOpenSettings) {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding(12)
+        .glassCard()
     }
     
     private func logRow(_ entry: LogStore.LogEntry) -> some View {

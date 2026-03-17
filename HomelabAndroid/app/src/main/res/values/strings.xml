@@ -36,6 +36,7 @@
     <!-- Services -->
     <string name="service_portainer">Portainer</string>
     <string name="service_pihole">Pi-hole</string>
+    <string name="service_adguard_home">AdGuard Home</string>
     <string name="service_beszel">Beszel</string>
     <string name="service_gitea">Gitea</string>
 
@@ -107,6 +108,8 @@
     <string name="pihole_top_clients">Top clients</string>
     <string name="pihole_total_suffix">%s total</string>
     <string name="pihole_domain_management">Domain Management</string>
+
+    <!-- AdGuard Home -->
     <string name="pihole_domain_placeholder">example.com</string>
     <string name="pihole_allowed">Allowed</string>
     <string name="pihole_blocked_list">Blocked</string>
@@ -408,6 +411,7 @@
     <string name="login_keep_secret_placeholder">Leave blank to keep current secret when only label or fallback changed</string>
     <string name="login_hint_portainer_multi">Create an access token in Portainer under My account &gt; Access tokens.</string>
     <string name="login_hint_pihole_multi">Use the password or API token configured in Pi-hole under Settings &gt; API / Web interface.</string>
+    <string name="login_hint_adguard">Use your AdGuard Home admin username and password.</string>
     <string name="login_hint_gitea_multi">If 2FA is enabled, use an app token instead of your password.</string>
     <string name="login_error_api_key_required">API key required.</string>
     <string name="login_error_password_required">Password required.</string>
@@ -552,6 +556,75 @@
     <string name="npm_online">Online</string>
     <string name="npm_offline">Offline</string>
     <string name="more">More</string>
+
+    <!-- AdGuard Home -->
+    <string name="adguard_overview">Overview</string>
+    <string name="adguard_total_queries">Total queries</string>
+    <string name="adguard_blocked">Blocked</string>
+    <string name="adguard_blocked_percent">Blocked %</string>
+    <string name="adguard_avg_processing">Avg processing</string>
+    <string name="adguard_server_info">Server info</string>
+    <string name="adguard_version">Version</string>
+    <string name="adguard_dns_address">DNS address</string>
+    <string name="adguard_dns_port">DNS port</string>
+    <string name="adguard_http_port">HTTP port</string>
+    <string name="adguard_top_queried">Top queried</string>
+    <string name="adguard_top_blocked">Top blocked</string>
+    <string name="adguard_top_clients">Top clients</string>
+    <string name="adguard_query_activity">Query activity</string>
+    <string name="adguard_allowed">Allowed</string>
+    <string name="adguard_blocked_label">Blocked</string>
+    <string name="adguard_past">Past</string>
+    <string name="adguard_now">Now</string>
+    <string name="adguard_no_data">No data</string>
+    <string name="adguard_quick_actions">Quick actions</string>
+    <string name="adguard_dns_rewrites">DNS rewrites</string>
+    <string name="adguard_query_log">Query log</string>
+    <string name="adguard_user_rules">User rules</string>
+    <string name="adguard_filter_lists">Filter lists</string>
+    <string name="adguard_blocked_services">Blocked services</string>
+    <string name="adguard_disable_protection">Disable protection</string>
+    <string name="adguard_enable_protection">Enable protection</string>
+    <string name="adguard_pause_protection_desc">Pause AdGuard Home protection.</string>
+    <string name="adguard_resume_protection_desc">Resume AdGuard Home protection.</string>
+    <string name="adguard_enable">Enable</string>
+    <string name="adguard_disable_for_minutes">Disable for %1$d min</string>
+    <string name="adguard_disable">Disable</string>
+    <string name="adguard_protection_enabled">Protection enabled</string>
+    <string name="adguard_protection_paused">Protection paused</string>
+    <string name="adguard_tap_to_pause">Tap to pause</string>
+    <string name="adguard_tap_to_resume">Tap to resume</string>
+    <string name="adguard_filter_domain_or_client">Filter domain or client</string>
+    <string name="adguard_no_query_entries">No query log entries match current filters</string>
+    <string name="adguard_all_clients">All clients</string>
+    <string name="adguard_allow">Allow</string>
+    <string name="adguard_blocklists">Blocklists</string>
+    <string name="adguard_allowlists">Allowlists</string>
+    <string name="adguard_enabled">Enabled</string>
+    <string name="adguard_disabled">Disabled</string>
+    <string name="adguard_user_rules_label">User rules</string>
+    <string name="adguard_delete_rewrite">Delete rewrite</string>
+    <string name="adguard_add_rewrite">Add rewrite</string>
+    <string name="adguard_edit_rewrite">Edit rewrite</string>
+    <string name="adguard_delete_filter">Delete filter</string>
+    <string name="adguard_delete_rule">Delete rule</string>
+    <string name="adguard_rewrites_enabled">Rewrites enabled</string>
+    <string name="adguard_apply_rewrites">Apply DNS rewrites</string>
+    <string name="adguard_domain">Domain</string>
+    <string name="adguard_answer">Answer</string>
+    <string name="adguard_custom_list">Custom list</string>
+    <string name="adguard_blocklist">Blocklist</string>
+    <string name="adguard_allowlist">Allowlist</string>
+    <string name="adguard_name">Name</string>
+    <string name="adguard_list_url">List URL</string>
+    <string name="adguard_add_list">Add list</string>
+    <string name="adguard_suggested_lists">Suggested lists</string>
+    <string name="adguard_edit_filter">Edit filter</string>
+    <string name="adguard_url">URL</string>
+    <string name="adguard_no_user_rules">No user rules</string>
+    <string name="adguard_add_rule">Add rule</string>
+    <string name="adguard_rule">Rule</string>
+    <string name="adguard_group_other">Other</string>
 
     <!-- Onboarding v2 -->
     <string name="onboarding_welcome">Welcome</string>

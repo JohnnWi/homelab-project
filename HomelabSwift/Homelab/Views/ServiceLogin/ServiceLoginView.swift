@@ -26,7 +26,7 @@ struct ServiceLoginView: View {
 
     private var isEditing: Bool { existingInstance != nil }
     private var serviceColor: Color { serviceType.colors.primary }
-    private var needsUsername: Bool { serviceType == .beszel || serviceType == .gitea || serviceType == .nginxProxyManager }
+    private var needsUsername: Bool { serviceType == .beszel || serviceType == .gitea || serviceType == .nginxProxyManager || serviceType == .adguardHome }
 
     var body: some View {
         NavigationStack {
@@ -228,6 +228,7 @@ struct ServiceLoginView: View {
         switch serviceType {
         case .portainer:         return localizer.t.loginHintPortainer
         case .pihole:            return localizer.t.loginHintPihole
+        case .adguardHome:       return localizer.t.loginHintAdguard
         case .gitea:             return localizer.t.loginHintGitea2FA
         case .nginxProxyManager: return localizer.t.loginHintNpm
         default: return nil
@@ -317,7 +318,7 @@ struct ServiceLoginView: View {
                 throw APIError.custom(localizer.t.loginErrorCredentials)
             }
             let client = PiHoleAPIClient(instanceId: existingInstanceId ?? UUID())
-            let sid = try await client.authenticate(url: url, password: secret)
+            let sid = try await client.authenticate(url: url, password: secret, fallbackUrl: fallbackUrl)
             let authMode: PiHoleAuthMode = sid == secret ? .legacy : .session
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
@@ -330,6 +331,28 @@ struct ServiceLoginView: View {
                 piholePassword: secret,
                 piholeAuthMode: authMode,
                 fallbackUrl: fallbackUrl
+            )
+
+        case .adguardHome:
+            let identity = normalizedOptional(username) ?? existingInstance?.username
+            let secret = normalizedOptional(password) ?? existingInstance?.password
+            guard let identity, !identity.isEmpty, let secret, !secret.isEmpty else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+            if existingInstance != nil && url != existingInstance?.url && normalizedOptional(password) == nil {
+                throw APIError.custom(localizer.t.loginErrorPasswordRequired)
+            }
+            let client = AdGuardHomeAPIClient(instanceId: existingInstanceId ?? UUID())
+            try await client.authenticate(url: url, username: identity, password: secret)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .adguardHome,
+                label: label,
+                url: url,
+                token: "",
+                username: identity,
+                fallbackUrl: fallbackUrl,
+                password: secret
             )
 
         case .beszel:

@@ -69,6 +69,7 @@ private fun dashboardRoute(type: ServiceType, instanceId: String): String {
     return when (type) {
         ServiceType.PORTAINER -> "portainer/$instanceId/dashboard"
         ServiceType.PIHOLE -> "pihole/$instanceId/dashboard"
+        ServiceType.ADGUARD_HOME -> "adguard/$instanceId/dashboard"
         ServiceType.BESZEL -> "beszel/$instanceId/dashboard"
         ServiceType.GITEA -> "gitea/$instanceId/dashboard"
         ServiceType.NGINX_PROXY_MANAGER -> "nginxpm/$instanceId/dashboard"
@@ -299,6 +300,81 @@ fun AppNavigation() {
                 arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
             ) {
                 com.homelab.app.ui.pihole.PiholeQueryLogScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "adguard/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.adguard.AdGuardHomeDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.ADGUARD_HOME, newInstanceId)) {
+                                popUpTo("adguard/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    },
+                    onNavigateToQueryLog = { status ->
+                        val encodedStatus = Uri.encode(status)
+                        navController.navigate("adguard/$instanceId/queries?status=$encodedStatus")
+                    },
+                    onNavigateToFilters = { navController.navigate("adguard/$instanceId/filters") },
+                    onNavigateToRewrites = { navController.navigate("adguard/$instanceId/rewrites") },
+                    onNavigateToUserRules = { navController.navigate("adguard/$instanceId/user-rules") },
+                    onNavigateToBlockedServices = { navController.navigate("adguard/$instanceId/blocked-services") }
+                )
+            }
+
+            composable(
+                route = "adguard/{instanceId}/queries?status={status}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("status") { type = NavType.StringType; defaultValue = "all" }
+                )
+            ) { backStackEntry ->
+                val status = backStackEntry.arguments?.getString("status") ?: "all"
+                com.homelab.app.ui.adguard.AdGuardHomeQueryLogScreen(
+                    initialStatus = status,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "adguard/{instanceId}/filters",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) {
+                com.homelab.app.ui.adguard.AdGuardHomeFiltersScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "adguard/{instanceId}/rewrites",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) {
+                com.homelab.app.ui.adguard.AdGuardHomeRewritesScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "adguard/{instanceId}/user-rules",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) {
+                com.homelab.app.ui.adguard.AdGuardHomeUserRulesScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "adguard/{instanceId}/blocked-services",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) {
+                com.homelab.app.ui.adguard.AdGuardHomeBlockedServicesScreen(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

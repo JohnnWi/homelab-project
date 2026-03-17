@@ -77,10 +77,10 @@ class ServicesRepository @Inject constructor(
 
         val reachable = withContext(Dispatchers.IO) {
             val baseUrl = instance.url.trimEnd('/').takeIf { it.isNotBlank() } ?: return@withContext false
-            val pathsToTry = if (instance.type == ServiceType.PIHOLE) {
-                listOf("/api/info/version", "/admin/index.php", "", "/admin/api.php")
-            } else {
-                listOf("")
+            val pathsToTry = when (instance.type) {
+                ServiceType.PIHOLE -> listOf("/api/info/version", "/admin/index.php", "", "/admin/api.php")
+                ServiceType.ADGUARD_HOME -> listOf("/control/status", "/control/", "")
+                else -> listOf("")
             }
 
             pathsToTry.any { path ->

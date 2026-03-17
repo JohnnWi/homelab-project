@@ -24,6 +24,7 @@ class SseClient @Inject constructor(
             .addHeader("X-Homelab-Service", when(serviceType) {
                 ServiceType.PORTAINER -> "Portainer"
                 ServiceType.PIHOLE -> "Pihole"
+                ServiceType.ADGUARD_HOME -> "AdGuardHome"
                 ServiceType.BESZEL -> "Beszel"
                 ServiceType.GITEA -> "Gitea"
                 ServiceType.NGINX_PROXY_MANAGER -> "NginxProxyManager"

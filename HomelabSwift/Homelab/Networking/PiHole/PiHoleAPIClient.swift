@@ -52,36 +52,29 @@ actor PiHoleAPIClient {
 
     // MARK: - Authentication
 
-    func authenticate(url: String, password: String) async throws -> String {
+    func authenticate(url: String, password: String, fallbackUrl: String? = nil) async throws -> String {
         let cleanURL = Self.cleanURL(url)
-        guard let authURL = URL(string: "\(cleanURL)/api/auth") else { throw APIError.invalidURL }
+        let cleanFallback = Self.cleanURL(fallbackUrl ?? "")
 
         let body = try JSONEncoder().encode(["password": password])
-        var req = URLRequest(url: authURL)
-        req.httpMethod = "POST"
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.httpBody = body
-        req.timeoutInterval = 8
 
         var authError: Error?
 
         do {
-            let (data, resp) = try await URLSession.shared.data(for: req)
-            guard let http = resp as? HTTPURLResponse else {
-                throw APIError.custom("Authentication failed. Check your password and URL.")
-            }
-
-            if http.statusCode == 200 {
-                let decoded = try JSONDecoder().decode(PiholeAuthResponse.self, from: data)
-                return decoded.session.sid
-            }
-
-            authError = APIError.custom("Authentication failed. Check your password and URL.")
+            let response: PiholeAuthResponse = try await engine.request(
+                baseURL: cleanURL,
+                fallbackURL: cleanFallback,
+                path: "/api/auth",
+                method: "POST",
+                headers: ["Content-Type": "application/json"],
+                body: body
+            )
+            return response.session.sid
         } catch {
             authError = error
         }
 
-        if try await validateLegacyAuth(baseURL: cleanURL, secret: password) {
+        if try await validateLegacyAuth(baseURL: cleanURL, fallbackURL: cleanFallback, secret: password) {
             return password
         }
 
@@ -91,11 +84,40 @@ actor PiHoleAPIClient {
     // MARK: - Stats
 
     func getStats() async throws -> PiholeStats {
-        return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/stats/summary"), headers: authHeaders())
+        do {
+            return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/stats/summary"), headers: authHeaders())
+        } catch {
+            // Legacy fallback (Pi-hole v5)
+            let data = try await engine.requestData(
+                baseURL: baseURL,
+                fallbackURL: fallbackURL,
+                path: legacyAuthPath("/admin/api.php?summaryRaw"),
+                headers: authHeaders()
+            )
+            guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                throw error
+            }
+            return parseLegacyStats(json)
+        }
     }
 
     func getBlockingStatus() async throws -> PiholeBlockingStatus {
-        return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/dns/blocking"), headers: authHeaders())
+        do {
+            return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/dns/blocking"), headers: authHeaders())
+        } catch {
+            // Legacy fallback (Pi-hole v5)
+            let data = try await engine.requestData(
+                baseURL: baseURL,
+                fallbackURL: fallbackURL,
+                path: legacyAuthPath("/admin/api.php?status"),
+                headers: authHeaders()
+            )
+            guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                throw error
+            }
+            let status = (json["status"] as? String) ?? (json["blocking"] as? String) ?? "unknown"
+            return PiholeBlockingStatus(blocking: status == "enabled" ? "enabled" : "disabled")
+        }
     }
 
     func setBlocking(enabled: Bool, timer: Int? = nil) async throws {
@@ -103,8 +125,25 @@ actor PiHoleAPIClient {
             let blocking: Bool
             let timer: Int?
         }
-        let body = try BlockBody(blocking: enabled, timer: timer).toJSONData()
-        try await engine.requestVoid(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/dns/blocking"), method: "POST", headers: authHeaders(), body: body)
+        do {
+            let body = try BlockBody(blocking: enabled, timer: timer).toJSONData()
+            try await engine.requestVoid(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/dns/blocking"), method: "POST", headers: authHeaders(), body: body)
+        } catch {
+            // Legacy fallback (Pi-hole v5)
+            let query: String
+            if enabled {
+                query = "enable"
+            } else {
+                let duration = timer ?? 0
+                query = "disable=\(duration)"
+            }
+            _ = try await engine.requestData(
+                baseURL: baseURL,
+                fallbackURL: fallbackURL,
+                path: legacyAuthPath("/admin/api.php?\(query)"),
+                headers: authHeaders()
+            )
+        }
     }
 
     // MARK: - Domains (v6 + legacy v5)
@@ -213,7 +252,22 @@ actor PiHoleAPIClient {
     }
 
     func getQueryHistory() async throws -> PiholeQueryHistory {
-        return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/history"), headers: authHeaders())
+        do {
+            return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/history"), headers: authHeaders())
+        } catch {
+            let data = try await engine.requestData(
+                baseURL: baseURL,
+                fallbackURL: fallbackURL,
+                path: legacyAuthPath("/admin/api.php?overTimeData10mins"),
+                headers: authHeaders()
+            )
+            guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                throw error
+            }
+            let history = parseLegacyHistory(json)
+            if history.isEmpty { throw error }
+            return PiholeQueryHistory(history: history)
+        }
     }
 
     func getQueries(from: Date, until: Date) async throws -> [PiholeQueryLogEntry] {
@@ -255,21 +309,16 @@ actor PiHoleAPIClient {
         return try JSONSerialization.jsonObject(with: data)
     }
 
-    private func validateLegacyAuth(baseURL: String, secret: String) async throws -> Bool {
+    private func validateLegacyAuth(baseURL: String, fallbackURL: String, secret: String) async throws -> Bool {
         let encodedSecret = secret.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? secret
-        guard let url = URL(string: "\(baseURL)/admin/api.php?summaryRaw&auth=\(encodedSecret)") else {
-            return false
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.timeoutInterval = 8
-
+        let path = "/admin/api.php?summaryRaw&auth=\(encodedSecret)"
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-                return false
-            }
+            let data = try await engine.requestData(
+                baseURL: baseURL,
+                fallbackURL: fallbackURL,
+                path: path,
+                headers: authHeaders()
+            )
             let json = try JSONSerialization.jsonObject(with: data)
             if let dict = json as? [String: Any] {
                 return !dict.isEmpty
@@ -498,6 +547,114 @@ actor PiHoleAPIClient {
 
     private static func cleanURL(_ url: String) -> String {
         url.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "/+$", with: "", options: .regularExpression)
+    }
+
+    private func legacyAuthPath(_ basePath: String) -> String {
+        let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
+        guard !encodedSid.isEmpty else { return basePath }
+        let separator = basePath.contains("?") ? "&" : "?"
+        return "\(basePath)\(separator)auth=\(encodedSid)"
+    }
+
+    private func parseLegacyStats(_ json: [String: Any]) -> PiholeStats {
+        let total = legacyInt(json, keys: ["dns_queries_today", "queries_today", "total_queries", "dns_queries"]) ?? 0
+        let blocked = legacyInt(json, keys: ["ads_blocked_today", "blocked_queries", "ads_blocked"]) ?? 0
+        let percent = legacyDouble(json, keys: ["ads_percentage_today", "percent_blocked", "ads_percentage"]) ?? 0
+        let unique = legacyInt(json, keys: ["unique_domains", "unique_domains_today"]) ?? 0
+        let forwarded = legacyInt(json, keys: ["queries_forwarded", "forwarded_queries", "forwarded"]) ?? 0
+        let cached = legacyInt(json, keys: ["queries_cached", "cached_queries", "cached"]) ?? 0
+        let gravityDomains = legacyInt(json, keys: ["domains_being_blocked", "gravity_domains", "domains_blocked"]) ?? 0
+        let lastUpdate = parseLegacyTimestamp(json["gravity_last_updated"]) ?? 0
+
+        let queries = PiholeQueryStats(
+            total: total,
+            blocked: blocked,
+            percent_blocked: percent,
+            unique_domains: unique,
+            forwarded: forwarded,
+            cached: cached,
+            types: nil
+        )
+        let gravity = PiholeGravityStats(domains_being_blocked: gravityDomains, last_update: lastUpdate)
+        return PiholeStats(queries: queries, gravity: gravity)
+    }
+
+    private func parseLegacyHistory(_ json: [String: Any]) -> [PiholeHistoryEntry] {
+        let totals = parseLegacySeries(json, keys: ["domains_over_time", "queries_over_time", "over_time"])
+        let blocked = parseLegacySeries(json, keys: ["ads_over_time", "blocked_over_time"])
+
+        let allKeys = Set(totals.keys).union(blocked.keys)
+        let entries = allKeys.compactMap { key -> PiholeHistoryEntry? in
+            guard let timestamp = Int(key) else { return nil }
+            return PiholeHistoryEntry(
+                timestamp: timestamp,
+                total: totals[key] ?? 0,
+                blocked: blocked[key] ?? 0
+            )
+        }
+
+        return entries.sorted { $0.timestamp < $1.timestamp }
+    }
+
+    private func parseLegacySeries(_ json: [String: Any], keys: [String]) -> [String: Int] {
+        for key in keys {
+            if let dict = json[key] as? [String: Any] {
+                var output: [String: Int] = [:]
+                for (entryKey, value) in dict {
+                    if let parsed = legacyInt(value) {
+                        output[entryKey] = parsed
+                    }
+                }
+                if !output.isEmpty {
+                    return output
+                }
+            }
+        }
+        return [:]
+    }
+
+    private func legacyInt(_ json: [String: Any], keys: [String]) -> Int? {
+        for key in keys {
+            if let value = json[key], let parsed = legacyInt(value) {
+                return parsed
+            }
+        }
+        return nil
+    }
+
+    private func legacyDouble(_ json: [String: Any], keys: [String]) -> Double? {
+        for key in keys {
+            if let value = json[key], let parsed = legacyDouble(value) {
+                return parsed
+            }
+        }
+        return nil
+    }
+
+    private func legacyInt(_ value: Any) -> Int? {
+        if let int = value as? Int { return int }
+        if let double = value as? Double { return Int(double) }
+        if let string = value as? String { return Int(string) }
+        return nil
+    }
+
+    private func legacyDouble(_ value: Any) -> Double? {
+        if let double = value as? Double { return double }
+        if let int = value as? Int { return Double(int) }
+        if let string = value as? String { return Double(string.replacingOccurrences(of: ",", with: ".")) }
+        return nil
+    }
+
+    private func parseLegacyTimestamp(_ value: Any?) -> Int? {
+        guard let value else { return nil }
+        if let int = legacyInt(value) { return int }
+        if let dict = value as? [String: Any] {
+            if let raw = dict["timestamp"] ?? dict["absolute"] ?? dict["file_time"],
+               let ts = legacyInt(raw) {
+                return ts
+            }
+        }
+        return nil
     }
 }
 

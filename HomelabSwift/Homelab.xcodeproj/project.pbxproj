@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -52,7 +52,6 @@
 		8FC5C2BF6FC7CBC21BFF6696 /* ServiceDashboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7432B8C8ACBE47BDF26570DC /* ServiceDashboardLayout.swift */; };
 		95AC663AE4D3962BC2F4BB2A /* NpmDeadHostForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BAF0C299F88C7BE7B562D3 /* NpmDeadHostForm.swift */; };
 		97C25FD08421A32F71C2B3BD /* NginxProxyManagerAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D740E72A36FA4EDBFEE8A195 /* NginxProxyManagerAPIClient.swift */; };
-		991F9F57CF5DAD5FA3AD929B /* DashboardSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1776C03666E80A17285732D /* DashboardSummary.swift */; };
 		9A986ED771EA2DC52308E756 /* NpmAccessListCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34DDAD2C4F4522B5980306ED /* NpmAccessListCard.swift */; };
 		9F77F33FFB5F27A3D1A8109E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0A64E52150CEEA94E249D7 /* ContentView.swift */; };
 		A1B0DB1FF6B1CB2BEB21B2CE /* KeychainServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCD7BB9B1065930082265D21 /* KeychainServiceTests.swift */; };
@@ -61,10 +60,18 @@
 		AAA9BC382610A55D8E374C95 /* Translations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7692F78990DA606D426BA429 /* Translations.swift */; };
 		ABCECDC5B2772BE727043AA3 /* BeszelDetailSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E3E6D321C7DB682436A5607 /* BeszelDetailSheets.swift */; };
 		AD2F16BDA6D33B25BA1DD4B7 /* GiteaModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F6D851F1B957C876FD6F0B /* GiteaModels.swift */; };
+		B1B2C3D4E5F60718293A4B5C /* AdGuardHomeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* AdGuardHomeModels.swift */; };
+		B2B3C4D5E6F708192A3B4C5D /* AdGuardHomeAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B3C4D5E6F708192A3B4C5D /* AdGuardHomeAPIClient.swift */; };
+		B3B4C5D6E7F8091A2B3C4D5E /* AdGuardHomeDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B4C5D6E7F8091A2B3C4D5E /* AdGuardHomeDashboard.swift */; };
+		B4B5C6D7E8F90A1B2C3D4E5F /* AdGuardHomeQueryLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4B5C6D7E8F90A1B2C3D4E5F /* AdGuardHomeQueryLogView.swift */; };
 		B51871199ACBFB2987E2C165 /* PortainerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24ACF7FA86699161F1FFB10E /* PortainerModels.swift */; };
 		B52CC2ACDDD34ADB9ECCF77B /* GiteaRepoDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBA3D966E73220F618CD9038 /* GiteaRepoDetail.swift */; };
+		B5B6C7D8E9F01A2B3C4D5E6F /* AdGuardHomeUserRulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B6C7D8E9F01A2B3C4D5E6F /* AdGuardHomeUserRulesView.swift */; };
+		B6B7C8D9EAF12B3C4D5E6F70 /* AdGuardHomeBlockedServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6B7C8D9EAF12B3C4D5E6F70 /* AdGuardHomeBlockedServicesView.swift */; };
 		B6F34400E4C7BC4A5F752049 /* NpmProxyHostCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8569FC25F0824870C9BFD6A2 /* NpmProxyHostCard.swift */; };
 		B75BA3C1B775D95298E0933B /* SyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD5A40912505AFD774ED713 /* SyntaxHighlighter.swift */; };
+		B7B8C9DAEBF23C4D5E6F7081 /* AdGuardHomeRewritesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B8C9DAEBF23C4D5E6F7081 /* AdGuardHomeRewritesView.swift */; };
+		B8C9D0E1F2A3B4C5D6E7F809 /* AdGuardHomeFiltersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8C9D0E1F2A3B4C5D6E7F809 /* AdGuardHomeFiltersView.swift */; };
 		BAA4219103CC83A339C434BD /* ServicesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258507E3A00D686FDEF7E9CE /* ServicesStore.swift */; };
 		C18B23568F81455E4164835D /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 486E817863BA2B5DA5318488 /* GlassCard.swift */; };
 		C462B63CC5FE35CD624ADFCD /* NpmStreamCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8904009FE0CC197DE3B1492A /* NpmStreamCard.swift */; };
@@ -122,7 +129,7 @@
 		34DDAD2C4F4522B5980306ED /* NpmAccessListCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmAccessListCard.swift; sourceTree = "<group>"; };
 		3565C63ADD375B1D9773CF8B /* BookmarkFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkFormView.swift; sourceTree = "<group>"; };
 		38F7AE0005466E2FF260B000 /* Translations+English.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Translations+English.swift"; sourceTree = "<group>"; };
-		3A088F5140A5297EA91E3821 /* Homelab.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Homelab.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3A088F5140A5297EA91E3821 /* Homelab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Homelab.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AD1D644D530DE462BB79AA2 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		3CC9947203975F8072646659 /* SkeletonLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonLoader.swift; sourceTree = "<group>"; };
 		3F5B6FAE42892F4BEB3097FD /* StatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBadge.swift; sourceTree = "<group>"; };
@@ -130,7 +137,7 @@
 		44F6D851F1B957C876FD6F0B /* GiteaModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiteaModels.swift; sourceTree = "<group>"; };
 		465DB3CC355F5F7FDDF6DE00 /* PinEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinEntryView.swift; sourceTree = "<group>"; };
 		486E817863BA2B5DA5318488 /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
-		4E1A77FA193DE78992A80B91 /* HomelabTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HomelabTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E1A77FA193DE78992A80B91 /* HomelabTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HomelabTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E1E8A717351D5E42B2696F1 /* BeszelAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelAPIClient.swift; sourceTree = "<group>"; };
 		4F2913EA81E6CCF74EFC883C /* NpmProxyHostForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmProxyHostForm.swift; sourceTree = "<group>"; };
 		53BAF0C299F88C7BE7B562D3 /* NpmDeadHostForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmDeadHostForm.swift; sourceTree = "<group>"; };
@@ -161,12 +168,19 @@
 		9D702ABD0D754FC3DEF8A7B4 /* PiholeDomainListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiholeDomainListView.swift; sourceTree = "<group>"; };
 		9E3E6D321C7DB682436A5607 /* BeszelDetailSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelDetailSheets.swift; sourceTree = "<group>"; };
 		9F233D9CF75937405674EEE4 /* NpmRedirectionHostCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmRedirectionHostCard.swift; sourceTree = "<group>"; };
-		A1776C03666E80A17285732D /* DashboardSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardSummary.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* AdGuardHomeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeModels.swift; sourceTree = "<group>"; };
 		A1BF1197F8BB03BE213E2995 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		A27E1B9D98BB24CE9CC7DD66 /* BookmarksStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksStore.swift; sourceTree = "<group>"; };
+		A2B3C4D5E6F708192A3B4C5D /* AdGuardHomeAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeAPIClient.swift; sourceTree = "<group>"; };
 		A3491FAD0D71DDB3C25D9D90 /* GiteaDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiteaDashboard.swift; sourceTree = "<group>"; };
+		A3B4C5D6E7F8091A2B3C4D5E /* AdGuardHomeDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeDashboard.swift; sourceTree = "<group>"; };
 		A4589116BA4857CFFC0687E1 /* NpmCertificateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmCertificateCard.swift; sourceTree = "<group>"; };
+		A4B5C6D7E8F90A1B2C3D4E5F /* AdGuardHomeQueryLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeQueryLogView.swift; sourceTree = "<group>"; };
+		A5B6C7D8E9F01A2B3C4D5E6F /* AdGuardHomeUserRulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeUserRulesView.swift; sourceTree = "<group>"; };
 		A69EDC601F02DCA97FEBAC18 /* NginxProxyManagerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NginxProxyManagerModels.swift; sourceTree = "<group>"; };
+		A6B7C8D9EAF12B3C4D5E6F70 /* AdGuardHomeBlockedServicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeBlockedServicesView.swift; sourceTree = "<group>"; };
+		A7B8C9DAEBF23C4D5E6F7081 /* AdGuardHomeRewritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeRewritesView.swift; sourceTree = "<group>"; };
+		A8C9D0E1F2A3B4C5D6E7F809 /* AdGuardHomeFiltersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeFiltersView.swift; sourceTree = "<group>"; };
 		AB95F4E19C7D3082B4D6484C /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
 		B1CB48124608D3A220C3A444 /* Translations+OtherLanguages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Translations+OtherLanguages.swift"; sourceTree = "<group>"; };
 		B1EBFFF57A15B47F78E81D04 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
@@ -294,6 +308,7 @@
 				C226A2E333FD0452D26FF967 /* PiholeDomain.swift */,
 				334BAFC4A25FD83F52E9CDD0 /* ServiceConnection.swift */,
 				7E6FEE939313E58D34CE4BDB /* ServiceType.swift */,
+				C1B2C3D4E5F60718293A4B5C /* AdGuardHome */,
 				9C3998846D55F959084051D2 /* Beszel */,
 				981FC3E8A73DC27EF4792684 /* Gitea */,
 				F3AB0740CCD7B809F06B451A /* NginxProxyManager */,
@@ -363,7 +378,6 @@
 		873F7F23714AC880CCFDA5BF /* Home */ = {
 			isa = PBXGroup;
 			children = (
-				A1776C03666E80A17285732D /* DashboardSummary.swift */,
 				8D1604CF631BC4DC369A42A5 /* HomeView.swift */,
 			);
 			path = Home;
@@ -430,6 +444,7 @@
 			isa = PBXGroup;
 			children = (
 				BE0A64E52150CEEA94E249D7 /* ContentView.swift */,
+				C3B4C5D6E7F8091A2B3C4D5E /* AdGuardHome */,
 				F1265188363BF5B5C00056A5 /* Beszel */,
 				ECAF9E33BDB4EE0FFFF630D0 /* Bookmarks */,
 				5A93214C3BDCB9BEC5FCCD73 /* Components */,
@@ -451,6 +466,35 @@
 				3AD1D644D530DE462BB79AA2 /* AppTheme.swift */,
 			);
 			path = Theme;
+			sourceTree = "<group>";
+		};
+		C1B2C3D4E5F60718293A4B5C /* AdGuardHome */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F60718293A4B5C /* AdGuardHomeModels.swift */,
+			);
+			path = AdGuardHome;
+			sourceTree = "<group>";
+		};
+		C2B3C4D5E6F708192A3B4C5D /* AdGuardHome */ = {
+			isa = PBXGroup;
+			children = (
+				A2B3C4D5E6F708192A3B4C5D /* AdGuardHomeAPIClient.swift */,
+			);
+			path = AdGuardHome;
+			sourceTree = "<group>";
+		};
+		C3B4C5D6E7F8091A2B3C4D5E /* AdGuardHome */ = {
+			isa = PBXGroup;
+			children = (
+				A3B4C5D6E7F8091A2B3C4D5E /* AdGuardHomeDashboard.swift */,
+				A4B5C6D7E8F90A1B2C3D4E5F /* AdGuardHomeQueryLogView.swift */,
+				A5B6C7D8E9F01A2B3C4D5E6F /* AdGuardHomeUserRulesView.swift */,
+				A8C9D0E1F2A3B4C5D6E7F809 /* AdGuardHomeFiltersView.swift */,
+				A6B7C8D9EAF12B3C4D5E6F70 /* AdGuardHomeBlockedServicesView.swift */,
+				A7B8C9DAEBF23C4D5E6F7081 /* AdGuardHomeRewritesView.swift */,
+			);
+			path = AdGuardHome;
 			sourceTree = "<group>";
 		};
 		C9F6FE4041AA55D79004BC56 /* Config */ = {
@@ -482,6 +526,7 @@
 			children = (
 				FEF389260911EADF7079A97B /* APIClient.swift */,
 				AB95F4E19C7D3082B4D6484C /* APIError.swift */,
+				C2B3C4D5E6F708192A3B4C5D /* AdGuardHome */,
 				D5B24EF44902FCBD35F6D145 /* Beszel */,
 				289C5939524BACC32CDCCF25 /* Gitea */,
 				23AB1F8E0947D3598E65C623 /* NginxProxyManager */,
@@ -638,7 +683,6 @@
 			);
 			mainGroup = 5A9E1D3A67703C812006DFAC;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -685,7 +729,6 @@
 				CFFCFA6F071D0F46DECAB36B /* ContainerDetailView.swift in Sources */,
 				A3E3BAB096611E807728CA89 /* ContainerListView.swift in Sources */,
 				9F77F33FFB5F27A3D1A8109E /* ContentView.swift in Sources */,
-				991F9F57CF5DAD5FA3AD929B /* DashboardSummary.swift in Sources */,
 				05260E0A1A5781AC8EAE7011 /* EditBookmarkView.swift in Sources */,
 				21E7233E678C07EF2FA629B5 /* EditCategoryView.swift in Sources */,
 				7E78EE55701AD004992579EF /* Formatters.swift in Sources */,
@@ -719,9 +762,17 @@
 				4CA71DBAD3D27E419ED0A10F /* NpmStreamForm.swift in Sources */,
 				CFCDE90DDC7DCF5CB7F4A3A6 /* NpmUserForm.swift in Sources */,
 				EAD085672E3D6DD29C4F51D1 /* OfflineBanner.swift in Sources */,
+				B2B3C4D5E6F708192A3B4C5D /* AdGuardHomeAPIClient.swift in Sources */,
 				A283181CEA487B0C8346D967 /* PiHoleAPIClient.swift in Sources */,
 				1C4457681E0F071045A8132C /* PiHoleDashboard.swift in Sources */,
+				B3B4C5D6E7F8091A2B3C4D5E /* AdGuardHomeDashboard.swift in Sources */,
+				B4B5C6D7E8F90A1B2C3D4E5F /* AdGuardHomeQueryLogView.swift in Sources */,
+				B5B6C7D8E9F01A2B3C4D5E6F /* AdGuardHomeUserRulesView.swift in Sources */,
+				B8C9D0E1F2A3B4C5D6E7F809 /* AdGuardHomeFiltersView.swift in Sources */,
+				B6B7C8D9EAF12B3C4D5E6F70 /* AdGuardHomeBlockedServicesView.swift in Sources */,
+				B7B8C9DAEBF23C4D5E6F7081 /* AdGuardHomeRewritesView.swift in Sources */,
 				EC9F7C6B42D988E3D6D1E8BB /* PiHoleModels.swift in Sources */,
+				B1B2C3D4E5F60718293A4B5C /* AdGuardHomeModels.swift in Sources */,
 				FDB0C4600B5089FA648DEE0C /* PiholeDomain.swift in Sources */,
 				FD2293CC8607CE165F202493 /* PiholeDomainListView.swift in Sources */,
 				FCD41D6BE7DB010018902C63 /* PinEntryView.swift in Sources */,
@@ -887,7 +938,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;

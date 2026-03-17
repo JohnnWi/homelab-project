@@ -65,14 +65,24 @@ Developed with **Swift 6** and **SwiftUI**, utilizing the latest native iOS 26 t
   <tr>
     <th>Pi-hole</th>
     <th>Gitea</th>
-    <th>Bookmarks</th>
-    <th>Settings</th>
+    <th colspan="2" align="center">AdGuard DNS</th>
   </tr>
   <tr>
     <td align="center"><img src="media-docs/foto-ios/IMG_9199.PNG" width="180" /></td>
     <td align="center"><img src="media-docs/foto-ios/IMG_9200.jpg" width="180" /></td>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9201.PNG" width="180" /></td>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9202.PNG" width="180" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9218.PNG" width="180" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9219.PNG" width="180" /></td>
+  </tr>
+</table>
+
+<table align="center">
+  <tr>
+    <th>Bookmarks</th>
+    <th>Settings</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9201.PNG" width="200" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9202.PNG" width="200" /></td>
   </tr>
 </table>
 
@@ -127,12 +137,22 @@ Built with **Kotlin** and **Jetpack Compose**, following the **Material Expressi
 
 <table align="center">
   <tr>
+    <th colspan="2" align="center">AdGuard DNS</th>
     <th colspan="2" align="center">Bookmarks</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="media-docs/foto-android/adguard1.jpg" width="180" /></td>
+    <td align="center"><img src="media-docs/foto-android/adguard2.jpg" width="180" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_18_2026-03-16_20-24-21.jpg" width="180" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_19_2026-03-16_20-24-21.jpg" width="180" /></td>
+  </tr>
+</table>
+
+<table align="center">
+  <tr>
     <th>Settings</th>
   </tr>
   <tr>
-    <td align="center"><img src="media-docs/foto-android/photo_18_2026-03-16_20-24-21.jpg" width="200" /></td>
-    <td align="center"><img src="media-docs/foto-android/photo_19_2026-03-16_20-24-21.jpg" width="200" /></td>
     <td align="center"><img src="media-docs/foto-android/photo_20_2026-03-16_20-24-21.jpg" width="200" /></td>
   </tr>
 </table>
@@ -201,6 +221,9 @@ Integrated Tailscale support helps you securely reach your homelab from anywhere
 
 ### 🔀 Nginx Proxy Manager
 Manage your reverse proxy directly from your phone. Browse proxy hosts, redirection hosts, dead hosts, streams, access lists, and SSL certificates — all in one native interface.
+
+### 🛡️ AdGuard DNS
+Monitor and manage your AdGuard Home DNS server. View real-time query statistics, check filtering status, and control DNS protection directly from your phone.
 
 ### 🔖 Bookmarks
 Keep all your most-used homelab links in one place with a native bookmarks feature that supports organization, quick access, and a cleaner daily workflow.

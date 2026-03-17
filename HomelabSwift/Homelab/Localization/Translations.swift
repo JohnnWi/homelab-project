@@ -57,11 +57,13 @@ struct Translations {
     // Services
     let servicePortainer: String
     let servicePihole: String
+    let serviceAdguard: String
     let serviceBeszel: String
     let serviceGitea: String
     let serviceNpm: String
     let servicePortainerDesc: String
     let servicePiholeDesc: String
+    let serviceAdguardDesc: String
     let serviceBeszelDesc: String
     let serviceGiteaDesc: String
     let serviceNpmDesc: String
@@ -80,6 +82,7 @@ struct Translations {
     let loginErrorCredentials: String
     let loginErrorFailed: String
     let loginHintPihole: String
+    let loginHintAdguard: String
     let loginHintGitea2FA: String
     let loginHintPortainer: String
     let loginApiKey: String
@@ -218,6 +221,76 @@ struct Translations {
     let piholeFilterAllowed: String
     let piholeFilterClient: String
     let piholeNoQueryResults: String
+
+    // AdGuard Home
+    let adguardProtection: String
+    let adguardEnabled: String
+    let adguardDisabled: String
+    let adguardProtectionDesc: String
+    let adguardDisableDesc: String
+    let adguardDisablePermanently: String
+    let adguardDisable1m: String
+    let adguardDisable5m: String
+    let adguardDisable1h: String
+    let adguardDisableCustom: String
+    let adguardCustomDisableTitle: String
+    let adguardCustomDisableDesc: String
+    let adguardCustomDisableMinutes: String
+    let adguardOverview: String
+    let adguardTotalQueries: String
+    let adguardBlockedQueries: String
+    let adguardPercentBlocked: String
+    let adguardAvgProcessing: String
+    let adguardTopQueried: String
+    let adguardTopBlocked: String
+    let adguardTopClients: String
+    let adguardQueryActivity: String
+    let adguardQuickActions: String
+    let adguardSafety: String
+    let adguardSafeBrowsing: String
+    let adguardSafeSearch: String
+    let adguardParental: String
+    let adguardServerInfo: String
+    let adguardVersion: String
+    let adguardDnsAddress: String
+    let adguardDnsPort: String
+    let adguardHttpPort: String
+    let adguardFilters: String
+    let adguardBlocklists: String
+    let adguardAllowlists: String
+    let adguardFiltersEnabled: String
+    let adguardRules: String
+    let adguardQueryLog: String
+    let adguardFilterSearch: String
+    let adguardFilterAll: String
+    let adguardFilterBlocked: String
+    let adguardFilterAllowed: String
+    let adguardFilterClient: String
+    let adguardNoQueryResults: String
+    let adguardAllow: String
+    let adguardQueriesAxis: String
+    let adguardUserRules: String
+    let adguardAddRule: String
+    let adguardAddRuleDesc: String
+    let adguardRulePlaceholder: String
+    let adguardNoRules: String
+    let adguardBlockedServices: String
+    let adguardNoBlockedServices: String
+    let adguardBlockedServicesOther: String
+    let adguardRewrites: String
+    let adguardAddRewrite: String
+    let adguardAddRewriteDesc: String
+    let adguardRewriteDomain: String
+    let adguardRewriteAnswer: String
+    let adguardNoRewrites: String
+    let adguardAddFilterList: String
+    let adguardListType: String
+    let adguardPresetLists: String
+    let adguardCustomList: String
+    let adguardAllowlistHint: String
+    let adguardCustomListHint: String
+    let adguardListName: String
+    let adguardListUrl: String
 
     // Beszel
     let beszelSystems: String
@@ -508,6 +581,9 @@ struct Translations {
     let settingsMoveDown: String
     let settingsDebug: String
     let settingsDebugLogs: String
+    let debugLogsCopied: String
+    let debugLogsErrorTitle: String
+    let debugLogsOpenSettings: String
     let actionEdit: String
 
     // Security
