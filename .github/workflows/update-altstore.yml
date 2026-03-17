@@ -95,4 +95,4 @@ jobs:
           git add apps.json
           git diff --cached --quiet && echo "No changes" && exit 0
           git commit -m "Update AltStore source to ${{ github.event.release.tag_name }}"
-          git push
+          git push origin HEAD:main

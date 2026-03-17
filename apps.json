@@ -11,7 +11,7 @@
       "bundleIdentifier": "homelab.foreverhomelab",
       "developerName": "JohnnWi",
       "subtitle": "Your homelab, in your pocket.",
-      "localizedDescription": "A premium, fully native iOS app for monitoring and managing your personal Homelab ecosystem.\n\nIntegrated services:\n• Portainer — Monitor Docker containers, CPU/Memory usage, Start/Stop/Restart\n• Pi-hole — Real-time query stats, blocked domains, toggle ad-blocking\n• Beszel — System monitor with CPU, Memory, Disk usage across nodes\n• Gitea — Browse repos, contribution heatmaps, syntax-highlighted code\n• Nginx Proxy Manager — Proxy hosts, redirections, SSL certificates\n• Tailscale — VPN connectivity status and quick launch\n• Bookmarks — Save and organize your homelab links\n\nFeatures:\n• Multi-instance support for all services\n• Multilingual: English, Italian, French, Spanish, German\n• Liquid Glass UI design\n• Face ID / biometric unlock",
+      "localizedDescription": "A premium, fully native iOS app for monitoring and managing your personal Homelab ecosystem.\n\nIntegrated services:\n• Portainer — Monitor Docker containers, CPU/Memory usage, Start/Stop/Restart\n• Pi-hole — Real-time query stats, blocked domains, toggle ad-blocking\n• Beszel — System monitor with CPU, Memory, Disk usage across nodes\n• Gitea — Browse repos, contribution heatmaps, syntax-highlighted code\n• Nginx Proxy Manager — Proxy hosts, redirections, SSL certificates\n• Tailscale — VPN connectivity status and quick launch\n• AdGuard Home — DNS query stats, filters, blocked services, rewrites\n• Bookmarks — Save and organize your homelab links\n\nFeatures:\n• Multi-instance support for all services\n• Multilingual: English, Italian, French, Spanish, German\n• Liquid Glass UI design\n• Face ID / biometric unlock",
       "iconURL": "https://raw.githubusercontent.com/JohnnWi/homelab-project/main/media-docs/app-icon.png",
       "tintColor": "#4A90D9",
       "category": "utilities",
@@ -24,6 +24,14 @@
         "https://raw.githubusercontent.com/JohnnWi/homelab-project/main/media-docs/foto-ios/IMG_9200.jpg"
       ],
       "versions": [
+        {
+          "version": "0.5.0",
+          "date": "2026-03-17",
+          "localizedDescription": "What's New in v0.5.0:\n\n• New Service: AdGuard Home DNS\n• Dashboard with real-time query statistics\n• Query log, filters, blocked services, rewrites, user rules\n• New ServiceIcon component\n• Updated translations (EN, IT, DE, ES, FR)\n• Various bug fixes and stability improvements",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v0.5.0/Homelab.ipa",
+          "size": 7076402,
+          "minOSVersion": "18.0"
+        },
         {
           "version": "0.4.0",
           "date": "2026-03-16",
@@ -43,6 +51,16 @@
     }
   ],
   "news": [
+    {
+      "title": "v0.5.0 — AdGuard DNS",
+      "identifier": "release-0.5.0",
+      "caption": "New AdGuard Home DNS service with dashboard, query log, filters, and more.",
+      "date": "2026-03-17",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v0.5.0",
+      "appID": "homelab.foreverhomelab"
+    },
     {
       "title": "v0.4.0 — New UI for All Services",
       "identifier": "release-0.4.0",
