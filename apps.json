@@ -25,6 +25,14 @@
       ],
       "versions": [
         {
+          "version": "0.6.0",
+          "date": "2026-03-19",
+          "localizedDescription": "## What's New in v0.6.0\n\n### New Service: Healthcheck\n- Monitor uptime and health of your services\n- View check statuses, response times, and notifications\n- Create/edit checks with full configuration\n\n### Improvements\n- Redesigned README with table of contents and collapsible screenshot galleries\n- Fixed SWIFT_COMPILATION_MODE to persist across project regeneration\n- Updated translations (EN, IT, DE, ES, FR)\n- Various bug fixes and stability improvements\n\n**Full Changelog**: https://github.com/JohnnWi/homelab-project/compare/v0.5.0...v0.6.0",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v0.6.0/Homelab.ipa",
+          "size": 7387013,
+          "minOSVersion": "18.0"
+        },
+        {
           "version": "0.5.0",
           "date": "2026-03-17",
           "localizedDescription": "What's New in v0.5.0:\n\n• New Service: AdGuard Home DNS\n• Dashboard with real-time query statistics\n• Query log, filters, blocked services, rewrites, user rules\n• New ServiceIcon component\n• Updated translations (EN, IT, DE, ES, FR)\n• Various bug fixes and stability improvements",
@@ -51,6 +59,16 @@
     }
   ],
   "news": [
+    {
+      "title": "v0.6.0 — ## What's New in v0.6.0",
+      "identifier": "release-0.6.0",
+      "caption": "## What's New in v0.6.0  ### New Service: Healthcheck ",
+      "date": "2026-03-19",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v0.6.0",
+      "appID": "homelab.foreverhomelab"
+    },
     {
       "title": "v0.5.0 — AdGuard DNS",
       "identifier": "release-0.5.0",
