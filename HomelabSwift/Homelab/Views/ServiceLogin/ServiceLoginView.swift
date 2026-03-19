@@ -128,6 +128,10 @@ struct ServiceLoginView: View {
                 }
             }
 
+            if serviceType == .healthchecks {
+                healthchecksApiKeyBanner
+            }
+
             if let errorMessage {
                 HStack(spacing: 10) {
                     Image(systemName: "exclamationmark.circle.fill")
@@ -165,7 +169,7 @@ struct ServiceLoginView: View {
                 keyboardType: .URL
             )
 
-            if serviceType == .portainer {
+            if serviceType == .portainer || serviceType == .healthchecks {
                 InputField(
                     icon: "key.fill",
                     placeholder: localizer.t.loginApiKey,
@@ -231,8 +235,32 @@ struct ServiceLoginView: View {
         case .adguardHome:       return localizer.t.loginHintAdguard
         case .gitea:             return localizer.t.loginHintGitea2FA
         case .nginxProxyManager: return localizer.t.loginHintNpm
+        case .healthchecks:      return localizer.t.loginHintHealthchecks
         default: return nil
         }
+    }
+
+    private var healthchecksApiKeyBanner: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "key.fill")
+                .foregroundStyle(serviceColor)
+                .font(.subheadline)
+                .frame(width: 24, height: 24)
+                .background(serviceColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(localizer.t.healthchecksApiKeyBannerTitle)
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.primary)
+                Text(localizer.t.healthchecksApiKeyBannerBody)
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
+        }
+        .padding(14)
+        .glassCard(tint: serviceColor.opacity(0.08))
     }
 
     private func prefillIfNeeded() {
@@ -307,6 +335,24 @@ struct ServiceLoginView: View {
                 label: label,
                 url: url,
                 token: existingInstance?.token ?? "",
+                username: existingInstance?.username,
+                apiKey: key,
+                fallbackUrl: fallbackUrl
+            )
+
+        case .healthchecks:
+            let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
+            guard let key, !key.isEmpty else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+            let client = HealthchecksAPIClient(instanceId: existingInstanceId ?? UUID())
+            try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .healthchecks,
+                label: label,
+                url: url,
+                token: "",
                 username: existingInstance?.username,
                 apiKey: key,
                 fallbackUrl: fallbackUrl

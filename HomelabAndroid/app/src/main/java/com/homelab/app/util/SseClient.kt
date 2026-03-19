@@ -27,6 +27,7 @@ class SseClient @Inject constructor(
                 ServiceType.ADGUARD_HOME -> "AdGuardHome"
                 ServiceType.BESZEL -> "Beszel"
                 ServiceType.GITEA -> "Gitea"
+                ServiceType.HEALTHCHECKS -> "Healthchecks"
                 ServiceType.NGINX_PROXY_MANAGER -> "NginxProxyManager"
                 ServiceType.UNKNOWN -> "Unknown"
             })

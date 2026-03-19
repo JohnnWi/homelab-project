@@ -13,6 +13,7 @@
 		05260E0A1A5781AC8EAE7011 /* EditBookmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CB770E60C2FE5FB6640BE98 /* EditBookmarkView.swift */; };
 		0E5566DAE01FB0E9F10E98C8 /* StatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5B6FAE42892F4BEB3097FD /* StatusBadge.swift */; };
 		0F634D9389BDB5467A64C25E /* GlassStatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735477DB04233B4FDA23469D /* GlassStatCard.swift */; };
+		10FBD548812295AB0814803D /* HealthchecksModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD139A00611FED93C43C0833 /* HealthchecksModels.swift */; };
 		1694BCD702C988AAF0F99127 /* BeszelModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B51084F8D0D0D7C999B8C3 /* BeszelModels.swift */; };
 		199E011A5729053006D89E55 /* BeszelContainersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64BA80A727F9A71D30277F9E /* BeszelContainersView.swift */; };
 		1C4457681E0F071045A8132C /* PiHoleDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE7A7BFF374B6DE9CE7384EE /* PiHoleDashboard.swift */; };
@@ -21,6 +22,7 @@
 		21E7233E678C07EF2FA629B5 /* EditCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F887B97554253C51BDFD167F /* EditCategoryView.swift */; };
 		253B46BF21904B59477F2E8E /* GiteaDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3491FAD0D71DDB3C25D9D90 /* GiteaDashboard.swift */; };
 		29C9BD1512C814A8ED65D53A /* NpmDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CB742A0C436A83F92CC1FED /* NpmDashboard.swift */; };
+		2A10CBCF4DFA744F2BE9BE8B /* AdGuardHomeFiltersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE1461ABFFED5C380B73195B /* AdGuardHomeFiltersView.swift */; };
 		2BCD4D6ACDA7D4CEA00AFEBA /* BeszelAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1E8A717351D5E42B2696F1 /* BeszelAPIClient.swift */; };
 		2DEE79E0C15D816F7170E110 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AD1D644D530DE462BB79AA2 /* AppTheme.swift */; };
 		366228A5C9000FF822E289FB /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF6E7AF1CDC6676B7421A7B /* HapticManager.swift */; };
@@ -28,15 +30,20 @@
 		44002C75F703B805378EE7E0 /* NpmAccessListForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04940FAEDE28A509EB1E0EEB /* NpmAccessListForm.swift */; };
 		45563EB6F51F8EF1867CF1DC /* BeszelSystemDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141E9B530530A0BF0D52A289 /* BeszelSystemDetail.swift */; };
 		4CA71DBAD3D27E419ED0A10F /* NpmStreamForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA3C99077201F337CAC332D8 /* NpmStreamForm.swift */; };
+		4E06A01BDB74CF4F678913CD /* AdGuardHomeDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10229F75137E8019ACE551D7 /* AdGuardHomeDashboard.swift */; };
+		5739C0189A11AB2E9F581D4C /* AdGuardHomeBlockedServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B6C9B54D25DB2230917C8F8 /* AdGuardHomeBlockedServicesView.swift */; };
+		5A5F8EF3CA17C9A8CB0FA645 /* AdGuardHomeRewritesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76B6FE397CB60885626195C /* AdGuardHomeRewritesView.swift */; };
 		60845D39E8A2BD7753B767BB /* PortainerDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569655DA5311D77756775472 /* PortainerDashboard.swift */; };
 		62EF5383568C38878FAB5623 /* BookmarkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA8931C718CFC9019DCFF462 /* BookmarkManager.swift */; };
 		63A39B89AC9B8F48B3BC3147 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEF389260911EADF7079A97B /* APIClient.swift */; };
 		654B246C79458CB80AEC15D8 /* CategoryFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4834BF58C4F9B1399553F78 /* CategoryFormView.swift */; };
+		663F29038479453699652E94 /* AdGuardHomeQueryLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3E11D0571609D7927FCD5A /* AdGuardHomeQueryLogView.swift */; };
 		6B883FF0F9673181B59F8C83 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85D0D2A2905370C31F3A8ADE /* KeychainService.swift */; };
 		6F0B15FC2525EA13C63611B5 /* PinSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C61051F7EA9F32A6342570D /* PinSetupView.swift */; };
 		703D6379BB37D3F83B0C21D5 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D1604CF631BC4DC369A42A5 /* HomeView.swift */; };
 		760733612460236D15FEC7F5 /* BeszelDetailComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFCAD7944220A8EA3DDFC3A6 /* BeszelDetailComponents.swift */; };
 		7870DA23D2B10D1CCAC08453 /* BeszelDetailTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CFC214C2A851C7033ABE815 /* BeszelDetailTypes.swift */; };
+		79B7809501B1B8693D60A364 /* HealthchecksComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CFE5B253C47730D40039273 /* HealthchecksComponents.swift */; };
 		7DB62BE1D28FBF60B6BED884 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1BF1197F8BB03BE213E2995 /* Logger.swift */; };
 		7DD0E2200FD122417D07E97F /* NpmCertificateForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1432776545071E3C10F37827 /* NpmCertificateForm.swift */; };
 		7E78EE55701AD004992579EF /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EBFFF57A15B47F78E81D04 /* Formatters.swift */; };
@@ -46,33 +53,32 @@
 		7EF18D092660634150160E03 /* Translations+English.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F7AE0005466E2FF260B000 /* Translations+English.swift */; };
 		7FAEE452C0F73043A465DF53 /* NpmRedirectionHostCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F233D9CF75937405674EEE4 /* NpmRedirectionHostCard.swift */; };
 		81457E8BF989BFB2851CDC66 /* Translations+OtherLanguages.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CB48124608D3A220C3A444 /* Translations+OtherLanguages.swift */; };
+		825A29FD831832ED501CF764 /* HealthchecksCheckEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4ED2EF6B8B525C2387A59EC /* HealthchecksCheckEditor.swift */; };
 		826BA16B6B4D4F31C3CC2B5C /* HomelabApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19F58DFAF2218D934F936D17 /* HomelabApp.swift */; };
+		889C2C456E8212B86F6EB9BB /* AdGuardHomeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1911146A0ED528B1D912614C /* AdGuardHomeModels.swift */; };
 		8BE00328A6AC68DF3E40F05B /* Translations+Italian.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D8F0162AE327AA60600505 /* Translations+Italian.swift */; };
 		8EADC34444DEB43F553D0513 /* SkeletonLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CC9947203975F8072646659 /* SkeletonLoader.swift */; };
 		8FC5C2BF6FC7CBC21BFF6696 /* ServiceDashboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7432B8C8ACBE47BDF26570DC /* ServiceDashboardLayout.swift */; };
+		8FF92C956D7D4D43C9F1547F /* HealthchecksAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC1DFC10F93EE792ED01CF97 /* HealthchecksAPIClient.swift */; };
 		95AC663AE4D3962BC2F4BB2A /* NpmDeadHostForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BAF0C299F88C7BE7B562D3 /* NpmDeadHostForm.swift */; };
 		97C25FD08421A32F71C2B3BD /* NginxProxyManagerAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D740E72A36FA4EDBFEE8A195 /* NginxProxyManagerAPIClient.swift */; };
 		9A986ED771EA2DC52308E756 /* NpmAccessListCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34DDAD2C4F4522B5980306ED /* NpmAccessListCard.swift */; };
 		9F77F33FFB5F27A3D1A8109E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0A64E52150CEEA94E249D7 /* ContentView.swift */; };
+		A08D2B6FBC3D9252E47321FF /* AdGuardHomeUserRulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44370CC6FB6ADE55FA632A02 /* AdGuardHomeUserRulesView.swift */; };
 		A1B0DB1FF6B1CB2BEB21B2CE /* KeychainServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCD7BB9B1065930082265D21 /* KeychainServiceTests.swift */; };
 		A283181CEA487B0C8346D967 /* PiHoleAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B236EC8434642BB311F3E1A8 /* PiHoleAPIClient.swift */; };
+		A3DF6B4D547020804E10A0C0 /* HealthchecksDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4425B283650DDB0057DE0E75 /* HealthchecksDashboard.swift */; };
 		A3E3BAB096611E807728CA89 /* ContainerListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3116D5544353B573C4C2B0B /* ContainerListView.swift */; };
+		A9AED87CFEFFDD6E065E3A0A /* AdGuardHomeAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F5CFB96CB606EB9EC34EBB /* AdGuardHomeAPIClient.swift */; };
 		AAA9BC382610A55D8E374C95 /* Translations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7692F78990DA606D426BA429 /* Translations.swift */; };
 		ABCECDC5B2772BE727043AA3 /* BeszelDetailSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E3E6D321C7DB682436A5607 /* BeszelDetailSheets.swift */; };
 		AD2F16BDA6D33B25BA1DD4B7 /* GiteaModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F6D851F1B957C876FD6F0B /* GiteaModels.swift */; };
-		B1B2C3D4E5F60718293A4B5C /* AdGuardHomeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* AdGuardHomeModels.swift */; };
-		B2B3C4D5E6F708192A3B4C5D /* AdGuardHomeAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B3C4D5E6F708192A3B4C5D /* AdGuardHomeAPIClient.swift */; };
-		B3B4C5D6E7F8091A2B3C4D5E /* AdGuardHomeDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B4C5D6E7F8091A2B3C4D5E /* AdGuardHomeDashboard.swift */; };
-		B4B5C6D7E8F90A1B2C3D4E5F /* AdGuardHomeQueryLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4B5C6D7E8F90A1B2C3D4E5F /* AdGuardHomeQueryLogView.swift */; };
 		B51871199ACBFB2987E2C165 /* PortainerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24ACF7FA86699161F1FFB10E /* PortainerModels.swift */; };
 		B52CC2ACDDD34ADB9ECCF77B /* GiteaRepoDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBA3D966E73220F618CD9038 /* GiteaRepoDetail.swift */; };
-		B5B6C7D8E9F01A2B3C4D5E6F /* AdGuardHomeUserRulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B6C7D8E9F01A2B3C4D5E6F /* AdGuardHomeUserRulesView.swift */; };
-		B6B7C8D9EAF12B3C4D5E6F70 /* AdGuardHomeBlockedServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6B7C8D9EAF12B3C4D5E6F70 /* AdGuardHomeBlockedServicesView.swift */; };
 		B6F34400E4C7BC4A5F752049 /* NpmProxyHostCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8569FC25F0824870C9BFD6A2 /* NpmProxyHostCard.swift */; };
 		B75BA3C1B775D95298E0933B /* SyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD5A40912505AFD774ED713 /* SyntaxHighlighter.swift */; };
-		B7B8C9DAEBF23C4D5E6F7081 /* AdGuardHomeRewritesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B8C9DAEBF23C4D5E6F7081 /* AdGuardHomeRewritesView.swift */; };
-		B8C9D0E1F2A3B4C5D6E7F809 /* AdGuardHomeFiltersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8C9D0E1F2A3B4C5D6E7F809 /* AdGuardHomeFiltersView.swift */; };
 		BAA4219103CC83A339C434BD /* ServicesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258507E3A00D686FDEF7E9CE /* ServicesStore.swift */; };
+		C10F96F2F46D3979E9B2FC0E /* HealthchecksDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D75CC2B29F70046D68EC15 /* HealthchecksDetail.swift */; };
 		C18B23568F81455E4164835D /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 486E817863BA2B5DA5318488 /* GlassCard.swift */; };
 		C462B63CC5FE35CD624ADFCD /* NpmStreamCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8904009FE0CC197DE3B1492A /* NpmStreamCard.swift */; };
 		C86FF5E6A543278A18B16E9B /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB95F4E19C7D3082B4D6484C /* APIError.swift */; };
@@ -81,6 +87,7 @@
 		CFCDE90DDC7DCF5CB7F4A3A6 /* NpmUserForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1C1112D8A8BF86BB78353D /* NpmUserForm.swift */; };
 		CFFCFA6F071D0F46DECAB36B /* ContainerDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC89D463559422B61BC300AF /* ContainerDetailView.swift */; };
 		D3AEBA845A23CC41E37074AE /* NpmCertificateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4589116BA4857CFFC0687E1 /* NpmCertificateCard.swift */; };
+		D3FEA9D2C02EFC910D98FEB9 /* ServiceIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F13CBE9BF5234A3FF34586F /* ServiceIconView.swift */; };
 		D76DF8769FE2AE2032847D05 /* FormattersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB311F83CBAAC39C90D50E6D /* FormattersTests.swift */; };
 		D84F9D353E2953087A1E5F7D /* ModelDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94D7A0C04FD3A10D46F836A9 /* ModelDecodingTests.swift */; };
 		D99466C32D977BCE5D9A029E /* GiteaAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15D7F6591D7ABB7E8CB96944 /* GiteaAPIClient.swift */; };
@@ -115,13 +122,18 @@
 		04940FAEDE28A509EB1E0EEB /* NpmAccessListForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmAccessListForm.swift; sourceTree = "<group>"; };
 		0CFC214C2A851C7033ABE815 /* BeszelDetailTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelDetailTypes.swift; sourceTree = "<group>"; };
 		0DB66F8274714A001051F1BE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		0F13CBE9BF5234A3FF34586F /* ServiceIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceIconView.swift; sourceTree = "<group>"; };
+		10229F75137E8019ACE551D7 /* AdGuardHomeDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeDashboard.swift; sourceTree = "<group>"; };
 		141E9B530530A0BF0D52A289 /* BeszelSystemDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelSystemDetail.swift; sourceTree = "<group>"; };
 		1432776545071E3C10F37827 /* NpmCertificateForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmCertificateForm.swift; sourceTree = "<group>"; };
 		151F3E3C716170F5B65A688F /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		15D7F6591D7ABB7E8CB96944 /* GiteaAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiteaAPIClient.swift; sourceTree = "<group>"; };
+		1911146A0ED528B1D912614C /* AdGuardHomeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeModels.swift; sourceTree = "<group>"; };
 		19F58DFAF2218D934F936D17 /* HomelabApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomelabApp.swift; sourceTree = "<group>"; };
+		1B6C9B54D25DB2230917C8F8 /* AdGuardHomeBlockedServicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeBlockedServicesView.swift; sourceTree = "<group>"; };
 		24ACF7FA86699161F1FFB10E /* PortainerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortainerModels.swift; sourceTree = "<group>"; };
 		258507E3A00D686FDEF7E9CE /* ServicesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesStore.swift; sourceTree = "<group>"; };
+		25D75CC2B29F70046D68EC15 /* HealthchecksDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksDetail.swift; sourceTree = "<group>"; };
 		2CB742A0C436A83F92CC1FED /* NpmDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmDashboard.swift; sourceTree = "<group>"; };
 		30BCF4718684D1491D028063 /* PiHoleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiHoleModels.swift; sourceTree = "<group>"; };
 		31E3BE5DA5D18FB8959F7C8C /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
@@ -132,12 +144,15 @@
 		3A088F5140A5297EA91E3821 /* Homelab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Homelab.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AD1D644D530DE462BB79AA2 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		3CC9947203975F8072646659 /* SkeletonLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonLoader.swift; sourceTree = "<group>"; };
+		3CFE5B253C47730D40039273 /* HealthchecksComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksComponents.swift; sourceTree = "<group>"; };
 		3F5B6FAE42892F4BEB3097FD /* StatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBadge.swift; sourceTree = "<group>"; };
 		408F0E514FDE46F6A78D0A58 /* BeszelDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelDashboard.swift; sourceTree = "<group>"; };
+		4425B283650DDB0057DE0E75 /* HealthchecksDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksDashboard.swift; sourceTree = "<group>"; };
+		44370CC6FB6ADE55FA632A02 /* AdGuardHomeUserRulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeUserRulesView.swift; sourceTree = "<group>"; };
 		44F6D851F1B957C876FD6F0B /* GiteaModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiteaModels.swift; sourceTree = "<group>"; };
 		465DB3CC355F5F7FDDF6DE00 /* PinEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinEntryView.swift; sourceTree = "<group>"; };
 		486E817863BA2B5DA5318488 /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
-		4E1A77FA193DE78992A80B91 /* HomelabTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HomelabTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E1A77FA193DE78992A80B91 /* HomelabTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HomelabTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E1E8A717351D5E42B2696F1 /* BeszelAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelAPIClient.swift; sourceTree = "<group>"; };
 		4F2913EA81E6CCF74EFC883C /* NpmProxyHostForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmProxyHostForm.swift; sourceTree = "<group>"; };
 		53BAF0C299F88C7BE7B562D3 /* NpmDeadHostForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmDeadHostForm.swift; sourceTree = "<group>"; };
@@ -168,25 +183,21 @@
 		9D702ABD0D754FC3DEF8A7B4 /* PiholeDomainListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiholeDomainListView.swift; sourceTree = "<group>"; };
 		9E3E6D321C7DB682436A5607 /* BeszelDetailSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelDetailSheets.swift; sourceTree = "<group>"; };
 		9F233D9CF75937405674EEE4 /* NpmRedirectionHostCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmRedirectionHostCard.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60718293A4B5C /* AdGuardHomeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeModels.swift; sourceTree = "<group>"; };
 		A1BF1197F8BB03BE213E2995 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		A27E1B9D98BB24CE9CC7DD66 /* BookmarksStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksStore.swift; sourceTree = "<group>"; };
-		A2B3C4D5E6F708192A3B4C5D /* AdGuardHomeAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeAPIClient.swift; sourceTree = "<group>"; };
 		A3491FAD0D71DDB3C25D9D90 /* GiteaDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiteaDashboard.swift; sourceTree = "<group>"; };
-		A3B4C5D6E7F8091A2B3C4D5E /* AdGuardHomeDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeDashboard.swift; sourceTree = "<group>"; };
 		A4589116BA4857CFFC0687E1 /* NpmCertificateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmCertificateCard.swift; sourceTree = "<group>"; };
-		A4B5C6D7E8F90A1B2C3D4E5F /* AdGuardHomeQueryLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeQueryLogView.swift; sourceTree = "<group>"; };
-		A5B6C7D8E9F01A2B3C4D5E6F /* AdGuardHomeUserRulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeUserRulesView.swift; sourceTree = "<group>"; };
 		A69EDC601F02DCA97FEBAC18 /* NginxProxyManagerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NginxProxyManagerModels.swift; sourceTree = "<group>"; };
-		A6B7C8D9EAF12B3C4D5E6F70 /* AdGuardHomeBlockedServicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeBlockedServicesView.swift; sourceTree = "<group>"; };
-		A7B8C9DAEBF23C4D5E6F7081 /* AdGuardHomeRewritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeRewritesView.swift; sourceTree = "<group>"; };
-		A8C9D0E1F2A3B4C5D6E7F809 /* AdGuardHomeFiltersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeFiltersView.swift; sourceTree = "<group>"; };
 		AB95F4E19C7D3082B4D6484C /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
+		AD139A00611FED93C43C0833 /* HealthchecksModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksModels.swift; sourceTree = "<group>"; };
+		AE1461ABFFED5C380B73195B /* AdGuardHomeFiltersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeFiltersView.swift; sourceTree = "<group>"; };
+		B0F5CFB96CB606EB9EC34EBB /* AdGuardHomeAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeAPIClient.swift; sourceTree = "<group>"; };
 		B1CB48124608D3A220C3A444 /* Translations+OtherLanguages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Translations+OtherLanguages.swift"; sourceTree = "<group>"; };
 		B1EBFFF57A15B47F78E81D04 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
 		B236EC8434642BB311F3E1A8 /* PiHoleAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiHoleAPIClient.swift; sourceTree = "<group>"; };
 		B518BC3D0A31F29612A69B75 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BA8931C718CFC9019DCFF462 /* BookmarkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkManager.swift; sourceTree = "<group>"; };
+		BB3E11D0571609D7927FCD5A /* AdGuardHomeQueryLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeQueryLogView.swift; sourceTree = "<group>"; };
 		BB7A6237B741BF62F16D9F8B /* OfflineBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineBanner.swift; sourceTree = "<group>"; };
 		BE0A64E52150CEEA94E249D7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C226A2E333FD0452D26FF967 /* PiholeDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiholeDomain.swift; sourceTree = "<group>"; };
@@ -199,10 +210,13 @@
 		DB311F83CBAAC39C90D50E6D /* FormattersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormattersTests.swift; sourceTree = "<group>"; };
 		DB56E3990A5DE62509F3F7C4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		DBB688D017EE8175FB27EC7D /* ServiceErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceErrorView.swift; sourceTree = "<group>"; };
+		DC1DFC10F93EE792ED01CF97 /* HealthchecksAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksAPIClient.swift; sourceTree = "<group>"; };
 		DDFB66029D52483B7F25F83F /* NpmDeadHostCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmDeadHostCard.swift; sourceTree = "<group>"; };
 		DFCAD7944220A8EA3DDFC3A6 /* BeszelDetailComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelDetailComponents.swift; sourceTree = "<group>"; };
 		E0D0F063C9B955AB9794F2AF /* BeszelLineGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelLineGraph.swift; sourceTree = "<group>"; };
 		F3116D5544353B573C4C2B0B /* ContainerListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerListView.swift; sourceTree = "<group>"; };
+		F4ED2EF6B8B525C2387A59EC /* HealthchecksCheckEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksCheckEditor.swift; sourceTree = "<group>"; };
+		F76B6FE397CB60885626195C /* AdGuardHomeRewritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeRewritesView.swift; sourceTree = "<group>"; };
 		F887B97554253C51BDFD167F /* EditCategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCategoryView.swift; sourceTree = "<group>"; };
 		FC89D463559422B61BC300AF /* ContainerDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerDetailView.swift; sourceTree = "<group>"; };
 		FCD7BB9B1065930082265D21 /* KeychainServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainServiceTests.swift; sourceTree = "<group>"; };
@@ -220,6 +234,14 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
+		06347246AD362987E7E3A1D3 /* Healthchecks */ = {
+			isa = PBXGroup;
+			children = (
+				DC1DFC10F93EE792ED01CF97 /* HealthchecksAPIClient.swift */,
+			);
+			path = Healthchecks;
+			sourceTree = "<group>";
+		};
 		092E6DA6764D5AD6F0361A22 /* Security */ = {
 			isa = PBXGroup;
 			children = (
@@ -228,6 +250,27 @@
 				6C61051F7EA9F32A6342570D /* PinSetupView.swift */,
 			);
 			path = Security;
+			sourceTree = "<group>";
+		};
+		09F190CFB0DE143E71104529 /* AdGuardHome */ = {
+			isa = PBXGroup;
+			children = (
+				1B6C9B54D25DB2230917C8F8 /* AdGuardHomeBlockedServicesView.swift */,
+				10229F75137E8019ACE551D7 /* AdGuardHomeDashboard.swift */,
+				AE1461ABFFED5C380B73195B /* AdGuardHomeFiltersView.swift */,
+				BB3E11D0571609D7927FCD5A /* AdGuardHomeQueryLogView.swift */,
+				F76B6FE397CB60885626195C /* AdGuardHomeRewritesView.swift */,
+				44370CC6FB6ADE55FA632A02 /* AdGuardHomeUserRulesView.swift */,
+			);
+			path = AdGuardHome;
+			sourceTree = "<group>";
+		};
+		0FF3AB848856515A57C1F122 /* AdGuardHome */ = {
+			isa = PBXGroup;
+			children = (
+				B0F5CFB96CB606EB9EC34EBB /* AdGuardHomeAPIClient.swift */,
+			);
+			path = AdGuardHome;
 			sourceTree = "<group>";
 		};
 		104688BC1276270D85B7AC3F /* Homelab */ = {
@@ -283,6 +326,14 @@
 			path = Store;
 			sourceTree = "<group>";
 		};
+		3A1C2051810E696AD09E6C3B /* AdGuardHome */ = {
+			isa = PBXGroup;
+			children = (
+				1911146A0ED528B1D912614C /* AdGuardHomeModels.swift */,
+			);
+			path = AdGuardHome;
+			sourceTree = "<group>";
+		};
 		3B0F0ED088E1700C927989C0 /* Portainer */ = {
 			isa = PBXGroup;
 			children = (
@@ -308,9 +359,10 @@
 				C226A2E333FD0452D26FF967 /* PiholeDomain.swift */,
 				334BAFC4A25FD83F52E9CDD0 /* ServiceConnection.swift */,
 				7E6FEE939313E58D34CE4BDB /* ServiceType.swift */,
-				C1B2C3D4E5F60718293A4B5C /* AdGuardHome */,
+				3A1C2051810E696AD09E6C3B /* AdGuardHome */,
 				9C3998846D55F959084051D2 /* Beszel */,
 				981FC3E8A73DC27EF4792684 /* Gitea */,
+				69A014381BA51401C9862848 /* Healthchecks */,
 				F3AB0740CCD7B809F06B451A /* NginxProxyManager */,
 				F2BD8B68C5C78ECC6C3C024A /* PiHole */,
 				1E866E8511A219B4C76B9235 /* Portainer */,
@@ -330,6 +382,7 @@
 			isa = PBXGroup;
 			children = (
 				DBB688D017EE8175FB27EC7D /* ServiceErrorView.swift */,
+				0F13CBE9BF5234A3FF34586F /* ServiceIconView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -342,6 +395,14 @@
 				E403C416C1CD9D360CB4369E /* HomelabTests */,
 				E163496F466E06D0E015E1FD /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		69A014381BA51401C9862848 /* Healthchecks */ = {
+			isa = PBXGroup;
+			children = (
+				AD139A00611FED93C43C0833 /* HealthchecksModels.swift */,
+			);
+			path = Healthchecks;
 			sourceTree = "<group>";
 		};
 		710B37A9B027F4C732FAA0E0 /* NginxProxyManager */ = {
@@ -363,6 +424,17 @@
 				9A1C1112D8A8BF86BB78353D /* NpmUserForm.swift */,
 			);
 			path = NginxProxyManager;
+			sourceTree = "<group>";
+		};
+		73413D1CE20FEEB055D5D6DD /* Healthchecks */ = {
+			isa = PBXGroup;
+			children = (
+				F4ED2EF6B8B525C2387A59EC /* HealthchecksCheckEditor.swift */,
+				3CFE5B253C47730D40039273 /* HealthchecksComponents.swift */,
+				4425B283650DDB0057DE0E75 /* HealthchecksDashboard.swift */,
+				25D75CC2B29F70046D68EC15 /* HealthchecksDetail.swift */,
+			);
+			path = Healthchecks;
 			sourceTree = "<group>";
 		};
 		7DAFCB2BF30198F989D7E950 /* Stores */ = {
@@ -444,11 +516,12 @@
 			isa = PBXGroup;
 			children = (
 				BE0A64E52150CEEA94E249D7 /* ContentView.swift */,
-				C3B4C5D6E7F8091A2B3C4D5E /* AdGuardHome */,
+				09F190CFB0DE143E71104529 /* AdGuardHome */,
 				F1265188363BF5B5C00056A5 /* Beszel */,
 				ECAF9E33BDB4EE0FFFF630D0 /* Bookmarks */,
 				5A93214C3BDCB9BEC5FCCD73 /* Components */,
 				48AAFFAA1096205CCB4685B8 /* Gitea */,
+				73413D1CE20FEEB055D5D6DD /* Healthchecks */,
 				873F7F23714AC880CCFDA5BF /* Home */,
 				710B37A9B027F4C732FAA0E0 /* NginxProxyManager */,
 				92577B05F8B135054A9B86B6 /* PiHole */,
@@ -466,35 +539,6 @@
 				3AD1D644D530DE462BB79AA2 /* AppTheme.swift */,
 			);
 			path = Theme;
-			sourceTree = "<group>";
-		};
-		C1B2C3D4E5F60718293A4B5C /* AdGuardHome */ = {
-			isa = PBXGroup;
-			children = (
-				A1B2C3D4E5F60718293A4B5C /* AdGuardHomeModels.swift */,
-			);
-			path = AdGuardHome;
-			sourceTree = "<group>";
-		};
-		C2B3C4D5E6F708192A3B4C5D /* AdGuardHome */ = {
-			isa = PBXGroup;
-			children = (
-				A2B3C4D5E6F708192A3B4C5D /* AdGuardHomeAPIClient.swift */,
-			);
-			path = AdGuardHome;
-			sourceTree = "<group>";
-		};
-		C3B4C5D6E7F8091A2B3C4D5E /* AdGuardHome */ = {
-			isa = PBXGroup;
-			children = (
-				A3B4C5D6E7F8091A2B3C4D5E /* AdGuardHomeDashboard.swift */,
-				A4B5C6D7E8F90A1B2C3D4E5F /* AdGuardHomeQueryLogView.swift */,
-				A5B6C7D8E9F01A2B3C4D5E6F /* AdGuardHomeUserRulesView.swift */,
-				A8C9D0E1F2A3B4C5D6E7F809 /* AdGuardHomeFiltersView.swift */,
-				A6B7C8D9EAF12B3C4D5E6F70 /* AdGuardHomeBlockedServicesView.swift */,
-				A7B8C9DAEBF23C4D5E6F7081 /* AdGuardHomeRewritesView.swift */,
-			);
-			path = AdGuardHome;
 			sourceTree = "<group>";
 		};
 		C9F6FE4041AA55D79004BC56 /* Config */ = {
@@ -526,9 +570,10 @@
 			children = (
 				FEF389260911EADF7079A97B /* APIClient.swift */,
 				AB95F4E19C7D3082B4D6484C /* APIError.swift */,
-				C2B3C4D5E6F708192A3B4C5D /* AdGuardHome */,
+				0FF3AB848856515A57C1F122 /* AdGuardHome */,
 				D5B24EF44902FCBD35F6D145 /* Beszel */,
 				289C5939524BACC32CDCCF25 /* Gitea */,
+				06347246AD362987E7E3A1D3 /* Healthchecks */,
 				23AB1F8E0947D3598E65C623 /* NginxProxyManager */,
 				D43D23351242B6BFC6E743DC /* PiHole */,
 				3B0F0ED088E1700C927989C0 /* Portainer */,
@@ -710,6 +755,14 @@
 			files = (
 				63A39B89AC9B8F48B3BC3147 /* APIClient.swift in Sources */,
 				C86FF5E6A543278A18B16E9B /* APIError.swift in Sources */,
+				A9AED87CFEFFDD6E065E3A0A /* AdGuardHomeAPIClient.swift in Sources */,
+				5739C0189A11AB2E9F581D4C /* AdGuardHomeBlockedServicesView.swift in Sources */,
+				4E06A01BDB74CF4F678913CD /* AdGuardHomeDashboard.swift in Sources */,
+				2A10CBCF4DFA744F2BE9BE8B /* AdGuardHomeFiltersView.swift in Sources */,
+				889C2C456E8212B86F6EB9BB /* AdGuardHomeModels.swift in Sources */,
+				663F29038479453699652E94 /* AdGuardHomeQueryLogView.swift in Sources */,
+				5A5F8EF3CA17C9A8CB0FA645 /* AdGuardHomeRewritesView.swift in Sources */,
+				A08D2B6FBC3D9252E47321FF /* AdGuardHomeUserRulesView.swift in Sources */,
 				2DEE79E0C15D816F7170E110 /* AppTheme.swift in Sources */,
 				2BCD4D6ACDA7D4CEA00AFEBA /* BeszelAPIClient.swift in Sources */,
 				199E011A5729053006D89E55 /* BeszelContainersView.swift in Sources */,
@@ -739,6 +792,12 @@
 				C18B23568F81455E4164835D /* GlassCard.swift in Sources */,
 				0F634D9389BDB5467A64C25E /* GlassStatCard.swift in Sources */,
 				366228A5C9000FF822E289FB /* HapticManager.swift in Sources */,
+				8FF92C956D7D4D43C9F1547F /* HealthchecksAPIClient.swift in Sources */,
+				825A29FD831832ED501CF764 /* HealthchecksCheckEditor.swift in Sources */,
+				79B7809501B1B8693D60A364 /* HealthchecksComponents.swift in Sources */,
+				A3DF6B4D547020804E10A0C0 /* HealthchecksDashboard.swift in Sources */,
+				C10F96F2F46D3979E9B2FC0E /* HealthchecksDetail.swift in Sources */,
+				10FBD548812295AB0814803D /* HealthchecksModels.swift in Sources */,
 				703D6379BB37D3F83B0C21D5 /* HomeView.swift in Sources */,
 				826BA16B6B4D4F31C3CC2B5C /* HomelabApp.swift in Sources */,
 				6B883FF0F9673181B59F8C83 /* KeychainService.swift in Sources */,
@@ -762,17 +821,9 @@
 				4CA71DBAD3D27E419ED0A10F /* NpmStreamForm.swift in Sources */,
 				CFCDE90DDC7DCF5CB7F4A3A6 /* NpmUserForm.swift in Sources */,
 				EAD085672E3D6DD29C4F51D1 /* OfflineBanner.swift in Sources */,
-				B2B3C4D5E6F708192A3B4C5D /* AdGuardHomeAPIClient.swift in Sources */,
 				A283181CEA487B0C8346D967 /* PiHoleAPIClient.swift in Sources */,
 				1C4457681E0F071045A8132C /* PiHoleDashboard.swift in Sources */,
-				B3B4C5D6E7F8091A2B3C4D5E /* AdGuardHomeDashboard.swift in Sources */,
-				B4B5C6D7E8F90A1B2C3D4E5F /* AdGuardHomeQueryLogView.swift in Sources */,
-				B5B6C7D8E9F01A2B3C4D5E6F /* AdGuardHomeUserRulesView.swift in Sources */,
-				B8C9D0E1F2A3B4C5D6E7F809 /* AdGuardHomeFiltersView.swift in Sources */,
-				B6B7C8D9EAF12B3C4D5E6F70 /* AdGuardHomeBlockedServicesView.swift in Sources */,
-				B7B8C9DAEBF23C4D5E6F7081 /* AdGuardHomeRewritesView.swift in Sources */,
 				EC9F7C6B42D988E3D6D1E8BB /* PiHoleModels.swift in Sources */,
-				B1B2C3D4E5F60718293A4B5C /* AdGuardHomeModels.swift in Sources */,
 				FDB0C4600B5089FA648DEE0C /* PiholeDomain.swift in Sources */,
 				FD2293CC8607CE165F202493 /* PiholeDomainListView.swift in Sources */,
 				FCD41D6BE7DB010018902C63 /* PinEntryView.swift in Sources */,
@@ -783,6 +834,7 @@
 				21BAB7FCB0AECC7133D55F6F /* ServiceConnection.swift in Sources */,
 				8FC5C2BF6FC7CBC21BFF6696 /* ServiceDashboardLayout.swift in Sources */,
 				CE78DBCA639D954A7CCB26D3 /* ServiceErrorView.swift in Sources */,
+				D3FEA9D2C02EFC910D98FEB9 /* ServiceIconView.swift in Sources */,
 				E5242DCA4ACD2835153FBB96 /* ServiceLoginView.swift in Sources */,
 				E6E04DD8242F5252CD32CCAB /* ServiceType.swift in Sources */,
 				BAA4219103CC83A339C434BD /* ServicesStore.swift in Sources */,
@@ -938,7 +990,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				SWIFT_COMPILATION_MODE = singlefile;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;

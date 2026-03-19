@@ -254,6 +254,7 @@ struct HomeView: View {
         case .pihole:            PiHoleDashboard(instanceId: route.instanceId)
         case .adguardHome:       AdGuardHomeDashboard(instanceId: route.instanceId)
         case .beszel:            BeszelDashboard(instanceId: route.instanceId)
+        case .healthchecks:      HealthchecksDashboard(instanceId: route.instanceId)
         case .gitea:             GiteaDashboard(instanceId: route.instanceId)
         case .nginxProxyManager: NpmDashboard(instanceId: route.instanceId)
         }
@@ -302,6 +303,11 @@ struct HomeView: View {
                 let response = try await client.getSystems()
                 let online = response.items.filter { $0.isOnline }.count
                 return ServiceSummaryInfo(value: "\(online)", subValue: "/ \(response.items.count)", label: localizer.t.summarySystemsOnline)
+            case .healthchecks:
+                guard let client = await servicesStore.healthchecksClient(instanceId: instanceId) else { return nil }
+                let checks = try await client.listChecks()
+                let healthy = checks.filter { $0.status == "up" || $0.status == "grace" }.count
+                return ServiceSummaryInfo(value: "\(healthy)", subValue: "/ \(checks.count)", label: localizer.t.healthchecksChecks)
             case .gitea:
                 guard let client = await servicesStore.giteaClient(instanceId: instanceId) else { return nil }
                 let repos = try await client.getUserRepos(page: 1, limit: 100)
@@ -583,4 +589,3 @@ struct ServiceIconView: View {
             .foregroundStyle(type.colors.primary)
     }
 }
-

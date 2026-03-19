@@ -59,12 +59,14 @@ struct Translations {
     let servicePihole: String
     let serviceAdguard: String
     let serviceBeszel: String
+    let serviceHealthchecks: String
     let serviceGitea: String
     let serviceNpm: String
     let servicePortainerDesc: String
     let servicePiholeDesc: String
     let serviceAdguardDesc: String
     let serviceBeszelDesc: String
+    let serviceHealthchecksDesc: String
     let serviceGiteaDesc: String
     let serviceNpmDesc: String
 
@@ -85,6 +87,7 @@ struct Translations {
     let loginHintAdguard: String
     let loginHintGitea2FA: String
     let loginHintPortainer: String
+    let loginHintHealthchecks: String
     let loginApiKey: String
     let done: String
 
@@ -170,6 +173,69 @@ struct Translations {
     let detailComposeSaved: String
     let detailComposeSaveError: String
     let detailComposeLoading: String
+
+    // Healthchecks
+    let healthchecksChecks: String
+    let healthchecksSearch: String
+    let healthchecksAll: String
+    let healthchecksUp: String
+    let healthchecksGrace: String
+    let healthchecksDown: String
+    let healthchecksPaused: String
+    let healthchecksNew: String
+    let healthchecksNoChecks: String
+    let healthchecksLastPing: String
+    let healthchecksNextPing: String
+    let healthchecksSchedule: String
+    let healthchecksTimeout: String
+    let healthchecksGracePeriod: String
+    let healthchecksTimezone: String
+    let healthchecksMethods: String
+    let healthchecksManualResume: String
+    let healthchecksMethodsPostOnly: String
+    let healthchecksMethodsAll: String
+    let healthchecksIntegrations: String
+    let healthchecksBadges: String
+    let healthchecksCopyPingUrl: String
+    let healthchecksChannels: String
+    let healthchecksPings: String
+    let healthchecksFlips: String
+    let healthchecksEditCheck: String
+    let healthchecksCreateCheck: String
+    let healthchecksDeleteCheck: String
+    let healthchecksDeleteConfirmTitle: String
+    let healthchecksDeleteConfirmMessage: String
+    let healthchecksPingBody: String
+    let healthchecksBadgeAll: String
+    let healthchecksBasics: String
+    let healthchecksAdvanced: String
+    let healthchecksFieldName: String
+    let healthchecksFieldSlug: String
+    let healthchecksFieldTags: String
+    let healthchecksFieldDesc: String
+    let healthchecksFieldType: String
+    let healthchecksTypeSimple: String
+    let healthchecksTypeCron: String
+    let healthchecksFieldTimeout: String
+    let healthchecksFieldSchedule: String
+    let healthchecksFieldTimezone: String
+    let healthchecksFieldGrace: String
+    let healthchecksFieldChannels: String
+    let healthchecksSlugHint: String
+    let healthchecksTagsHint: String
+    let healthchecksTimeoutHint: String
+    let healthchecksScheduleHint: String
+    let healthchecksTimezoneHint: String
+    let healthchecksGraceHint: String
+    let healthchecksChannelsHint: String
+    let healthchecksNameRequired: String
+    let healthchecksScheduleRequired: String
+    let healthchecksTimeoutRequired: String
+    let healthchecksReadOnly: String
+    let healthchecksReadOnlyTitle: String
+    let healthchecksReadOnlyMessage: String
+    let healthchecksApiKeyBannerTitle: String
+    let healthchecksApiKeyBannerBody: String
 
     // Pi-hole
     let piholeBlocking: String

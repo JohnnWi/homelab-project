@@ -7,6 +7,7 @@ private final class ServiceClientManager {
     private var piholeClients: [UUID: PiHoleAPIClient] = [:]
     private var adguardClients: [UUID: AdGuardHomeAPIClient] = [:]
     private var beszelClients: [UUID: BeszelAPIClient] = [:]
+    private var healthchecksClients: [UUID: HealthchecksAPIClient] = [:]
     private var giteaClients: [UUID: GiteaAPIClient] = [:]
     private var npmClients: [UUID: NginxProxyManagerAPIClient] = [:]
 
@@ -46,6 +47,15 @@ private final class ServiceClientManager {
         return client
     }
 
+    func healthchecksClient(id: UUID) -> HealthchecksAPIClient {
+        if let client = healthchecksClients[id] {
+            return client
+        }
+        let client = HealthchecksAPIClient(instanceId: id)
+        healthchecksClients[id] = client
+        return client
+    }
+
     func giteaClient(id: UUID) -> GiteaAPIClient {
         if let client = giteaClients[id] {
             return client
@@ -74,6 +84,8 @@ private final class ServiceClientManager {
             adguardClients.removeValue(forKey: id)
         case .beszel:
             beszelClients.removeValue(forKey: id)
+        case .healthchecks:
+            healthchecksClients.removeValue(forKey: id)
         case .gitea:
             giteaClients.removeValue(forKey: id)
         case .nginxProxyManager:
@@ -288,6 +300,11 @@ final class ServicesStore {
         return clientManager.beszelClient(id: instance.id)
     }
 
+    func healthchecksClient(instanceId: UUID) async -> HealthchecksAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .healthchecks else { return nil }
+        return clientManager.healthchecksClient(id: instance.id)
+    }
+
     func giteaClient(instanceId: UUID) async -> GiteaAPIClient? {
         guard let instance = instancesById[instanceId], instance.type == .gitea else { return nil }
         return clientManager.giteaClient(id: instance.id)
@@ -315,6 +332,8 @@ final class ServicesStore {
             ok = await clientManager.adguardClient(id: instanceId).ping()
         case .beszel:
             ok = await clientManager.beszelClient(id: instanceId).ping()
+        case .healthchecks:
+            ok = await clientManager.healthchecksClient(id: instanceId).ping()
         case .gitea:
             ok = await clientManager.giteaClient(id: instanceId).ping()
         case .nginxProxyManager:
@@ -515,6 +534,10 @@ final class ServicesStore {
                     self.persistState()
                 }
             }
+
+        case .healthchecks:
+            let client = clientManager.healthchecksClient(id: instance.id)
+            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl)
 
         case .gitea:
             let client = clientManager.giteaClient(id: instance.id)

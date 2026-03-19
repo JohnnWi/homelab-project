@@ -28,6 +28,13 @@ object ErrorHandler {
                     else -> context.getString(R.string.error_unknown_status, error.code())
                 }
             }
+            is IllegalStateException -> {
+                if (error.message == "Healthchecks authentication failed") {
+                    context.getString(R.string.error_invalid_credentials)
+                } else {
+                    error.localizedMessage ?: context.getString(R.string.error_unknown)
+                }
+            }
             else -> error?.localizedMessage ?: context.getString(R.string.error_unknown)
         }
     }

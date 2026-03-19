@@ -21,6 +21,8 @@
     <string name="cancel">Annulla</string>
     <string name="back">Indietro</string>
     <string name="close">Chiudi</string>
+    <string name="ok">OK</string>
+    <string name="no_data">Nessun dato</string>
     <string name="default_branch">predefinito</string>
     <string name="preview">Anteprima</string>
     <string name="code">Codice</string>
@@ -32,6 +34,7 @@
     <string name="share">Condividi</string>
     <string name="nav_home">Home</string>
     <string name="nav_settings">Impostazioni</string>
+    <string name="action_resume">Continua</string>
 
     <!-- Services -->
     <string name="service_portainer">Portainer</string>
@@ -39,6 +42,71 @@
     <string name="service_beszel">Beszel</string>
     <string name="service_gitea">Gitea</string>
     <string name="service_adguard_home">AdGuard Home</string>
+    <string name="service_healthchecks">Healthchecks</string>
+    <string name="service_healthchecks_desc">Monitoraggio cron job</string>
+
+    <!-- Healthchecks -->
+    <string name="healthchecks_overview">Panoramica</string>
+    <string name="healthchecks_checks">Checks</string>
+    <string name="healthchecks_search">Cerca checks...</string>
+    <string name="healthchecks_all">Tutti</string>
+    <string name="healthchecks_up">Attivi</string>
+    <string name="healthchecks_grace">In ritardo</string>
+    <string name="healthchecks_down">Down</string>
+    <string name="healthchecks_paused">In pausa</string>
+    <string name="healthchecks_new">Nuovi</string>
+    <string name="healthchecks_desc">Monitoraggio cron job</string>
+    <string name="healthchecks_no_checks">Nessun check trovato</string>
+    <string name="healthchecks_last_ping">Ultimo ping</string>
+    <string name="healthchecks_next_ping">Prossimo ping</string>
+    <string name="healthchecks_schedule">Pianificazione</string>
+    <string name="healthchecks_timeout">Timeout</string>
+    <string name="healthchecks_grace_period">Periodo di grazia</string>
+    <string name="healthchecks_timezone">Fuso orario</string>
+    <string name="healthchecks_status">Stato</string>
+    <string name="healthchecks_methods">Metodi</string>
+    <string name="healthchecks_methods_all">GET/HEAD/POST</string>
+    <string name="healthchecks_methods_post_only">Solo POST</string>
+    <string name="healthchecks_manual_resume">Ripresa manuale</string>
+    <string name="healthchecks_integrations">Integrazioni</string>
+    <string name="healthchecks_channels">Canali</string>
+    <string name="healthchecks_pings">Ping</string>
+    <string name="healthchecks_flips">Cambi stato</string>
+    <string name="healthchecks_badges">Badge</string>
+    <string name="healthchecks_edit_check">Modifica check</string>
+    <string name="healthchecks_create_check">Nuovo check</string>
+    <string name="healthchecks_delete_check">Elimina check</string>
+    <string name="healthchecks_delete_confirm_title">Elimina check</string>
+    <string name="healthchecks_delete_confirm_message">Questo eliminerà definitivamente il check.</string>
+    <string name="healthchecks_ping_body">Corpo ping</string>
+    <string name="healthchecks_ping_url">URL ping</string>
+    <string name="healthchecks_copy_ping_url">Copia URL ping</string>
+    <string name="healthchecks_field_type">Tipo di check</string>
+    <string name="healthchecks_type_simple">Semplice</string>
+    <string name="healthchecks_type_cron">Cron/Calendario</string>
+    <string name="healthchecks_field_name">Nome</string>
+    <string name="healthchecks_field_slug">Slug</string>
+    <string name="healthchecks_field_tags">Tag</string>
+    <string name="healthchecks_field_desc">Descrizione</string>
+    <string name="healthchecks_field_timeout">Timeout (sec)</string>
+    <string name="healthchecks_field_schedule">Pianificazione</string>
+    <string name="healthchecks_field_timezone">Fuso orario</string>
+    <string name="healthchecks_field_grace">Grazia (sec)</string>
+    <string name="healthchecks_field_channels">Canali</string>
+    <string name="healthchecks_slug_hint">lettere, numeri, trattini, underscore</string>
+    <string name="healthchecks_tags_hint">tag separati da spazi</string>
+    <string name="healthchecks_timeout_hint">es. 3600</string>
+    <string name="healthchecks_schedule_hint">sintassi cron o oncalendar</string>
+    <string name="healthchecks_timezone_hint">es. Europe/Rome</string>
+    <string name="healthchecks_grace_hint">secondi di grazia</string>
+    <string name="healthchecks_channels_hint">ID canali separati da virgole o *</string>
+    <string name="healthchecks_name_required">Il nome è obbligatorio</string>
+    <string name="healthchecks_schedule_required">La pianificazione è obbligatoria per i check cron</string>
+    <string name="healthchecks_timeout_required">Il timeout è obbligatorio per i check semplici</string>
+    <string name="healthchecks_read_only_title">API key in sola lettura</string>
+    <string name="healthchecks_read_only_message">Questa chiave può solo visualizzare i check, quindi le azioni di modifica sono nascoste.</string>
+    <string name="healthchecks_basics">Base</string>
+    <string name="healthchecks_advanced">Avanzate</string>
 
     <!-- Home Screen -->
     <string name="home_title">Servizi</string>
@@ -411,6 +479,8 @@
     <string name="login_hint_pihole_multi">Usa la password o il token API configurato in Pi-hole in Settings &gt; API / Web interface.</string>
     <string name="login_hint_gitea_multi">Se il 2FA è attivo, usa un token applicazione al posto della password.</string>
     <string name="login_hint_adguard">Usa lo username e la password admin di AdGuard Home.</string>
+    <string name="login_hint_healthchecks">Usa la API key di Healthchecks e l\'URL dell\'istanza.</string>
+    <string name="login_healthchecks_api_key_help">Trova la API key in Progetto → Impostazioni. Le chiavi in sola lettura mostrano solo i dati; le chiavi complete abilitano le modifiche.</string>
     <string name="login_error_api_key_required">API key obbligatoria.</string>
     <string name="login_error_password_required">Password obbligatoria.</string>
     <string name="login_error_email_required">Email obbligatoria.</string>

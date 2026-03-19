@@ -149,6 +149,11 @@ class AuthInterceptor @Inject constructor(
                     builder.addHeader("Authorization", "Bearer ${instance.token}")
                 }
             }
+            ServiceType.HEALTHCHECKS -> {
+                if (!instance.apiKey.isNullOrBlank()) {
+                    builder.addHeader("X-Api-Key", instance.apiKey)
+                }
+            }
             else -> {}
         }
     }

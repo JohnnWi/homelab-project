@@ -7,6 +7,7 @@ import com.homelab.app.data.repository.BeszelRepository
 import com.homelab.app.data.repository.GiteaRepository
 import com.homelab.app.data.repository.LocalPreferencesRepository
 import com.homelab.app.data.repository.NginxProxyManagerRepository
+import com.homelab.app.data.repository.HealthchecksRepository
 import com.homelab.app.data.repository.AdGuardHomeRepository
 import com.homelab.app.data.repository.PiholeRepository
 import com.homelab.app.data.repository.PortainerRepository
@@ -32,6 +33,7 @@ class HomeViewModel @Inject constructor(
     private val beszelRepository: BeszelRepository,
     private val giteaRepository: GiteaRepository,
     private val nginxProxyManagerRepository: NginxProxyManagerRepository,
+    private val healthchecksRepository: HealthchecksRepository,
     private val localPreferencesRepository: LocalPreferencesRepository
 ) : ViewModel() {
 
@@ -41,6 +43,7 @@ class HomeViewModel @Inject constructor(
     data class BeszelSummary(val online: Int, val total: Int)
     data class GiteaSummary(val totalRepos: Int)
     data class NpmSummary(val proxyHosts: Int, val total: Int)
+    data class HealthchecksSummary(val up: Int, val total: Int)
 
     /** Summary info for a single instance card. */
     data class InstanceSummary(val value: String, val subValue: String?, val label: String)
@@ -99,6 +102,9 @@ class HomeViewModel @Inject constructor(
 
     private val _npmSummary = MutableStateFlow<NpmSummary?>(null)
     val npmSummary: StateFlow<NpmSummary?> = _npmSummary
+
+    private val _healthchecksSummary = MutableStateFlow<HealthchecksSummary?>(null)
+    val healthchecksSummary: StateFlow<HealthchecksSummary?> = _healthchecksSummary
 
     /** Per-instance summary data, keyed by instance ID. */
     private val _instanceSummaries = MutableStateFlow<Map<String, InstanceSummary>>(emptyMap())
@@ -199,6 +205,12 @@ class HomeViewModel @Inject constructor(
                 val report = nginxProxyManagerRepository.getHostReport(instanceId)
                 _npmSummary.value = NpmSummary(report.proxy, report.total)
                 InstanceSummary("${report.proxy}", "/ ${report.total}", "proxy_hosts")
+            }
+            ServiceType.HEALTHCHECKS -> {
+                val checks = healthchecksRepository.listChecks(instanceId)
+                val up = checks.count { it.status == "up" }
+                _healthchecksSummary.value = HealthchecksSummary(up, checks.size)
+                InstanceSummary("$up", "/ ${checks.size}", "checks")
             }
             else -> null
         }

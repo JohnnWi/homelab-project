@@ -14,6 +14,8 @@
     <string name="cancel">Cancelar</string>
     <string name="back">Atrás</string>
     <string name="close">Cerrar</string>
+    <string name="ok">OK</string>
+    <string name="no_data">Sin datos</string>
     <string name="default_branch">por defecto</string>
     <string name="preview">Previsualización</string>
     <string name="code">Código</string>
@@ -25,6 +27,7 @@
     <string name="share">Compartir</string>
     <string name="nav_home">Inicio</string>
     <string name="nav_settings">Ajustes</string>
+    <string name="action_resume">Continuar</string>
 
     <!-- Services -->
     <string name="service_portainer">Portainer</string>
@@ -32,6 +35,71 @@
     <string name="service_beszel">Beszel</string>
     <string name="service_gitea">Gitea</string>
     <string name="service_adguard_home">AdGuard Home</string>
+    <string name="service_healthchecks">Healthchecks</string>
+    <string name="service_healthchecks_desc">Monitoreo de cron jobs</string>
+
+    <!-- Healthchecks -->
+    <string name="healthchecks_overview">Resumen</string>
+    <string name="healthchecks_checks">Checks</string>
+    <string name="healthchecks_search">Buscar checks...</string>
+    <string name="healthchecks_all">Todos</string>
+    <string name="healthchecks_up">Activos</string>
+    <string name="healthchecks_grace">En retraso</string>
+    <string name="healthchecks_down">Caídos</string>
+    <string name="healthchecks_paused">En pausa</string>
+    <string name="healthchecks_new">Nuevos</string>
+    <string name="healthchecks_desc">Monitoreo de cron jobs</string>
+    <string name="healthchecks_no_checks">No se encontraron checks</string>
+    <string name="healthchecks_last_ping">Último ping</string>
+    <string name="healthchecks_next_ping">Próximo ping</string>
+    <string name="healthchecks_schedule">Programación</string>
+    <string name="healthchecks_timeout">Tiempo de espera</string>
+    <string name="healthchecks_grace_period">Periodo de gracia</string>
+    <string name="healthchecks_timezone">Zona horaria</string>
+    <string name="healthchecks_status">Estado</string>
+    <string name="healthchecks_methods">Métodos</string>
+    <string name="healthchecks_methods_all">GET/HEAD/POST</string>
+    <string name="healthchecks_methods_post_only">Solo POST</string>
+    <string name="healthchecks_manual_resume">Reanudación manual</string>
+    <string name="healthchecks_integrations">Integraciones</string>
+    <string name="healthchecks_channels">Canales</string>
+    <string name="healthchecks_pings">Pings</string>
+    <string name="healthchecks_flips">Cambios de estado</string>
+    <string name="healthchecks_badges">Badges</string>
+    <string name="healthchecks_edit_check">Editar check</string>
+    <string name="healthchecks_create_check">Nuevo check</string>
+    <string name="healthchecks_delete_check">Eliminar check</string>
+    <string name="healthchecks_delete_confirm_title">Eliminar check</string>
+    <string name="healthchecks_delete_confirm_message">Esto eliminará el check de forma permanente.</string>
+    <string name="healthchecks_ping_body">Cuerpo del ping</string>
+    <string name="healthchecks_ping_url">URL de ping</string>
+    <string name="healthchecks_copy_ping_url">Copiar URL de ping</string>
+    <string name="healthchecks_field_type">Tipo de check</string>
+    <string name="healthchecks_type_simple">Simple</string>
+    <string name="healthchecks_type_cron">Cron/Calendario</string>
+    <string name="healthchecks_field_name">Nombre</string>
+    <string name="healthchecks_field_slug">Slug</string>
+    <string name="healthchecks_field_tags">Etiquetas</string>
+    <string name="healthchecks_field_desc">Descripción</string>
+    <string name="healthchecks_field_timeout">Tiempo de espera (seg)</string>
+    <string name="healthchecks_field_schedule">Programación</string>
+    <string name="healthchecks_field_timezone">Zona horaria</string>
+    <string name="healthchecks_field_grace">Gracia (seg)</string>
+    <string name="healthchecks_field_channels">Canales</string>
+    <string name="healthchecks_slug_hint">letras, números, guiones, guiones bajos</string>
+    <string name="healthchecks_tags_hint">etiquetas separadas por espacios</string>
+    <string name="healthchecks_timeout_hint">p. ej. 3600</string>
+    <string name="healthchecks_schedule_hint">sintaxis cron o oncalendar</string>
+    <string name="healthchecks_timezone_hint">p. ej. Europe/Rome</string>
+    <string name="healthchecks_grace_hint">segundos de gracia</string>
+    <string name="healthchecks_channels_hint">IDs de canales separados por comas o *</string>
+    <string name="healthchecks_name_required">El nombre es obligatorio</string>
+    <string name="healthchecks_schedule_required">La programación es obligatoria para checks cron</string>
+    <string name="healthchecks_timeout_required">El timeout es obligatorio para checks simples</string>
+    <string name="healthchecks_read_only_title">API key de solo lectura</string>
+    <string name="healthchecks_read_only_message">Esta clave solo puede ver los checks, por lo que las acciones de edición están ocultas.</string>
+    <string name="healthchecks_basics">Básico</string>
+    <string name="healthchecks_advanced">Avanzado</string>
 
     <!-- Home Screen -->
     <string name="home_title">Servicios</string>
@@ -52,6 +120,8 @@
     <string name="login_show_secret">Mostrar contraseña</string>
     <string name="login_hide_secret">Ocultar contraseña</string>
     <string name="login_button">Iniciar sesión</string>
+    <string name="login_hint_healthchecks">Usa la API key de Healthchecks y la URL de la instancia.</string>
+    <string name="login_healthchecks_api_key_help">Encuentra la API key en Proyecto → Ajustes. Las claves de solo lectura solo muestran datos; las claves completas permiten editar.</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Ajustes</string>

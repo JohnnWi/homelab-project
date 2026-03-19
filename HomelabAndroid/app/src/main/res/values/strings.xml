@@ -21,6 +21,8 @@
     <string name="cancel">Cancel</string>
     <string name="back">Back</string>
     <string name="close">Close</string>
+    <string name="ok">OK</string>
+    <string name="no_data">No data</string>
     <string name="default_branch">default</string>
     <string name="preview">Preview</string>
     <string name="code">Code</string>
@@ -39,6 +41,8 @@
     <string name="service_adguard_home">AdGuard Home</string>
     <string name="service_beszel">Beszel</string>
     <string name="service_gitea">Gitea</string>
+    <string name="service_healthchecks">Healthchecks</string>
+    <string name="service_healthchecks_desc">Cron job monitoring</string>
 
     <!-- Home Screen -->
     <string name="home_title">Services</string>
@@ -59,6 +63,8 @@
     <string name="login_show_secret">Show password</string>
     <string name="login_hide_secret">Hide password</string>
     <string name="login_button">Login</string>
+    <string name="login_hint_healthchecks">Use the Healthchecks API key and instance URL.</string>
+    <string name="login_healthchecks_api_key_help">Find the API key in Project → Settings. Read-only keys can only view data; full-access keys enable edits.</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
@@ -455,6 +461,69 @@
 
     <!-- Nginx Proxy Manager -->
     <string name="service_nginx_proxy_manager">Nginx Proxy Manager</string>
+
+    <!-- Healthchecks -->
+    <string name="healthchecks_desc">Cron job monitoring</string>
+    <string name="healthchecks_overview">Overview</string>
+    <string name="healthchecks_checks">Checks</string>
+    <string name="healthchecks_search">Search checks...</string>
+    <string name="healthchecks_all">All</string>
+    <string name="healthchecks_up">Up</string>
+    <string name="healthchecks_grace">Grace</string>
+    <string name="healthchecks_down">Down</string>
+    <string name="healthchecks_paused">Paused</string>
+    <string name="healthchecks_new">New</string>
+    <string name="healthchecks_no_checks">No checks found</string>
+    <string name="healthchecks_last_ping">Last Ping</string>
+    <string name="healthchecks_next_ping">Next Ping</string>
+    <string name="healthchecks_schedule">Schedule</string>
+    <string name="healthchecks_timeout">Timeout</string>
+    <string name="healthchecks_grace_period">Grace Period</string>
+    <string name="healthchecks_timezone">Timezone</string>
+    <string name="healthchecks_methods">Methods</string>
+    <string name="healthchecks_manual_resume">Manual resume</string>
+    <string name="healthchecks_methods_post_only">POST only</string>
+    <string name="healthchecks_methods_all">GET/HEAD/POST</string>
+    <string name="healthchecks_integrations">Integrations</string>
+    <string name="healthchecks_badges">Badges</string>
+    <string name="healthchecks_copy_ping_url">Copy Ping URL</string>
+    <string name="healthchecks_channels">Channels</string>
+    <string name="healthchecks_pings">Pings</string>
+    <string name="healthchecks_flips">Flips</string>
+    <string name="healthchecks_edit_check">Edit Check</string>
+    <string name="healthchecks_create_check">New Check</string>
+    <string name="healthchecks_delete_check">Delete Check</string>
+    <string name="healthchecks_delete_confirm_title">Delete Check</string>
+    <string name="healthchecks_delete_confirm_message">This will permanently delete the check.</string>
+    <string name="healthchecks_ping_body">Ping Body</string>
+    <string name="healthchecks_basics">Basics</string>
+    <string name="healthchecks_advanced">Advanced</string>
+    <string name="healthchecks_field_name">Name</string>
+    <string name="healthchecks_field_slug">Slug</string>
+    <string name="healthchecks_field_tags">Tags</string>
+    <string name="healthchecks_field_desc">Description</string>
+    <string name="healthchecks_field_type">Check type</string>
+    <string name="healthchecks_type_simple">Simple</string>
+    <string name="healthchecks_type_cron">Cron/Calendar</string>
+    <string name="healthchecks_field_timeout">Timeout (sec)</string>
+    <string name="healthchecks_field_schedule">Schedule</string>
+    <string name="healthchecks_field_timezone">Timezone</string>
+    <string name="healthchecks_field_grace">Grace (sec)</string>
+    <string name="healthchecks_field_channels">Channels</string>
+    <string name="healthchecks_slug_hint">letters, numbers, hyphens, underscores</string>
+    <string name="healthchecks_tags_hint">space-separated tags</string>
+    <string name="healthchecks_timeout_hint">e.g. 3600</string>
+    <string name="healthchecks_schedule_hint">cron or oncalendar syntax</string>
+    <string name="healthchecks_timezone_hint">e.g. Europe/Rome</string>
+    <string name="healthchecks_grace_hint">grace seconds</string>
+    <string name="healthchecks_channels_hint">comma-separated channel IDs or *</string>
+    <string name="healthchecks_name_required">Name is required</string>
+    <string name="healthchecks_schedule_required">Schedule is required for cron checks</string>
+    <string name="healthchecks_timeout_required">Timeout is required for simple checks</string>
+    <string name="healthchecks_read_only_title">Read-only API key</string>
+    <string name="healthchecks_read_only_message">This key can only view checks, so edit actions are hidden.</string>
+    <string name="healthchecks_status">Status</string>
+    <string name="healthchecks_ping_url">Ping URL</string>
     <string name="npm_proxy_hosts">Hosts</string>
     <string name="npm_redirections">Redirections</string>
     <string name="npm_streams">Streams</string>

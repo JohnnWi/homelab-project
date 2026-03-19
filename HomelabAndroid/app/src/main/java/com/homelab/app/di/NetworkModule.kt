@@ -184,4 +184,10 @@ object NetworkModule {
     fun provideNginxProxyManagerApi(retrofit: Retrofit): com.homelab.app.data.remote.api.NginxProxyManagerApi {
         return retrofit.create(com.homelab.app.data.remote.api.NginxProxyManagerApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideHealthchecksApi(retrofit: Retrofit): com.homelab.app.data.remote.api.HealthchecksApi {
+        return retrofit.create(com.homelab.app.data.remote.api.HealthchecksApi::class.java)
+    }
 }

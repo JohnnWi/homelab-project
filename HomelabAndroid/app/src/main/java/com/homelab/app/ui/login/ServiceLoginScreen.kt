@@ -181,6 +181,7 @@ fun ServiceLoginScreen(
                 ServiceType.ADGUARD_HOME -> stringResource(R.string.login_hint_adguard)
                 ServiceType.GITEA -> stringResource(R.string.login_hint_gitea_multi)
                 ServiceType.NGINX_PROXY_MANAGER -> stringResource(R.string.login_hint_npm)
+                ServiceType.HEALTHCHECKS -> stringResource(R.string.login_hint_healthchecks)
                 else -> null
             }
 
@@ -237,6 +238,35 @@ fun ServiceLoginScreen(
                                 color = MaterialTheme.colorScheme.onErrorContainer
                             )
                         }
+                    }
+                }
+            }
+
+            if (serviceType == ServiceType.HEALTHCHECKS) {
+                androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
+                Surface(
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                ) {
+                    androidx.compose.foundation.layout.Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Icon(
+                            Icons.Default.Info,
+                            contentDescription = stringResource(R.string.login_healthchecks_api_key_help),
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = stringResource(R.string.login_healthchecks_api_key_help),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
                     }
                 }
             }
@@ -324,7 +354,7 @@ fun ServiceLoginScreen(
                 shape = RoundedCornerShape(14.dp)
             )
 
-            if (serviceType == ServiceType.PORTAINER) {
+            if (serviceType == ServiceType.PORTAINER || serviceType == ServiceType.HEALTHCHECKS) {
                 SecretField(
                     value = apiKey,
                     onValueChange = { apiKey = it },

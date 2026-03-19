@@ -73,6 +73,7 @@ private fun dashboardRoute(type: ServiceType, instanceId: String): String {
         ServiceType.BESZEL -> "beszel/$instanceId/dashboard"
         ServiceType.GITEA -> "gitea/$instanceId/dashboard"
         ServiceType.NGINX_PROXY_MANAGER -> "nginxpm/$instanceId/dashboard"
+        ServiceType.HEALTHCHECKS -> "healthchecks/$instanceId/dashboard"
         ServiceType.UNKNOWN -> Screen.Home.route
     }
 }
@@ -448,6 +449,126 @@ fun AppNavigation() {
                     onNavigateToRepo = { owner, repo ->
                         navController.navigate("gitea/$instanceId/repo/${Uri.encode(owner)}/${Uri.encode(repo)}")
                     }
+                )
+            }
+
+            composable(
+                route = "healthchecks/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.healthchecks.HealthchecksDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.HEALTHCHECKS, newInstanceId)) {
+                                popUpTo("healthchecks/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    },
+                    onNavigateToChecks = { filter ->
+                        navController.navigate("healthchecks/$instanceId/checks?filter=${filter.status}")
+                    },
+                    onNavigateToEditor = { checkId ->
+                        val encoded = checkId?.let(Uri::encode)
+                        val route = if (encoded == null) {
+                            "healthchecks/$instanceId/editor"
+                        } else {
+                            "healthchecks/$instanceId/editor?checkId=$encoded"
+                        }
+                        navController.navigate(route)
+                    },
+                    onNavigateToBadges = { navController.navigate("healthchecks/$instanceId/badges") },
+                    onNavigateToChannels = { navController.navigate("healthchecks/$instanceId/channels") }
+                )
+            }
+
+            composable(
+                route = "healthchecks/{instanceId}/checks?filter={filter}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("filter") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                val filter = backStackEntry.arguments?.getString("filter")
+                val initialFilter = com.homelab.app.ui.healthchecks.HealthchecksStatusFilter.values()
+                    .firstOrNull { it.status == filter } ?: com.homelab.app.ui.healthchecks.HealthchecksStatusFilter.ALL
+                com.homelab.app.ui.healthchecks.HealthchecksChecksScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToCheckDetail = { checkId ->
+                        val encoded = Uri.encode(checkId)
+                        navController.navigate("healthchecks/$instanceId/check?checkId=$encoded")
+                    },
+                    onNavigateToEditor = { checkId ->
+                        val encoded = checkId?.let(Uri::encode)
+                        val route = if (encoded == null) {
+                            "healthchecks/$instanceId/editor"
+                        } else {
+                            "healthchecks/$instanceId/editor?checkId=$encoded"
+                        }
+                        navController.navigate(route)
+                    },
+                    initialFilter = initialFilter
+                )
+            }
+
+            composable(
+                route = "healthchecks/{instanceId}/check?checkId={checkId}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("checkId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.healthchecks.HealthchecksDetailScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToEditor = { id ->
+                        val encoded = Uri.encode(id)
+                        navController.navigate("healthchecks/$instanceId/editor?checkId=$encoded")
+                    }
+                )
+            }
+
+            composable(
+                route = "healthchecks/{instanceId}/editor?checkId={checkId}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("checkId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) {
+                com.homelab.app.ui.healthchecks.HealthchecksEditorScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "healthchecks/{instanceId}/badges",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) {
+                com.homelab.app.ui.healthchecks.HealthchecksBadgesScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "healthchecks/{instanceId}/channels",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) {
+                com.homelab.app.ui.healthchecks.HealthchecksChannelsScreen(
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
 

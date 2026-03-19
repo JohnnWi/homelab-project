@@ -652,6 +652,11 @@ struct SettingsView: View {
                 ForEach(instances) { instance in
                     VStack(alignment: .leading, spacing: 10) {
                         HStack(spacing: 12) {
+                            if type == .healthchecks {
+                                ServiceIconView(type: .healthchecks, size: 22)
+                                    .frame(width: 36, height: 36)
+                                    .background(type.colors.bg, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            }
                             VStack(alignment: .leading, spacing: 3) {
                                 HStack(spacing: 8) {
                                     Text(instance.displayLabel)

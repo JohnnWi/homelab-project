@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Source
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -24,6 +25,7 @@ val ServiceType.primaryColor: Color
         ServiceType.BESZEL -> Color(0xFF8B5CF6)
         ServiceType.GITEA -> Color(0xFF609926)
         ServiceType.NGINX_PROXY_MANAGER -> Color(0xFFF15B2A)
+        ServiceType.HEALTHCHECKS -> Color(0xFF16A34A)
         ServiceType.UNKNOWN -> if (isThemeDark()) Color.LightGray else Color.Gray
     }
 
@@ -36,6 +38,7 @@ val ServiceType.backgroundColor: Color
         ServiceType.BESZEL -> Color(0xFF8B5CF6).copy(alpha = 0.12f)
         ServiceType.GITEA -> Color(0xFF609926).copy(alpha = 0.12f)
         ServiceType.NGINX_PROXY_MANAGER -> Color(0xFFF15B2A).copy(alpha = 0.12f)
+        ServiceType.HEALTHCHECKS -> Color(0xFF16A34A).copy(alpha = 0.12f)
         ServiceType.UNKNOWN -> if (isThemeDark()) Color(0xFF334155) else Color(0xFFF1F5F9)
     }
 
@@ -47,6 +50,7 @@ val ServiceType.iconUrl: String
         ServiceType.BESZEL -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/beszel.png"
         ServiceType.GITEA -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/gitea.png"
         ServiceType.NGINX_PROXY_MANAGER -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/nginx-proxy-manager.png"
+        ServiceType.HEALTHCHECKS -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/healthchecks.png"
         ServiceType.UNKNOWN -> ""
     }
 
@@ -58,5 +62,6 @@ val ServiceType.fallbackIcon: ImageVector
         ServiceType.BESZEL -> Icons.Default.Storage
         ServiceType.GITEA -> Icons.Default.Source
         ServiceType.NGINX_PROXY_MANAGER -> Icons.Default.Widgets
+        ServiceType.HEALTHCHECKS -> Icons.Default.CheckCircle
         ServiceType.UNKNOWN -> Icons.Default.Widgets
     }

@@ -40,6 +40,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
@@ -303,6 +304,7 @@ private fun InstanceCard(
             "systems_online" -> stringResource(R.string.beszel_systems_online)
             "repos" -> stringResource(R.string.gitea_repos)
             "proxy_hosts" -> stringResource(R.string.npm_proxy_hosts)
+            "checks" -> stringResource(R.string.healthchecks_checks)
             else -> s.label
         }.lowercase()
     }
@@ -628,6 +630,7 @@ fun DashboardSummary(viewModel: HomeViewModel) {
     val adguard by viewModel.adguardSummary.collectAsStateWithLifecycle()
     val beszel by viewModel.beszelSummary.collectAsStateWithLifecycle()
     val gitea by viewModel.giteaSummary.collectAsStateWithLifecycle()
+    val healthchecks by viewModel.healthchecksSummary.collectAsStateWithLifecycle()
     val connectionStatus by viewModel.connectionStatus.collectAsStateWithLifecycle()
 
     val hasAny = connectionStatus.values.any { it }
@@ -659,6 +662,9 @@ fun DashboardSummary(viewModel: HomeViewModel) {
             }
             if (connectionStatus[ServiceType.GITEA] == true) {
                 SummaryRow(title = stringResource(R.string.gitea_repos), value = gitea?.totalRepos?.toString() ?: "—", subValue = null, icon = Icons.Default.Source, color = ServiceType.GITEA.primaryColor)
+            }
+            if (connectionStatus[ServiceType.HEALTHCHECKS] == true) {
+                SummaryRow(title = stringResource(R.string.healthchecks_checks), value = healthchecks?.up?.toString() ?: "—", subValue = healthchecks?.let { "/ ${it.total}" }, icon = Icons.Default.CheckCircle, color = ServiceType.HEALTHCHECKS.primaryColor)
             }
         }
     }

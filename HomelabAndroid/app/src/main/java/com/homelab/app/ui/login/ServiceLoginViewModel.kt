@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.homelab.app.R
 import com.homelab.app.data.repository.BeszelRepository
 import com.homelab.app.data.repository.GiteaRepository
+import com.homelab.app.data.repository.HealthchecksRepository
 import com.homelab.app.data.repository.AdGuardHomeRepository
 import com.homelab.app.data.repository.NginxProxyManagerRepository
 import com.homelab.app.data.repository.PiholeRepository
@@ -36,7 +37,8 @@ class ServiceLoginViewModel @Inject constructor(
     private val adGuardHomeRepository: AdGuardHomeRepository,
     private val beszelRepository: BeszelRepository,
     private val giteaRepository: GiteaRepository,
-    private val nginxProxyManagerRepository: NginxProxyManagerRepository
+    private val nginxProxyManagerRepository: NginxProxyManagerRepository,
+    private val healthchecksRepository: HealthchecksRepository
 ) : ViewModel() {
 
     private val existingInstanceId: String? = savedStateHandle["instanceId"]
@@ -204,6 +206,18 @@ class ServiceLoginViewModel @Inject constructor(
                                 username = trimmedUsername,
                                 fallbackUrl = cleanFallbackUrl,
                                 password = authPassword
+                            )
+                        }
+                        ServiceType.HEALTHCHECKS -> {
+                            require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
+                            healthchecksRepository.validateApiKey(cleanUrl, trimmedApiKey)
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl
                             )
                         }
                         ServiceType.UNKNOWN -> throw IllegalArgumentException(context.getString(R.string.error_unknown))

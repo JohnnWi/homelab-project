@@ -4,9 +4,27 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-purple.svg?logo=kotlin)](https://kotlinlang.org)
 [![Platform](https://img.shields.io/badge/Platform-iOS%2026%2B-blue.svg)](https://developer.apple.com/ios/)
 [![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B-green.svg)](https://developer.android.com)
-
+[![Made with SwiftUI](https://img.shields.io/badge/Made%20with-SwiftUI-blue.svg?logo=swift)](https://developer.apple.com/xcode/swiftui/)
+[![Made with Jetpack Compose](https://img.shields.io/badge/Made%20with-Jetpack%20Compose-green.svg?logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
 
 A premium, fully native dual-platform solution for monitoring and managing your personal Homelab ecosystem. This project features two distinct, purpose-built native applications sharing the same design soul but optimized for their respective platforms.
+
+---
+
+## Table of Contents
+
+- [Highlights](#highlights)
+- [iOS Version](#-ios-version-swift-native--liquid-glass)
+- [Android Version](#-android-version-kotlin-native--material-expressive-3)
+- [Project & Author](#-project--author)
+- [Install via AltStore / SideStore](#-install-via-altstore--sidestore)
+- [Getting Started](#-getting-started)
+- [Integrated Services](#-integrated-services)
+- [Multilingual](#-multilingual)
+- [Tech Summary](#-tech-summary)
+- [Usage & License](#-usage--license)
+
+---
 
 ## Highlights
 
@@ -26,31 +44,61 @@ Developed with **Swift 6** and **SwiftUI**, utilizing the latest native iOS 26 t
 <table align="center">
   <tr>
     <th>Dashboard</th>
-    <th colspan="3" align="center">Portainer</th>
+    <th>Portainer</th>
+    <th>Nginx Proxy</th>
+    <th>Beszel</th>
+    <th>Pi-hole</th>
   </tr>
   <tr>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9186.PNG" width="180" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9186.PNG" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9187.PNG" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9190.PNG" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9193.PNG" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9199.PNG" width="150" /></td>
+  </tr>
+</table>
+
+<table align="center">
+  <tr>
+    <th>Gitea</th>
+    <th>AdGuard DNS</th>
+    <th>Healthcheck</th>
+    <th>Bookmarks</th>
+    <th>Settings</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9200.jpg" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9218.PNG" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9238.PNG" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9201.PNG" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9202.PNG" width="150" /></td>
+  </tr>
+</table>
+
+<details>
+<summary><b>View all iOS screenshots</b></summary>
+<br>
+
+**Portainer**
+<table>
+  <tr>
     <td align="center"><img src="media-docs/foto-ios/IMG_9187.PNG" width="180" /></td>
     <td align="center"><img src="media-docs/foto-ios/IMG_9188.PNG" width="180" /></td>
     <td align="center"><img src="media-docs/foto-ios/IMG_9189.PNG" width="180" /></td>
   </tr>
 </table>
 
-<table align="center">
+**Nginx Proxy Manager**
+<table>
   <tr>
-    <th colspan="3" align="center">Nginx Proxy Manager</th>
-  </tr>
-  <tr>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9190.PNG" width="200" /></td>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9191.PNG" width="200" /></td>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9192.PNG" width="200" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9190.PNG" width="180" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9191.PNG" width="180" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9192.PNG" width="180" /></td>
   </tr>
 </table>
 
-<table align="center">
-  <tr>
-    <th colspan="6" align="center">Beszel</th>
-  </tr>
+**Beszel**
+<table>
   <tr>
     <td align="center"><img src="media-docs/foto-ios/IMG_9193.PNG" width="145" /></td>
     <td align="center"><img src="media-docs/foto-ios/IMG_9194.PNG" width="145" /></td>
@@ -61,30 +109,23 @@ Developed with **Swift 6** and **SwiftUI**, utilizing the latest native iOS 26 t
   </tr>
 </table>
 
-<table align="center">
+**AdGuard DNS**
+<table>
   <tr>
-    <th>Pi-hole</th>
-    <th>Gitea</th>
-    <th colspan="2" align="center">AdGuard DNS</th>
-  </tr>
-  <tr>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9199.PNG" width="180" /></td>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9200.jpg" width="180" /></td>
     <td align="center"><img src="media-docs/foto-ios/IMG_9218.PNG" width="180" /></td>
     <td align="center"><img src="media-docs/foto-ios/IMG_9219.PNG" width="180" /></td>
   </tr>
 </table>
 
-<table align="center">
+**Healthcheck**
+<table>
   <tr>
-    <th>Bookmarks</th>
-    <th>Settings</th>
-  </tr>
-  <tr>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9201.PNG" width="200" /></td>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9202.PNG" width="200" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9238.PNG" width="180" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9239.PNG" width="180" /></td>
   </tr>
 </table>
+
+</details>
 
 ---
 
@@ -94,22 +135,52 @@ Built with **Kotlin** and **Jetpack Compose**, following the **Material Expressi
 <table align="center">
   <tr>
     <th>Dashboard</th>
-    <th colspan="3" align="center">Portainer</th>
+    <th>Portainer</th>
+    <th>Beszel</th>
     <th>Gitea</th>
+    <th>Nginx Proxy</th>
   </tr>
   <tr>
-    <td align="center"><img src="media-docs/foto-android/photo_15_2026-03-16_20-24-21.jpg" width="160" /></td>
-    <td align="center"><img src="media-docs/foto-android/photo_1_2026-03-16_20-24-21.jpg" width="160" /></td>
-    <td align="center"><img src="media-docs/foto-android/photo_2_2026-03-16_20-24-21.jpg" width="160" /></td>
-    <td align="center"><img src="media-docs/foto-android/photo_3_2026-03-16_20-24-21.jpg" width="160" /></td>
-    <td align="center"><img src="media-docs/foto-android/photo_12_2026-03-16_20-24-21.jpg" width="160" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_15_2026-03-16_20-24-21.jpg" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_1_2026-03-16_20-24-21.jpg" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_4_2026-03-16_20-24-21.jpg" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_12_2026-03-16_20-24-21.jpg" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_13_2026-03-16_20-24-21.jpg" width="150" /></td>
   </tr>
 </table>
 
 <table align="center">
   <tr>
-    <th colspan="8" align="center">Beszel</th>
+    <th>Pi-hole</th>
+    <th>AdGuard DNS</th>
+    <th>Healthcheck</th>
+    <th>Bookmarks</th>
+    <th>Settings</th>
   </tr>
+  <tr>
+    <td align="center"><img src="media-docs/foto-android/photo_16_2026-03-16_20-24-21.jpg" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-android/adguard1.jpg" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-android/healthcheck1.jpg" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_18_2026-03-16_20-24-21.jpg" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_20_2026-03-16_20-24-21.jpg" width="150" /></td>
+  </tr>
+</table>
+
+<details>
+<summary><b>View all Android screenshots</b></summary>
+<br>
+
+**Portainer**
+<table>
+  <tr>
+    <td align="center"><img src="media-docs/foto-android/photo_1_2026-03-16_20-24-21.jpg" width="180" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_2_2026-03-16_20-24-21.jpg" width="180" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_3_2026-03-16_20-24-21.jpg" width="180" /></td>
+  </tr>
+</table>
+
+**Beszel**
+<table>
   <tr>
     <td align="center"><img src="media-docs/foto-android/photo_4_2026-03-16_20-24-21.jpg" width="110" /></td>
     <td align="center"><img src="media-docs/foto-android/photo_5_2026-03-16_20-24-21.jpg" width="110" /></td>
@@ -122,40 +193,47 @@ Built with **Kotlin** and **Jetpack Compose**, following the **Material Expressi
   </tr>
 </table>
 
-<table align="center">
-  <tr>
-    <th colspan="2" align="center">Nginx Proxy Manager</th>
-    <th colspan="2" align="center">Pi-hole</th>
-  </tr>
+**Nginx Proxy Manager**
+<table>
   <tr>
     <td align="center"><img src="media-docs/foto-android/photo_13_2026-03-16_20-24-21.jpg" width="180" /></td>
     <td align="center"><img src="media-docs/foto-android/photo_14_2026-03-16_20-24-21.jpg" width="180" /></td>
+  </tr>
+</table>
+
+**Pi-hole**
+<table>
+  <tr>
     <td align="center"><img src="media-docs/foto-android/photo_16_2026-03-16_20-24-21.jpg" width="180" /></td>
     <td align="center"><img src="media-docs/foto-android/photo_17_2026-03-16_20-24-21.jpg" width="180" /></td>
   </tr>
 </table>
 
-<table align="center">
-  <tr>
-    <th colspan="2" align="center">AdGuard DNS</th>
-    <th colspan="2" align="center">Bookmarks</th>
-  </tr>
+**AdGuard DNS**
+<table>
   <tr>
     <td align="center"><img src="media-docs/foto-android/adguard1.jpg" width="180" /></td>
     <td align="center"><img src="media-docs/foto-android/adguard2.jpg" width="180" /></td>
+  </tr>
+</table>
+
+**Healthcheck**
+<table>
+  <tr>
+    <td align="center"><img src="media-docs/foto-android/healthcheck1.jpg" width="180" /></td>
+    <td align="center"><img src="media-docs/foto-android/healthcheck2.jpg" width="180" /></td>
+  </tr>
+</table>
+
+**Bookmarks**
+<table>
+  <tr>
     <td align="center"><img src="media-docs/foto-android/photo_18_2026-03-16_20-24-21.jpg" width="180" /></td>
     <td align="center"><img src="media-docs/foto-android/photo_19_2026-03-16_20-24-21.jpg" width="180" /></td>
   </tr>
 </table>
 
-<table align="center">
-  <tr>
-    <th>Settings</th>
-  </tr>
-  <tr>
-    <td align="center"><img src="media-docs/foto-android/photo_20_2026-03-16_20-24-21.jpg" width="200" /></td>
-  </tr>
-</table>
+</details>
 
 ---
 
@@ -224,6 +302,9 @@ Manage your reverse proxy directly from your phone. Browse proxy hosts, redirect
 
 ### 🛡️ AdGuard DNS
 Monitor and manage your AdGuard Home DNS server. View real-time query statistics, check filtering status, and control DNS protection directly from your phone.
+
+### 💓 Healthcheck
+Monitor the uptime and health of your services. View check statuses, response times, and get notified when services go down — all from a clean native interface.
 
 ### 🔖 Bookmarks
 Keep all your most-used homelab links in one place with a native bookmarks feature that supports organization, quick access, and a cleaner daily workflow.

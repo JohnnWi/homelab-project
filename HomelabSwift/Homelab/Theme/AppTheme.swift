@@ -39,10 +39,13 @@ enum AppTheme {
 
     static func statusColor(for state: String) -> Color {
         switch state.lowercased() {
+        case "up":                         return running
+        case "down":                       return stopped
+        case "grace":                      return warning
         case "running":                    return running
         case "exited", "dead":             return stopped
         case "paused":                     return paused
-        case "created", "restarting":      return created
+        case "created", "restarting", "new":      return created
         default:                           return .gray
         }
     }

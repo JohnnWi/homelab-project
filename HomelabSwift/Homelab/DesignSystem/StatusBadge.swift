@@ -16,11 +16,13 @@ struct StatusBadge: View {
         switch status.lowercased() {
         case "running": return localizer.t.portainerRunning
         case "exited", "stopped", "dead": return localizer.t.portainerStopped
-        case "paused": return localizer.t.actionPause
+        case "paused": return localizer.t.healthchecksPaused
         case "healthy": return localizer.t.portainerHealthy
         case "unhealthy": return localizer.t.portainerUnhealthy
         case "up": return localizer.t.beszelUp
         case "down": return localizer.t.beszelDown
+        case "grace": return localizer.t.healthchecksGrace
+        case "new": return localizer.t.healthchecksNew
         default: return status.capitalized
         }
     }
