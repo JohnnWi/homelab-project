@@ -1,6 +1,7 @@
 package com.homelab.app.data.remote
 
 import com.homelab.app.data.repository.BeszelRepository
+import com.homelab.app.data.repository.NginxProxyManagerRepository
 import com.homelab.app.data.repository.ServiceInstancesRepository
 import com.homelab.app.util.GlobalEventBus
 import com.homelab.app.domain.model.PiHoleAuthMode
@@ -15,7 +16,8 @@ import javax.inject.Singleton
 class AuthInterceptor @Inject constructor(
     private val globalEventBus: GlobalEventBus,
     private val serviceInstancesRepository: ServiceInstancesRepository,
-    private val beszelRepository: dagger.Lazy<BeszelRepository>
+    private val beszelRepository: dagger.Lazy<BeszelRepository>,
+    private val nginxProxyManagerRepository: dagger.Lazy<NginxProxyManagerRepository>
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         var request = chain.request()
@@ -81,6 +83,37 @@ class AuthInterceptor @Inject constructor(
             }
         }
 
+        // Auto-retry for Nginx Proxy Manager on token expiration/auth failure.
+        if (instance != null &&
+            instance.type == ServiceType.NGINX_PROXY_MANAGER &&
+            bypassHeader != "true" &&
+            !instance.username.isNullOrBlank() &&
+            !instance.password.isNullOrBlank() &&
+            shouldAttemptNpmReauth(response)
+        ) {
+            val newToken = try {
+                runBlocking {
+                    nginxProxyManagerRepository.get().authenticate(
+                        instance.url,
+                        instance.username.orEmpty(),
+                        instance.password.orEmpty()
+                    )
+                }
+            } catch (_: Exception) { null }
+
+            if (newToken != null) {
+                runBlocking {
+                    serviceInstancesRepository.saveInstance(instance.copy(token = newToken))
+                }
+
+                response.close()
+                val retryBuilder = request.newBuilder()
+                    .removeHeader("Authorization")
+                    .addHeader("Authorization", "Bearer $newToken")
+                return chain.proceed(retryBuilder.build())
+            }
+        }
+
         if (response.code == 401 &&
             bypassHeader != "true" &&
             instance != null &&
@@ -91,6 +124,24 @@ class AuthInterceptor @Inject constructor(
         }
 
         return response
+    }
+
+    private fun shouldAttemptNpmReauth(response: Response): Boolean {
+        if (response.code == 401) {
+            return true
+        }
+        if (response.code != 400) {
+            return false
+        }
+        val body = try {
+            response.peekBody(4096).string()
+        } catch (_: Exception) {
+            return false
+        }
+        val lowered = body.lowercase()
+        return lowered.contains("token has expired") ||
+            lowered.contains("jwt expired") ||
+            lowered.contains("tokenexpirederror")
     }
 
     private fun addAuthHeaders(

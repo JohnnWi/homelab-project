@@ -587,7 +587,22 @@ final class ServicesStore {
 
         case .nginxProxyManager:
             let client = clientManager.npmClient(id: instance.id)
-            await client.configure(url: instance.url, token: instance.token, fallbackUrl: instance.fallbackUrl)
+            await client.configure(
+                url: instance.url,
+                token: instance.token,
+                fallbackUrl: instance.fallbackUrl,
+                email: instance.username,
+                password: instance.password
+            )
+            let instanceId = instance.id
+            await client.setTokenRefreshCallback { [weak self] newToken in
+                Task { @MainActor in
+                    guard let self, var current = self.instancesById[instanceId] else { return }
+                    current.token = newToken
+                    self.instancesById[instanceId] = current
+                    self.persistState()
+                }
+            }
 
         case .patchmon:
             let client = clientManager.patchmonClient(id: instance.id)
