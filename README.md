@@ -81,14 +81,16 @@ Developed with **Swift 6** and **SwiftUI**, utilizing the latest native iOS 26 t
     <th>AdGuard DNS</th>
     <th>Healthcheck</th>
     <th>Patchmon</th>
+    <th>Jellystat</th>
     <th>Bookmarks</th>
   </tr>
   <tr>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9200.jpg" width="150" /></td>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9218.PNG" width="150" /></td>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9238.PNG" width="150" /></td>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9275.PNG" width="150" /></td>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9201.PNG" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9200.jpg" width="130" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9218.PNG" width="130" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9238.PNG" width="130" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9269.PNG" width="130" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9275.PNG" width="130" /></td>
+    <td align="center"><img src="media-docs/foto-ios/IMG_9201.PNG" width="130" /></td>
   </tr>
 </table>
 
@@ -146,6 +148,12 @@ Developed with **Swift 6** and **SwiftUI**, utilizing the latest native iOS 26 t
 <table>
   <tr>
     <td align="center"><img src="media-docs/foto-ios/IMG_9269.PNG" width="180" /></td>
+  </tr>
+</table>
+
+**Jellystat**
+<table>
+  <tr>
     <td align="center"><img src="media-docs/foto-ios/IMG_9275.PNG" width="180" /></td>
   </tr>
 </table>
@@ -180,14 +188,16 @@ Built with **Kotlin** and **Jetpack Compose**, following the **Material Expressi
     <th>AdGuard DNS</th>
     <th>Healthcheck</th>
     <th>Patchmon</th>
+    <th>Jellystat</th>
     <th>Bookmarks</th>
   </tr>
   <tr>
-    <td align="center"><img src="media-docs/foto-android/photo_16_2026-03-16_20-24-21.jpg" width="150" /></td>
-    <td align="center"><img src="media-docs/foto-android/adguard1.jpg" width="150" /></td>
-    <td align="center"><img src="media-docs/foto-android/healthcheck1.jpg" width="150" /></td>
-    <td align="center"><img src="media-docs/foto-android/photo_1_2026-03-21_01-00-34.jpg" width="150" /></td>
-    <td align="center"><img src="media-docs/foto-android/photo_18_2026-03-16_20-24-21.jpg" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_16_2026-03-16_20-24-21.jpg" width="130" /></td>
+    <td align="center"><img src="media-docs/foto-android/adguard1.jpg" width="130" /></td>
+    <td align="center"><img src="media-docs/foto-android/healthcheck1.jpg" width="130" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_1_2026-03-21_01-00-34.jpg" width="130" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_2_2026-03-21_01-00-34.jpg" width="130" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_18_2026-03-16_20-24-21.jpg" width="130" /></td>
   </tr>
 </table>
 
@@ -254,6 +264,12 @@ Built with **Kotlin** and **Jetpack Compose**, following the **Material Expressi
 <table>
   <tr>
     <td align="center"><img src="media-docs/foto-android/photo_1_2026-03-21_01-00-34.jpg" width="180" /></td>
+  </tr>
+</table>
+
+**Jellystat**
+<table>
+  <tr>
     <td align="center"><img src="media-docs/foto-android/photo_2_2026-03-21_01-00-34.jpg" width="180" /></td>
   </tr>
 </table>
