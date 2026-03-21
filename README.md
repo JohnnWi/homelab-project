@@ -26,15 +26,11 @@ A premium, fully native dual-platform solution for monitoring and managing your 
 
 ## Highlights
 
-- **Multi-instance support**: add multiple instances of the same service (e.g. several Portainer or Pi-hole servers) and switch between them seamlessly.
-- **Tailscale support**: quickly open Tailscale, check VPN connectivity status, and secure access to homelab services when they are not directly reachable.
-- **Bookmarks**: save your favorite internal tools and dashboards with categories, tags, and custom icons for faster access from both apps.
-- **Cyberpunk mode**: toggle a unique cyberpunk visual theme for your service cards.
-- **Multilingual**: English, Italian, French, Spanish, German — auto-detected from your system language.
-
-[![Star History Chart](https://api.star-history.com/svg?repos=JohnnWi/homelab-project&type=date&legend=top-left)](https://www.star-history.com/#JohnnWi/homelab-project&type=date&legend=top-left)
-
-**11 integrated services** · **2 native apps** · **5 languages** 🇺🇸 🇮🇹 🇫🇷 🇪🇸 🇩🇪
+- **11 integrated services** — Portainer, Pi-hole, Beszel, Gitea, Nginx Proxy Manager, AdGuard DNS, Healthcheck, Patchmon, Jellystat, Tailscale, Bookmarks.
+- **Multi-instance support** — Add multiple instances of the same service and switch between them seamlessly.
+- **Cyberpunk mode** — Toggle a unique cyberpunk visual theme for your service cards.
+- **Multilingual** — English, Italian, French, Spanish, German — auto-detected from your system language.
+- **2 native apps** — Swift 6 + SwiftUI (iOS) and Kotlin + Jetpack Compose (Android).
 
 ---
 
