@@ -50,7 +50,7 @@ Developed with **Swift 6** and **SwiftUI**, utilizing the latest native iOS 26 t
     <th>Pi-hole</th>
   </tr>
   <tr>
-    <td align="center"><img src="media-docs/foto-ios/IMG_9186.PNG" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-ios/Dashboard.png" width="150" /></td>
     <td align="center"><img src="media-docs/foto-ios/IMG_9187.PNG" width="150" /></td>
     <td align="center"><img src="media-docs/foto-ios/IMG_9190.PNG" width="150" /></td>
     <td align="center"><img src="media-docs/foto-ios/IMG_9193.PNG" width="150" /></td>
@@ -166,7 +166,7 @@ Built with **Kotlin** and **Jetpack Compose**, following the **Material Expressi
     <th>Nginx Proxy</th>
   </tr>
   <tr>
-    <td align="center"><img src="media-docs/foto-android/photo_15_2026-03-16_20-24-21.jpg" width="150" /></td>
+    <td align="center"><img src="media-docs/foto-android/Dashboard.jpg" width="150" /></td>
     <td align="center"><img src="media-docs/foto-android/photo_1_2026-03-16_20-24-21.jpg" width="150" /></td>
     <td align="center"><img src="media-docs/foto-android/photo_4_2026-03-16_20-24-21.jpg" width="150" /></td>
     <td align="center"><img src="media-docs/foto-android/photo_12_2026-03-16_20-24-21.jpg" width="150" /></td>
