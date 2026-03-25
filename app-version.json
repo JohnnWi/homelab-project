@@ -1,5 +1,6 @@
 {
-  "latest": "0.8.1",
+  "latest": "0.8.2",
   "ios_url": "https://github.com/JohnnWi/homelab-project/releases",
-  "android_url": "https://github.com/JohnnWi/homelab-project/releases"
+  "android_url": "https://github.com/JohnnWi/homelab-project/releases",
+  "changelog": "What's New\n\n- **NPMplus Support**: Added cookie-based token fallback for NPMplus (Nginx Proxy Manager fork with CrowdSec)\n- **Configured Services Page**: New dedicated page in Settings to manage all connected services\n- **Update Popup**: Full-screen popup notification on app launch when a new version is available\n- **Settings Redesigned**: Reordered sections, neutral card style for Debug and Services\n\nFixes\n- Fixed `ic_splash_welcome.png` resource (was JPEG with .png extension)\n- Version bumped to 0.8.2 (build 12) on both platforms"
 }
