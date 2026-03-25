@@ -134,7 +134,7 @@ private fun BeszelSystemDetailContent(
     val expandedDockerMetric = remember { mutableStateOf<DockerMetricType?>(null) }
     val expandedDiskFs = remember { mutableStateOf<DiskFsUsage?>(null) }
     val expandedSmartDevice = remember { mutableStateOf<BeszelSmartDevice?>(null) }
-    val gpuDetailsMetric = remember { mutableStateOf<GpuMetricType?>(null) }
+    val gpuDetailsSelection = remember { mutableStateOf<GpuMetricSelection?>(null) }
 
     LazyColumn(
         modifier = Modifier
@@ -209,9 +209,7 @@ private fun BeszelSystemDetailContent(
                     GpuMetricsSection(
                         latest = latestStats,
                         history = model.statsHistory,
-                        onUsageClick = { gpuDetailsMetric.value = GpuMetricType.USAGE },
-                        onPowerClick = { gpuDetailsMetric.value = GpuMetricType.POWER },
-                        onVramClick = { gpuDetailsMetric.value = GpuMetricType.VRAM }
+                        onGpuMetricClick = { selection -> gpuDetailsSelection.value = selection }
                     )
                 }
                 item {
@@ -311,11 +309,12 @@ private fun BeszelSystemDetailContent(
         )
     }
 
-    gpuDetailsMetric.value?.let { metric ->
+    gpuDetailsSelection.value?.let { selection ->
         GpuDetailsSheet(
-            metric = metric,
+            metric = selection.metric,
+            gpuKey = selection.gpuKey,
             history = model.statsHistory,
-            onDismiss = { gpuDetailsMetric.value = null }
+            onDismiss = { gpuDetailsSelection.value = null }
         )
     }
 }

@@ -12,9 +12,24 @@ enum ResourceMetricType: String, Identifiable {
     var id: String { rawValue }
 }
 
-enum GpuMetricType: String, Identifiable {
-    case usage, power, vram
-    var id: String { rawValue }
+enum GpuMetricType: Identifiable, Equatable {
+    case usage(gpuKey: String)
+    case power(gpuKey: String)
+    case vram(gpuKey: String)
+
+    var id: String {
+        switch self {
+        case .usage(let key): return "usage_\(key)"
+        case .power(let key): return "power_\(key)"
+        case .vram(let key): return "vram_\(key)"
+        }
+    }
+
+    var gpuKey: String {
+        switch self {
+        case .usage(let key), .power(let key), .vram(let key): return key
+        }
+    }
 }
 
 enum DockerMetricType: String, Identifiable {
@@ -102,7 +117,7 @@ struct BeszelSystemDetailUiModel {
         )
     }
 
-    var hasGpu: Bool { latestStats?.primaryGpu != nil }
+    var hasGpu: Bool { !(latestStats?.gpuEntries.isEmpty ?? true) }
     var hasSmartDevices: Bool { !smartDevices.isEmpty }
     var hasBattery: Bool { latestStats?.batteryLevel != nil }
     var hasSwap: Bool { latestStats?.swapTotalGb != nil }

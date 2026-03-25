@@ -256,11 +256,29 @@ struct BeszelRecordStats: Codable {
         g?.values.first
     }
 
+    /// All GPU entries sorted by key (e.g. "0", "1", …)
+    var gpuEntries: [(key: String, gpu: BeszelGpuEntry)] {
+        guard let g else { return [] }
+        return g.sorted(by: { $0.key < $1.key }).map { (key: $0.key, gpu: $0.value) }
+    }
+
     var gpuUsagePercent: Double? { primaryGpu?.u }
     var gpuPowerWatts: Double? { primaryGpu?.p }
     var gpuVramPercent: Double? { primaryGpu?.memUsagePercent }
     var gpuVramUsedMb: Double? { primaryGpu?.mu }
     var gpuVramTotalMb: Double? { primaryGpu?.mt }
+
+    func gpuUsagePercent(forKey key: String) -> Double? {
+        g?[key]?.u
+    }
+
+    func gpuPowerWatts(forKey key: String) -> Double? {
+        g?[key]?.p
+    }
+
+    func gpuVramPercent(forKey key: String) -> Double? {
+        g?[key]?.memUsagePercent
+    }
 }
 
 // MARK: - GPU Entry

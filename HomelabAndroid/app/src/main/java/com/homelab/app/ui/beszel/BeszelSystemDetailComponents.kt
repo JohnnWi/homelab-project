@@ -837,23 +837,27 @@ internal fun ExtraMetricsSection(
 internal fun GpuMetricsSection(
     latest: BeszelRecordStats,
     history: List<BeszelRecordStats>,
-    onUsageClick: () -> Unit = {},
-    onPowerClick: () -> Unit = {},
-    onVramClick: () -> Unit = {}
+    onGpuMetricClick: (GpuMetricSelection) -> Unit = {}
 ) {
-    val gpu = latest.primaryGpu ?: return
+    val entries = latest.gpuEntries
+    if (entries.isEmpty()) return
 
-    GpuMetricsCard(
-        gpuName = gpu.n,
-        latestUsage = gpu.u ?: 0.0,
-        latestPowerWatts = gpu.p ?: 0.0,
-        latestVramPercent = latest.gpuVramPercent ?: 0.0,
-        latestVramUsedMb = gpu.memUsedMb.takeIf { gpu.mt != null && gpu.mt > 0.0 },
-        latestVramTotalMb = gpu.memTotalMb.takeIf { gpu.mt != null && gpu.mt > 0.0 },
-        onUsageClick = onUsageClick,
-        onPowerClick = onPowerClick,
-        onVramClick = onVramClick
-    )
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        entries.forEach { entry ->
+            val gpu = entry.value
+            GpuMetricsCard(
+                gpuName = gpu.n,
+                latestUsage = gpu.u ?: 0.0,
+                latestPowerWatts = gpu.p ?: 0.0,
+                latestVramPercent = gpu.memUsagePercent ?: 0.0,
+                latestVramUsedMb = gpu.memUsedMb.takeIf { gpu.mt != null && gpu.mt > 0.0 },
+                latestVramTotalMb = gpu.memTotalMb.takeIf { gpu.mt != null && gpu.mt > 0.0 },
+                onUsageClick = { onGpuMetricClick(GpuMetricSelection(GpuMetricType.USAGE, entry.key)) },
+                onPowerClick = { onGpuMetricClick(GpuMetricSelection(GpuMetricType.POWER, entry.key)) },
+                onVramClick = { onGpuMetricClick(GpuMetricSelection(GpuMetricType.VRAM, entry.key)) }
+            )
+        }
+    }
 }
 
 @Composable
