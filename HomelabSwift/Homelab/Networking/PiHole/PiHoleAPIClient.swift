@@ -6,6 +6,9 @@ actor PiHoleAPIClient {
     private var fallbackURL: String = ""
     private var sid: String = ""
     private var authMode: PiHoleAuthMode?
+    private var storedPassword: String = ""
+    private var isRefreshing = false
+    private var onTokenRefreshed: (@Sendable (String, PiHoleAuthMode) -> Void)?
 
     init(instanceId: UUID) {
         self.engine = BaseNetworkEngine(serviceType: .pihole, instanceId: instanceId)
@@ -13,11 +16,58 @@ actor PiHoleAPIClient {
 
     // MARK: - Configuration
 
-    func configure(url: String, sid: String, authMode: PiHoleAuthMode? = nil, fallbackUrl: String? = nil) {
+    func configure(url: String, sid: String, authMode: PiHoleAuthMode? = nil, fallbackUrl: String? = nil, password: String? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.sid = sid
         self.authMode = authMode
+        if let password, !password.isEmpty { self.storedPassword = password }
+    }
+
+    /// Set a callback invoked after successful token refresh so the store can persist it
+    func setTokenRefreshCallback(_ callback: @escaping @Sendable (String, PiHoleAuthMode) -> Void) {
+        self.onTokenRefreshed = callback
+    }
+
+    /// Attempts to refresh the session using stored credentials
+    private func refreshToken() async -> Bool {
+        guard !storedPassword.isEmpty, !isRefreshing else { return false }
+        isRefreshing = true
+        defer { isRefreshing = false }
+
+        do {
+            let newSid = try await authenticate(url: baseURL.isEmpty ? fallbackURL : baseURL, password: storedPassword, fallbackUrl: fallbackURL.isEmpty ? nil : fallbackURL)
+            let newMode: PiHoleAuthMode = newSid == storedPassword ? .legacy : .session
+            sid = newSid
+            authMode = newMode
+            onTokenRefreshed?(newSid, newMode)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    /// Wrapper that retries once after token refresh on auth failure
+    private func withAuthRetry<T>(_ operation: () async throws -> T) async throws -> T {
+        do {
+            return try await operation()
+        } catch {
+            if isAuthError(error), await refreshToken() {
+                return try await operation()
+            }
+            throw error
+        }
+    }
+
+    private func isAuthError(_ error: Error) -> Bool {
+        guard let apiError = error as? APIError else { return false }
+        switch apiError {
+        case .httpError(let code, _): return code == 401
+        case .unauthorized: return true
+        case .bothURLsFailed(let primary, let fallback):
+            return isAuthError(primary) || isAuthError(fallback)
+        default: return false
+        }
     }
 
     private func authHeaders() -> [String: String] {
@@ -84,39 +134,43 @@ actor PiHoleAPIClient {
     // MARK: - Stats
 
     func getStats() async throws -> PiholeStats {
-        do {
-            return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/stats/summary"), headers: authHeaders())
-        } catch {
-            // Legacy fallback (Pi-hole v5)
-            let data = try await engine.requestData(
-                baseURL: baseURL,
-                fallbackURL: fallbackURL,
-                path: legacyAuthPath("/admin/api.php?summaryRaw"),
-                headers: authHeaders()
-            )
-            guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                throw error
+        try await withAuthRetry {
+            do {
+                return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/stats/summary"), headers: authHeaders())
+            } catch {
+                // Legacy fallback (Pi-hole v5)
+                let data = try await engine.requestData(
+                    baseURL: baseURL,
+                    fallbackURL: fallbackURL,
+                    path: legacyAuthPath("/admin/api.php?summaryRaw"),
+                    headers: authHeaders()
+                )
+                guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                    throw error
+                }
+                return parseLegacyStats(json)
             }
-            return parseLegacyStats(json)
         }
     }
 
     func getBlockingStatus() async throws -> PiholeBlockingStatus {
-        do {
-            return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/dns/blocking"), headers: authHeaders())
-        } catch {
-            // Legacy fallback (Pi-hole v5)
-            let data = try await engine.requestData(
-                baseURL: baseURL,
-                fallbackURL: fallbackURL,
-                path: legacyAuthPath("/admin/api.php?status"),
-                headers: authHeaders()
-            )
-            guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                throw error
+        try await withAuthRetry {
+            do {
+                return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/dns/blocking"), headers: authHeaders())
+            } catch {
+                // Legacy fallback (Pi-hole v5)
+                let data = try await engine.requestData(
+                    baseURL: baseURL,
+                    fallbackURL: fallbackURL,
+                    path: legacyAuthPath("/admin/api.php?status"),
+                    headers: authHeaders()
+                )
+                guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                    throw error
+                }
+                let status = (json["status"] as? String) ?? (json["blocking"] as? String) ?? "unknown"
+                return PiholeBlockingStatus(blocking: status == "enabled" ? "enabled" : "disabled")
             }
-            let status = (json["status"] as? String) ?? (json["blocking"] as? String) ?? "unknown"
-            return PiholeBlockingStatus(blocking: status == "enabled" ? "enabled" : "disabled")
         }
     }
 
@@ -125,49 +179,53 @@ actor PiHoleAPIClient {
             let blocking: Bool
             let timer: Int?
         }
-        do {
-            let body = try BlockBody(blocking: enabled, timer: timer).toJSONData()
-            try await engine.requestVoid(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/dns/blocking"), method: "POST", headers: authHeaders(), body: body)
-        } catch {
-            // Legacy fallback (Pi-hole v5)
-            let query: String
-            if enabled {
-                query = "enable"
-            } else {
-                let duration = timer ?? 0
-                query = "disable=\(duration)"
+        try await withAuthRetry {
+            do {
+                let body = try BlockBody(blocking: enabled, timer: timer).toJSONData()
+                try await engine.requestVoid(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/dns/blocking"), method: "POST", headers: authHeaders(), body: body)
+            } catch {
+                // Legacy fallback (Pi-hole v5)
+                let query: String
+                if enabled {
+                    query = "enable"
+                } else {
+                    let duration = timer ?? 0
+                    query = "disable=\(duration)"
+                }
+                _ = try await engine.requestData(
+                    baseURL: baseURL,
+                    fallbackURL: fallbackURL,
+                    path: legacyAuthPath("/admin/api.php?\(query)"),
+                    headers: authHeaders()
+                )
             }
-            _ = try await engine.requestData(
-                baseURL: baseURL,
-                fallbackURL: fallbackURL,
-                path: legacyAuthPath("/admin/api.php?\(query)"),
-                headers: authHeaders()
-            )
         }
     }
 
     // MARK: - Domains (v6 + legacy v5)
 
     func getDomains() async throws -> [PiholeDomain] {
-        do {
-            let response: PiholeDomainListResponse = try await engine.request(
-                baseURL: baseURL,
-                fallbackURL: fallbackURL,
-                path: authorizedPath("/api/domains"),
-                headers: authHeaders()
-            )
-            return response.domains
-        } catch {
-            // Legacy fallback (Pi-hole v5)
-            let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
-            let data = try await engine.requestData(
-                baseURL: baseURL,
-                fallbackURL: fallbackURL,
-                path: "/admin/api.php?list=all&auth=\(encodedSid)",
-                headers: authHeaders()
-            )
-            let response = try JSONDecoder().decode(PiholeDomainListResponse.self, from: data)
-            return response.domains
+        try await withAuthRetry {
+            do {
+                let response: PiholeDomainListResponse = try await engine.request(
+                    baseURL: baseURL,
+                    fallbackURL: fallbackURL,
+                    path: authorizedPath("/api/domains"),
+                    headers: authHeaders()
+                )
+                return response.domains
+            } catch {
+                // Legacy fallback (Pi-hole v5)
+                let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
+                let data = try await engine.requestData(
+                    baseURL: baseURL,
+                    fallbackURL: fallbackURL,
+                    path: "/admin/api.php?list=all&auth=\(encodedSid)",
+                    headers: authHeaders()
+                )
+                let response = try JSONDecoder().decode(PiholeDomainListResponse.self, from: data)
+                return response.domains
+            }
         }
     }
     
@@ -175,123 +233,138 @@ actor PiHoleAPIClient {
         struct AddDomainBody: Encodable {
             let domain: String
         }
-        do {
-            let body = try AddDomainBody(domain: domain).toJSONData()
-            let path = authorizedPath("/api/domains/\(list.rawValue)/exact")
-            try await engine.requestVoid(
-                baseURL: baseURL,
-                fallbackURL: fallbackURL,
-                path: path,
-                method: "POST",
-                headers: authHeaders(),
-                body: body
-            )
-        } catch {
-            // Legacy fallback (Pi-hole v5)
-            let encodedDomain = domain.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? domain
-            let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
-            let listParam = list == .allow ? "white" : "black"
-            let path = "/admin/api.php?list=\(listParam)&add=\(encodedDomain)&auth=\(encodedSid)"
-            _ = try await engine.requestData(baseURL: baseURL, fallbackURL: fallbackURL, path: path, headers: authHeaders())
+        try await withAuthRetry {
+            do {
+                let body = try AddDomainBody(domain: domain).toJSONData()
+                let path = authorizedPath("/api/domains/\(list.rawValue)/exact")
+                try await engine.requestVoid(
+                    baseURL: baseURL,
+                    fallbackURL: fallbackURL,
+                    path: path,
+                    method: "POST",
+                    headers: authHeaders(),
+                    body: body
+                )
+            } catch {
+                // Legacy fallback (Pi-hole v5)
+                let encodedDomain = domain.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? domain
+                let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
+                let listParam = list == .allow ? "white" : "black"
+                let path = "/admin/api.php?list=\(listParam)&add=\(encodedDomain)&auth=\(encodedSid)"
+                _ = try await engine.requestData(baseURL: baseURL, fallbackURL: fallbackURL, path: path, headers: authHeaders())
+            }
         }
     }
     
     func removeDomain(domain: String, from list: PiholeDomainListType) async throws {
         let encodedDomain = domain.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? domain
-        do {
-            // v6 API for exact domains
-            let path = authorizedPath("/api/domains/\(list.rawValue)/exact/\(encodedDomain)")
-            try await engine.requestVoid(
-                baseURL: baseURL,
-                fallbackURL: fallbackURL,
-                path: path,
-                method: "DELETE",
-                headers: authHeaders()
-            )
-        } catch {
-            // Legacy fallback (Pi-hole v5)
-            let queryDomain = domain.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? domain
-            let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
-            let listParam = list == .allow ? "white" : "black"
-            let path = "/admin/api.php?list=\(listParam)&sub=\(queryDomain)&auth=\(encodedSid)"
-            _ = try await engine.requestData(baseURL: baseURL, fallbackURL: fallbackURL, path: path, headers: authHeaders())
+        try await withAuthRetry {
+            do {
+                // v6 API for exact domains
+                let path = authorizedPath("/api/domains/\(list.rawValue)/exact/\(encodedDomain)")
+                try await engine.requestVoid(
+                    baseURL: baseURL,
+                    fallbackURL: fallbackURL,
+                    path: path,
+                    method: "DELETE",
+                    headers: authHeaders()
+                )
+            } catch {
+                // Legacy fallback (Pi-hole v5)
+                let queryDomain = domain.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? domain
+                let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
+                let listParam = list == .allow ? "white" : "black"
+                let path = "/admin/api.php?list=\(listParam)&sub=\(queryDomain)&auth=\(encodedSid)"
+                _ = try await engine.requestData(baseURL: baseURL, fallbackURL: fallbackURL, path: path, headers: authHeaders())
+            }
         }
     }
 
     // MARK: - Top lists (handles varying API response formats)
 
     func getTopDomains(count: Int = 10) async throws -> [PiholeTopItem] {
-        // Try v6 endpoint first, fallback to v5
-        do {
-            let raw = try await requestRaw(path: "/api/stats/top_domains?count=\(count)")
-            return parseTopItems(from: raw, rootKeys: ["top_domains", "top_queries", "domains", "queries"])
-        } catch {
-            let raw = try await requestRaw(path: "/api/stats/top_queries?count=\(count)")
-            return parseTopItems(from: raw, rootKeys: ["top_domains", "top_queries", "domains", "queries"])
+        try await withAuthRetry {
+            do {
+                let raw = try await requestRaw(path: "/api/stats/top_domains?count=\(count)")
+                return parseTopItems(from: raw, rootKeys: ["top_domains", "top_queries", "domains", "queries"])
+            } catch {
+                let raw = try await requestRaw(path: "/api/stats/top_queries?count=\(count)")
+                return parseTopItems(from: raw, rootKeys: ["top_domains", "top_queries", "domains", "queries"])
+            }
         }
     }
 
     func getTopBlocked(count: Int = 10) async throws -> [PiholeTopItem] {
-        do {
-            let raw = try await requestRaw(path: "/api/stats/top_blocked?count=\(count)")
-            return parseTopItems(from: raw, rootKeys: ["top_blocked", "top_ads", "blocked", "ads"])
-        } catch {
-            let raw = try await requestRaw(path: "/api/stats/top_ads?count=\(count)")
-            return parseTopItems(from: raw, rootKeys: ["top_blocked", "top_ads", "blocked", "ads"])
+        try await withAuthRetry {
+            do {
+                let raw = try await requestRaw(path: "/api/stats/top_blocked?count=\(count)")
+                return parseTopItems(from: raw, rootKeys: ["top_blocked", "top_ads", "blocked", "ads"])
+            } catch {
+                let raw = try await requestRaw(path: "/api/stats/top_ads?count=\(count)")
+                return parseTopItems(from: raw, rootKeys: ["top_blocked", "top_ads", "blocked", "ads"])
+            }
         }
     }
 
     func getTopClients(count: Int = 10) async throws -> [PiholeTopClient] {
-        do {
-            let raw = try await requestRaw(path: "/api/stats/top_clients?count=\(count)")
-            return parseTopClients(from: raw)
-        } catch {
-            let raw = try await requestRaw(path: "/api/stats/top_sources?count=\(count)")
-            return parseTopClients(from: raw)
+        try await withAuthRetry {
+            do {
+                let raw = try await requestRaw(path: "/api/stats/top_clients?count=\(count)")
+                return parseTopClients(from: raw)
+            } catch {
+                let raw = try await requestRaw(path: "/api/stats/top_sources?count=\(count)")
+                return parseTopClients(from: raw)
+            }
         }
     }
 
     func getQueryHistory() async throws -> PiholeQueryHistory {
-        do {
-            return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/history"), headers: authHeaders())
-        } catch {
-            let data = try await engine.requestData(
-                baseURL: baseURL,
-                fallbackURL: fallbackURL,
-                path: legacyAuthPath("/admin/api.php?overTimeData10mins"),
-                headers: authHeaders()
-            )
-            guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                throw error
+        try await withAuthRetry {
+            do {
+                return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/history"), headers: authHeaders())
+            } catch {
+                let data = try await engine.requestData(
+                    baseURL: baseURL,
+                    fallbackURL: fallbackURL,
+                    path: legacyAuthPath("/admin/api.php?overTimeData10mins"),
+                    headers: authHeaders()
+                )
+                guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                    throw error
+                }
+                let history = parseLegacyHistory(json)
+                if history.isEmpty { throw error }
+                return PiholeQueryHistory(history: history)
             }
-            let history = parseLegacyHistory(json)
-            if history.isEmpty { throw error }
-            return PiholeQueryHistory(history: history)
         }
     }
 
     func getQueries(from: Date, until: Date) async throws -> [PiholeQueryLogEntry] {
-        let fromTs = Int(from.timeIntervalSince1970)
-        let untilTs = Int(until.timeIntervalSince1970)
+        try await withAuthRetry {
+            let fromTs = Int(from.timeIntervalSince1970)
+            let untilTs = Int(until.timeIntervalSince1970)
 
-        do {
-            let any = try await requestAny(path: "/api/queries?from=\(fromTs)&until=\(untilTs)")
-            let parsed = parseQueryEntries(from: any)
-            if !parsed.isEmpty {
-                return parsed.sorted { $0.timestamp > $1.timestamp }
+            do {
+                let any = try await requestAny(path: "/api/queries?from=\(fromTs)&until=\(untilTs)")
+                let parsed = parseQueryEntries(from: any)
+                if !parsed.isEmpty {
+                    return parsed.sorted { $0.timestamp > $1.timestamp }
+                }
+            } catch {
+                // Continue with legacy fallback.
             }
-        } catch {
-            // Continue with legacy fallback.
-        }
 
-        let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
-        let legacyPath = "/admin/api.php?getAllQueriesRaw&from=\(fromTs)&until=\(untilTs)&auth=\(encodedSid)"
-        let any = try await requestAny(path: legacyPath)
-        return parseQueryEntries(from: any).sorted { $0.timestamp > $1.timestamp }
+            let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
+            let legacyPath = "/admin/api.php?getAllQueriesRaw&from=\(fromTs)&until=\(untilTs)&auth=\(encodedSid)"
+            let any = try await requestAny(path: legacyPath)
+            return parseQueryEntries(from: any).sorted { $0.timestamp > $1.timestamp }
+        }
     }
 
     func getUpstreams() async throws -> PiholeUpstream {
-        return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/stats/upstreams"), headers: authHeaders())
+        try await withAuthRetry {
+            return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: authorizedPath("/api/stats/upstreams"), headers: authHeaders())
+        }
     }
 
     // MARK: - Private helpers

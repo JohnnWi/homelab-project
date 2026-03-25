@@ -305,7 +305,7 @@ internal fun SmoothLineGraph(
                     drawContext.canvas.nativeCanvas.drawText(primaryText, textX, line1Y, paint)
 
                     // Optional secondary line
-                    if (hasSecondary && secondaryText != null) {
+                    if (hasSecondary) {
                         drawCircle(
                             color = secondaryColor,
                             radius = dotRadius,

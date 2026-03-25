@@ -820,6 +820,33 @@ extension Translations {
         unknown: "Unknown",
         none: "none",
         statusOn: "ON",
-        statusOff: "OFF"
+        statusOff: "OFF",
+
+        // Backup & Restore
+        backupTitle: "Backup & Restore",
+        backupInfoTitle: "Encrypted Backup",
+        backupInfoDesc: "Your service configurations are encrypted with AES-256. The backup file is protected by a password you choose.",
+        backupExportTitle: "Create Backup",
+        backupExportAction: "Create Backup",
+        backupExportDesc: "%d services will be exported",
+        backupExportSuccess: "Backup created successfully",
+        backupImportTitle: "Restore Backup",
+        backupImportAction: "Restore Backup",
+        backupImportDesc: "Import a .homelab backup file",
+        backupImportDecrypt: "Decrypt",
+        backupImportPasswordDesc: "Enter the password used when the backup was created.",
+        backupImportFileError: "Unable to access the selected file.",
+        backupImportApply: "Replace All",
+        backupImportSuccess: "%d services restored successfully",
+        backupImportPreviewTitle: "Restore Preview",
+        backupPreviewServices: "%d services found:",
+        backupPreviewUnknown: "%d unknown services will be skipped.",
+        backupPreviewWarning: "⚠️ This will replace all existing service configurations.",
+        backupPasswordPlaceholder: "Password",
+        backupPasswordConfirm: "Confirm password",
+        backupPasswordDesc: "Choose a password to protect your backup. You will need it to restore.",
+        backupPasswordRequired: "Password is required.",
+        backupPasswordTooShort: "Password must be at least 6 characters.",
+        backupPasswordMismatch: "Passwords do not match."
     )
 }

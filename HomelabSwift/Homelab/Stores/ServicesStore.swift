@@ -581,7 +581,18 @@ final class ServicesStore {
                 configuredSID = instance.token
             }
 
-            await client.configure(url: instance.url, sid: configuredSID, authMode: authMode, fallbackUrl: instance.fallbackUrl)
+            await client.configure(url: instance.url, sid: configuredSID, authMode: authMode, fallbackUrl: instance.fallbackUrl, password: instance.piHoleStoredSecret)
+            let instanceId = instance.id
+            await client.setTokenRefreshCallback { [weak self] newSid, newMode in
+                Task { @MainActor in
+                    guard let self else { return }
+                    if var existing = self.instancesById[instanceId] {
+                        existing = existing.updatingToken(newSid, piholeAuthMode: newMode)
+                        self.instancesById[instanceId] = existing
+                        self.persistState()
+                    }
+                }
+            }
 
         case .adguardHome:
             let client = clientManager.adguardClient(id: instance.id)

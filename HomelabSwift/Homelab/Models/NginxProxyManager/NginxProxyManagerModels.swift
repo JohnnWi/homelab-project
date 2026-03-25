@@ -123,6 +123,23 @@ struct NpmProxyHostMeta: Codable {
 struct NpmHealthResponse: Codable {
     let status: String
     let version: NpmVersion?
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        status = try container.decodeIfPresent(String.self, forKey: .status) ?? ""
+        // NPM returns version as object, NPMplus returns it as string
+        if let obj = try? container.decode(NpmVersion.self, forKey: .version) {
+            version = obj
+        } else if let str = try? container.decode(String.self, forKey: .version) {
+            version = NpmVersion.fromString(str)
+        } else {
+            version = nil
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case status, version
+    }
 }
 
 struct NpmVersion: Codable {
@@ -131,6 +148,15 @@ struct NpmVersion: Codable {
     let revision: Int
 
     var display: String { "\(major).\(minor).\(revision)" }
+
+    static func fromString(_ s: String) -> NpmVersion {
+        let parts = s.split(separator: ".").compactMap { Int($0) }
+        return NpmVersion(
+            major: parts.count > 0 ? parts[0] : 0,
+            minor: parts.count > 1 ? parts[1] : 0,
+            revision: parts.count > 2 ? parts[2] : 0
+        )
+    }
 }
 
 // MARK: - Redirection Hosts

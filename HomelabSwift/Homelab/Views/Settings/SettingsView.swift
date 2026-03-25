@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var changePinStep: ChangePinStep = .currentPin
     @State private var currentPinInput = ""
     @State private var newPinInput = ""
+    @State private var confirmPinInput = ""
     @State private var changePinError: String? = nil
     @State private var showDebugLogs = false
     private let cryptoAddress = "0x649641868e6876c2c1f04584a95679e01c1aaf0d"
@@ -42,6 +43,7 @@ struct SettingsView: View {
                             homeStyleSection
                             languageSection
                             securitySection
+                            backupSection
                             contactsSection
                             debugSection
                             versionSection
@@ -356,7 +358,7 @@ struct SettingsView: View {
 
             VStack(spacing: 0) {
                 NavigationLink {
-                    ConfiguredServicesView()
+                    AuthGatedConfiguredServicesView()
                 } label: {
                     HStack(spacing: 16) {
                         Image(systemName: "server.rack")
@@ -370,6 +372,12 @@ struct SettingsView: View {
                             .foregroundStyle(.primary)
 
                         Spacer()
+
+                        if settingsStore.isPinSet {
+                            Image(systemName: "lock.fill")
+                                .font(.caption2)
+                                .foregroundStyle(AppTheme.textMuted)
+                        }
 
                         Image(systemName: "chevron.right")
                             .font(.caption.bold())
@@ -482,6 +490,7 @@ struct SettingsView: View {
                         changePinStep = .currentPin
                         currentPinInput = ""
                         newPinInput = ""
+                        confirmPinInput = ""
                         changePinError = nil
                         showChangePinFlow = true
                     } label: {
@@ -535,6 +544,7 @@ struct SettingsView: View {
                         changePinStep = .newPin
                         currentPinInput = ""
                         newPinInput = ""
+                        confirmPinInput = ""
                         changePinError = nil
                         showChangePinFlow = true
                         HapticManager.light()
@@ -576,6 +586,49 @@ struct SettingsView: View {
         }
         .fullScreenCover(isPresented: $showChangePinFlow) {
             changePinView
+        }
+    }
+
+    // MARK: - Backup Section
+
+    private var backupSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(localizer.t.backupTitle.uppercased())
+                .font(.caption2)
+                .fontWeight(.bold)
+                .foregroundStyle(AppTheme.accent)
+                .padding(.leading, 8)
+
+            NavigationLink(destination: BackupView()) {
+                HStack(spacing: 16) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.title3)
+                        .foregroundStyle(AppTheme.accent)
+                        .frame(width: 40, height: 40)
+                        .background(AppTheme.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(localizer.t.backupTitle)
+                            .font(.body.weight(.medium))
+                            .foregroundStyle(.primary)
+                        Text(localizer.t.backupInfoDesc)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption.bold())
+                        .foregroundStyle(AppTheme.textMuted)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .glassCard()
         }
     }
 
@@ -641,10 +694,7 @@ struct SettingsView: View {
 
                 case .confirmNewPin:
                     PinEntryView(
-                        pin: .init(
-                            get: { currentPinInput },
-                            set: { currentPinInput = $0 }
-                        ),
+                        pin: $confirmPinInput,
                         title: localizer.t.securityConfirmPin,
                         subtitle: localizer.t.securityConfirmPinDesc,
                         errorMessage: changePinError,
@@ -655,10 +705,14 @@ struct SettingsView: View {
                                 showChangePinFlow = false
                             } else {
                                 changePinError = localizer.t.securityPinMismatch
-                                currentPinInput = ""
+                                confirmPinInput = ""
+                                newPinInput = ""
                                 HapticManager.error()
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                     changePinError = nil
+                                    withAnimation {
+                                        changePinStep = .newPin
+                                    }
                                 }
                             }
                         }

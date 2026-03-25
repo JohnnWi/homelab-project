@@ -877,6 +877,33 @@ struct Translations {
     let none: String
     let statusOn: String
     let statusOff: String
+
+    // Backup & Restore
+    let backupTitle: String
+    let backupInfoTitle: String
+    let backupInfoDesc: String
+    let backupExportTitle: String
+    let backupExportAction: String
+    let backupExportDesc: String
+    let backupExportSuccess: String
+    let backupImportTitle: String
+    let backupImportAction: String
+    let backupImportDesc: String
+    let backupImportDecrypt: String
+    let backupImportPasswordDesc: String
+    let backupImportFileError: String
+    let backupImportApply: String
+    let backupImportSuccess: String
+    let backupImportPreviewTitle: String
+    let backupPreviewServices: String
+    let backupPreviewUnknown: String
+    let backupPreviewWarning: String
+    let backupPasswordPlaceholder: String
+    let backupPasswordConfirm: String
+    let backupPasswordDesc: String
+    let backupPasswordRequired: String
+    let backupPasswordTooShort: String
+    let backupPasswordMismatch: String
 }
 
 // MARK: - Factory

@@ -13,8 +13,6 @@
 		03B92E43E53FDB090D96A183 /* NpmProxyHostForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F2913EA81E6CCF74EFC883C /* NpmProxyHostForm.swift */; };
 		05260E0A1A5781AC8EAE7011 /* EditBookmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CB770E60C2FE5FB6640BE98 /* EditBookmarkView.swift */; };
 		06B033BE66307E6CC8E75459 /* JellystatDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C74A7F7C1CB466CC7223840 /* JellystatDashboard.swift */; };
-		AA11223344556677AABBCCDD /* PlexAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB11223344556677AABBCCDD /* PlexAPIClient.swift */; };
-		CC11223344556677AABBCCDD /* PlexDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD11223344556677AABBCCDD /* PlexDashboard.swift */; };
 		0E5566DAE01FB0E9F10E98C8 /* StatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5B6FAE42892F4BEB3097FD /* StatusBadge.swift */; };
 		0F634D9389BDB5467A64C25E /* GlassStatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735477DB04233B4FDA23469D /* GlassStatCard.swift */; };
 		10FBD548812295AB0814803D /* HealthchecksModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD139A00611FED93C43C0833 /* HealthchecksModels.swift */; };
@@ -55,7 +53,6 @@
 		7E78EE55701AD004992579EF /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EBFFF57A15B47F78E81D04 /* Formatters.swift */; };
 		7E7FBBDCDE4E1CAE6CC714D9 /* NpmDeadHostCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFB66029D52483B7F25F83F /* NpmDeadHostCard.swift */; };
 		7E861F79CA67DDAD2078A333 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DB66F8274714A001051F1BE /* SettingsView.swift */; };
-		7E861F79CA67DDAD2078A334 /* ConfiguredServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DB66F8274714A001051F1BF /* ConfiguredServicesView.swift */; };
 		7EBB5603EC5B23E166D98E33 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 151F3E3C716170F5B65A688F /* SettingsStore.swift */; };
 		7EF18D092660634150160E03 /* Translations+English.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F7AE0005466E2FF260B000 /* Translations+English.swift */; };
 		7FAEE452C0F73043A465DF53 /* NpmRedirectionHostCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F233D9CF75937405674EEE4 /* NpmRedirectionHostCard.swift */; };
@@ -64,10 +61,13 @@
 		826BA16B6B4D4F31C3CC2B5C /* HomelabApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19F58DFAF2218D934F936D17 /* HomelabApp.swift */; };
 		889C2C456E8212B86F6EB9BB /* AdGuardHomeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1911146A0ED528B1D912614C /* AdGuardHomeModels.swift */; };
 		8BE00328A6AC68DF3E40F05B /* Translations+Italian.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D8F0162AE327AA60600505 /* Translations+Italian.swift */; };
+		8DD71C55FFF77D4A370735D1 /* PlexAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF3DE80965FEEDE327E3AE34 /* PlexAPIClient.swift */; };
 		8EADC34444DEB43F553D0513 /* SkeletonLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CC9947203975F8072646659 /* SkeletonLoader.swift */; };
+		8F1E8C350A24585FB98C7290 /* BackupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 575579918416C21F4E6DC488 /* BackupManager.swift */; };
 		8FC5C2BF6FC7CBC21BFF6696 /* ServiceDashboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7432B8C8ACBE47BDF26570DC /* ServiceDashboardLayout.swift */; };
 		8FF92C956D7D4D43C9F1547F /* HealthchecksAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC1DFC10F93EE792ED01CF97 /* HealthchecksAPIClient.swift */; };
 		9037BD60739CD62C84EFCDF1 /* PatchmonDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B344770A37AF6E6CF0CCB9E /* PatchmonDashboard.swift */; };
+		91FEB90D9F7C9387B1CD8BA9 /* ConfiguredServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C831E84A42E73C9A480BE3 /* ConfiguredServicesView.swift */; };
 		95AC663AE4D3962BC2F4BB2A /* NpmDeadHostForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BAF0C299F88C7BE7B562D3 /* NpmDeadHostForm.swift */; };
 		97C25FD08421A32F71C2B3BD /* NginxProxyManagerAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D740E72A36FA4EDBFEE8A195 /* NginxProxyManagerAPIClient.swift */; };
 		9A986ED771EA2DC52308E756 /* NpmAccessListCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34DDAD2C4F4522B5980306ED /* NpmAccessListCard.swift */; };
@@ -81,6 +81,7 @@
 		AAA9BC382610A55D8E374C95 /* Translations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7692F78990DA606D426BA429 /* Translations.swift */; };
 		ABCECDC5B2772BE727043AA3 /* BeszelDetailSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E3E6D321C7DB682436A5607 /* BeszelDetailSheets.swift */; };
 		AD2F16BDA6D33B25BA1DD4B7 /* GiteaModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F6D851F1B957C876FD6F0B /* GiteaModels.swift */; };
+		B224338F9637CC4E71D7C3E1 /* PlexDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EEC5D5B0AD40D7E707EC3A2 /* PlexDashboard.swift */; };
 		B51871199ACBFB2987E2C165 /* PortainerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24ACF7FA86699161F1FFB10E /* PortainerModels.swift */; };
 		B52CC2ACDDD34ADB9ECCF77B /* GiteaRepoDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBA3D966E73220F618CD9038 /* GiteaRepoDetail.swift */; };
 		B6F34400E4C7BC4A5F752049 /* NpmProxyHostCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8569FC25F0824870C9BFD6A2 /* NpmProxyHostCard.swift */; };
@@ -100,7 +101,10 @@
 		D76DF8769FE2AE2032847D05 /* FormattersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB311F83CBAAC39C90D50E6D /* FormattersTests.swift */; };
 		D84F9D353E2953087A1E5F7D /* ModelDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94D7A0C04FD3A10D46F836A9 /* ModelDecodingTests.swift */; };
 		D99466C32D977BCE5D9A029E /* GiteaAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15D7F6591D7ABB7E8CB96944 /* GiteaAPIClient.swift */; };
+		DDA0B198DFA935B2BF9FCE94 /* BackupModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39AD858A4CEA15DE099AC986 /* BackupModels.swift */; };
 		DF86CB1FB4E3E32A79142588 /* BookmarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BCDF60E05C067D5675AB59F /* BookmarksView.swift */; };
+		E41A618C772AD13F86272FB8 /* BackupCrypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7BDBCDBE58A73C0B9AF6CC /* BackupCrypto.swift */; };
+		E518D45F6F1F6DE81BD0F398 /* BackupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 292913B0F73994A51217D87F /* BackupView.swift */; };
 		E5242DCA4ACD2835153FBB96 /* ServiceLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F1F09E5D4D69F8311840E4F /* ServiceLoginView.swift */; };
 		E6E04DD8242F5252CD32CCAB /* ServiceType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E6FEE939313E58D34CE4BDB /* ServiceType.swift */; };
 		E75752B2EF79FC31623F21A3 /* ServicesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF72E451CED741576C2F4D /* ServicesStoreTests.swift */; };
@@ -131,7 +135,6 @@
 		04940FAEDE28A509EB1E0EEB /* NpmAccessListForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmAccessListForm.swift; sourceTree = "<group>"; };
 		0CFC214C2A851C7033ABE815 /* BeszelDetailTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelDetailTypes.swift; sourceTree = "<group>"; };
 		0DB66F8274714A001051F1BE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		0DB66F8274714A001051F1BF /* ConfiguredServicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfiguredServicesView.swift; sourceTree = "<group>"; };
 		0F13CBE9BF5234A3FF34586F /* ServiceIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceIconView.swift; sourceTree = "<group>"; };
 		10229F75137E8019ACE551D7 /* AdGuardHomeDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeDashboard.swift; sourceTree = "<group>"; };
 		141E9B530530A0BF0D52A289 /* BeszelSystemDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelSystemDetail.swift; sourceTree = "<group>"; };
@@ -144,6 +147,7 @@
 		24ACF7FA86699161F1FFB10E /* PortainerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortainerModels.swift; sourceTree = "<group>"; };
 		258507E3A00D686FDEF7E9CE /* ServicesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesStore.swift; sourceTree = "<group>"; };
 		25D75CC2B29F70046D68EC15 /* HealthchecksDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksDetail.swift; sourceTree = "<group>"; };
+		292913B0F73994A51217D87F /* BackupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupView.swift; sourceTree = "<group>"; };
 		2CB742A0C436A83F92CC1FED /* NpmDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmDashboard.swift; sourceTree = "<group>"; };
 		30BCF4718684D1491D028063 /* PiHoleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiHoleModels.swift; sourceTree = "<group>"; };
 		31E3BE5DA5D18FB8959F7C8C /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
@@ -151,6 +155,7 @@
 		34DDAD2C4F4522B5980306ED /* NpmAccessListCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmAccessListCard.swift; sourceTree = "<group>"; };
 		3565C63ADD375B1D9773CF8B /* BookmarkFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkFormView.swift; sourceTree = "<group>"; };
 		38F7AE0005466E2FF260B000 /* Translations+English.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Translations+English.swift"; sourceTree = "<group>"; };
+		39AD858A4CEA15DE099AC986 /* BackupModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupModels.swift; sourceTree = "<group>"; };
 		3A088F5140A5297EA91E3821 /* Homelab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Homelab.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AD1D644D530DE462BB79AA2 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		3B344770A37AF6E6CF0CCB9E /* PatchmonDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchmonDashboard.swift; sourceTree = "<group>"; };
@@ -169,6 +174,7 @@
 		4F2913EA81E6CCF74EFC883C /* NpmProxyHostForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmProxyHostForm.swift; sourceTree = "<group>"; };
 		53BAF0C299F88C7BE7B562D3 /* NpmDeadHostForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmDeadHostForm.swift; sourceTree = "<group>"; };
 		569655DA5311D77756775472 /* PortainerDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortainerDashboard.swift; sourceTree = "<group>"; };
+		575579918416C21F4E6DC488 /* BackupManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupManager.swift; sourceTree = "<group>"; };
 		57CF72E451CED741576C2F4D /* ServicesStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesStoreTests.swift; sourceTree = "<group>"; };
 		5F1F09E5D4D69F8311840E4F /* ServiceLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceLoginView.swift; sourceTree = "<group>"; };
 		64BA80A727F9A71D30277F9E /* BeszelContainersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelContainersView.swift; sourceTree = "<group>"; };
@@ -191,11 +197,13 @@
 		8D1604CF631BC4DC369A42A5 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		94D7A0C04FD3A10D46F836A9 /* ModelDecodingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDecodingTests.swift; sourceTree = "<group>"; };
 		95AC46B2418C37382FC7EAB9 /* LoadableState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadableState.swift; sourceTree = "<group>"; };
+		98C831E84A42E73C9A480BE3 /* ConfiguredServicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfiguredServicesView.swift; sourceTree = "<group>"; };
 		9A1C1112D8A8BF86BB78353D /* NpmUserForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmUserForm.swift; sourceTree = "<group>"; };
 		9B16543E222589D62D5DFD50 /* PatchmonHostDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchmonHostDetailView.swift; sourceTree = "<group>"; };
 		9CB770E60C2FE5FB6640BE98 /* EditBookmarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditBookmarkView.swift; sourceTree = "<group>"; };
 		9D702ABD0D754FC3DEF8A7B4 /* PiholeDomainListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiholeDomainListView.swift; sourceTree = "<group>"; };
 		9E3E6D321C7DB682436A5607 /* BeszelDetailSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelDetailSheets.swift; sourceTree = "<group>"; };
+		9EEC5D5B0AD40D7E707EC3A2 /* PlexDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexDashboard.swift; sourceTree = "<group>"; };
 		9F233D9CF75937405674EEE4 /* NpmRedirectionHostCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmRedirectionHostCard.swift; sourceTree = "<group>"; };
 		A1BF1197F8BB03BE213E2995 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		A27E1B9D98BB24CE9CC7DD66 /* BookmarksStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksStore.swift; sourceTree = "<group>"; };
@@ -206,8 +214,6 @@
 		AD139A00611FED93C43C0833 /* HealthchecksModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksModels.swift; sourceTree = "<group>"; };
 		AE1461ABFFED5C380B73195B /* AdGuardHomeFiltersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeFiltersView.swift; sourceTree = "<group>"; };
 		B0D364FA7AED9BAC9B522C01 /* JellystatAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellystatAPIClient.swift; sourceTree = "<group>"; };
-		BB11223344556677AABBCCDD /* PlexAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexAPIClient.swift; sourceTree = "<group>"; };
-		DD11223344556677AABBCCDD /* PlexDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexDashboard.swift; sourceTree = "<group>"; };
 		B0F5CFB96CB606EB9EC34EBB /* AdGuardHomeAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeAPIClient.swift; sourceTree = "<group>"; };
 		B1CB48124608D3A220C3A444 /* Translations+OtherLanguages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Translations+OtherLanguages.swift"; sourceTree = "<group>"; };
 		B1EBFFF57A15B47F78E81D04 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
@@ -218,6 +224,7 @@
 		BB7A6237B741BF62F16D9F8B /* OfflineBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineBanner.swift; sourceTree = "<group>"; };
 		BE0A64E52150CEEA94E249D7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		BEA7A42035DBFADEB256C578 /* PatchmonAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchmonAPIClient.swift; sourceTree = "<group>"; };
+		BF7BDBCDBE58A73C0B9AF6CC /* BackupCrypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupCrypto.swift; sourceTree = "<group>"; };
 		C226A2E333FD0452D26FF967 /* PiholeDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiholeDomain.swift; sourceTree = "<group>"; };
 		C4834BF58C4F9B1399553F78 /* CategoryFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryFormView.swift; sourceTree = "<group>"; };
 		C7F560D9B1083811461B4B44 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
@@ -232,6 +239,7 @@
 		DDFB66029D52483B7F25F83F /* NpmDeadHostCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmDeadHostCard.swift; sourceTree = "<group>"; };
 		DFCAD7944220A8EA3DDFC3A6 /* BeszelDetailComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelDetailComponents.swift; sourceTree = "<group>"; };
 		E0D0F063C9B955AB9794F2AF /* BeszelLineGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelLineGraph.swift; sourceTree = "<group>"; };
+		EF3DE80965FEEDE327E3AE34 /* PlexAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexAPIClient.swift; sourceTree = "<group>"; };
 		F3116D5544353B573C4C2B0B /* ContainerListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerListView.swift; sourceTree = "<group>"; };
 		F4ED2EF6B8B525C2387A59EC /* HealthchecksCheckEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksCheckEditor.swift; sourceTree = "<group>"; };
 		F76B6FE397CB60885626195C /* AdGuardHomeRewritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeRewritesView.swift; sourceTree = "<group>"; };
@@ -247,8 +255,9 @@
 		0484D4BF357548D950ABB56C /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				292913B0F73994A51217D87F /* BackupView.swift */,
+				98C831E84A42E73C9A480BE3 /* ConfiguredServicesView.swift */,
 				0DB66F8274714A001051F1BE /* SettingsView.swift */,
-				0DB66F8274714A001051F1BF /* ConfiguredServicesView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -398,14 +407,6 @@
 			path = Jellystat;
 			sourceTree = "<group>";
 		};
-		EE11223344556677AABBCCDD /* Plex */ = {
-			isa = PBXGroup;
-			children = (
-				BB11223344556677AABBCCDD /* PlexAPIClient.swift */,
-			);
-			path = Plex;
-			sourceTree = "<group>";
-		};
 		58F8A8040064B68291A0616F /* ServiceLogin */ = {
 			isa = PBXGroup;
 			children = (
@@ -439,14 +440,6 @@
 				4C74A7F7C1CB466CC7223840 /* JellystatDashboard.swift */,
 			);
 			path = Jellystat;
-			sourceTree = "<group>";
-		};
-		FF11223344556677AABBCCDD /* Plex */ = {
-			isa = PBXGroup;
-			children = (
-				DD11223344556677AABBCCDD /* PlexDashboard.swift */,
-			);
-			path = Plex;
 			sourceTree = "<group>";
 		};
 		69A014381BA51401C9862848 /* Healthchecks */ = {
@@ -497,6 +490,14 @@
 				151F3E3C716170F5B65A688F /* SettingsStore.swift */,
 			);
 			path = Stores;
+			sourceTree = "<group>";
+		};
+		845E4EB9D4DE085F19044DDD /* Plex */ = {
+			isa = PBXGroup;
+			children = (
+				EF3DE80965FEEDE327E3AE34 /* PlexAPIClient.swift */,
+			);
+			path = Plex;
 			sourceTree = "<group>";
 		};
 		873F7F23714AC880CCFDA5BF /* Home */ = {
@@ -568,6 +569,9 @@
 		9F580510490E095DDA1A63B9 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				BF7BDBCDBE58A73C0B9AF6CC /* BackupCrypto.swift */,
+				575579918416C21F4E6DC488 /* BackupManager.swift */,
+				39AD858A4CEA15DE099AC986 /* BackupModels.swift */,
 				85D0D2A2905370C31F3A8ADE /* KeychainService.swift */,
 			);
 			path = Services;
@@ -593,10 +597,10 @@
 				73413D1CE20FEEB055D5D6DD /* Healthchecks */,
 				873F7F23714AC880CCFDA5BF /* Home */,
 				5C653FDCC31984516D486E0F /* Jellystat */,
-				FF11223344556677AABBCCDD /* Plex */,
 				710B37A9B027F4C732FAA0E0 /* NginxProxyManager */,
 				88CAA1568236FD1297722073 /* Patchmon */,
 				92577B05F8B135054A9B86B6 /* PiHole */,
+				C2576757631234A14F69F54D /* Plex */,
 				EB0D5A2B9725AD26C768879F /* Portainer */,
 				092E6DA6764D5AD6F0361A22 /* Security */,
 				58F8A8040064B68291A0616F /* ServiceLogin */,
@@ -611,6 +615,14 @@
 				3AD1D644D530DE462BB79AA2 /* AppTheme.swift */,
 			);
 			path = Theme;
+			sourceTree = "<group>";
+		};
+		C2576757631234A14F69F54D /* Plex */ = {
+			isa = PBXGroup;
+			children = (
+				9EEC5D5B0AD40D7E707EC3A2 /* PlexDashboard.swift */,
+			);
+			path = Plex;
 			sourceTree = "<group>";
 		};
 		C9F6FE4041AA55D79004BC56 /* Config */ = {
@@ -647,10 +659,10 @@
 				289C5939524BACC32CDCCF25 /* Gitea */,
 				06347246AD362987E7E3A1D3 /* Healthchecks */,
 				4DF24834910915FEAB043587 /* Jellystat */,
-				EE11223344556677AABBCCDD /* Plex */,
 				23AB1F8E0947D3598E65C623 /* NginxProxyManager */,
 				AEF3A1B12CFF68006D2F06AF /* Patchmon */,
 				D43D23351242B6BFC6E743DC /* PiHole */,
+				845E4EB9D4DE085F19044DDD /* Plex */,
 				3B0F0ED088E1700C927989C0 /* Portainer */,
 			);
 			path = Networking;
@@ -847,6 +859,10 @@
 				5A5F8EF3CA17C9A8CB0FA645 /* AdGuardHomeRewritesView.swift in Sources */,
 				A08D2B6FBC3D9252E47321FF /* AdGuardHomeUserRulesView.swift in Sources */,
 				2DEE79E0C15D816F7170E110 /* AppTheme.swift in Sources */,
+				E41A618C772AD13F86272FB8 /* BackupCrypto.swift in Sources */,
+				8F1E8C350A24585FB98C7290 /* BackupManager.swift in Sources */,
+				DDA0B198DFA935B2BF9FCE94 /* BackupModels.swift in Sources */,
+				E518D45F6F1F6DE81BD0F398 /* BackupView.swift in Sources */,
 				2BCD4D6ACDA7D4CEA00AFEBA /* BeszelAPIClient.swift in Sources */,
 				199E011A5729053006D89E55 /* BeszelContainersView.swift in Sources */,
 				CF0124025064FF55FAD14233 /* BeszelDashboard.swift in Sources */,
@@ -862,6 +878,7 @@
 				0223089E3590C557B1077BC3 /* BookmarksStore.swift in Sources */,
 				DF86CB1FB4E3E32A79142588 /* BookmarksView.swift in Sources */,
 				654B246C79458CB80AEC15D8 /* CategoryFormView.swift in Sources */,
+				91FEB90D9F7C9387B1CD8BA9 /* ConfiguredServicesView.swift in Sources */,
 				CFFCFA6F071D0F46DECAB36B /* ContainerDetailView.swift in Sources */,
 				A3E3BAB096611E807728CA89 /* ContainerListView.swift in Sources */,
 				9F77F33FFB5F27A3D1A8109E /* ContentView.swift in Sources */,
@@ -885,8 +902,6 @@
 				826BA16B6B4D4F31C3CC2B5C /* HomelabApp.swift in Sources */,
 				CD29007C4FB0AD271F85673C /* JellystatAPIClient.swift in Sources */,
 				06B033BE66307E6CC8E75459 /* JellystatDashboard.swift in Sources */,
-				AA11223344556677AABBCCDD /* PlexAPIClient.swift in Sources */,
-				CC11223344556677AABBCCDD /* PlexDashboard.swift in Sources */,
 				6B883FF0F9673181B59F8C83 /* KeychainService.swift in Sources */,
 				EAE1E1F928E990C7105F76A1 /* LoadableState.swift in Sources */,
 				FCBBD24B21419227C44FCC60 /* LockScreenView.swift in Sources */,
@@ -919,6 +934,8 @@
 				FD2293CC8607CE165F202493 /* PiholeDomainListView.swift in Sources */,
 				FCD41D6BE7DB010018902C63 /* PinEntryView.swift in Sources */,
 				6F0B15FC2525EA13C63611B5 /* PinSetupView.swift in Sources */,
+				8DD71C55FFF77D4A370735D1 /* PlexAPIClient.swift in Sources */,
+				B224338F9637CC4E71D7C3E1 /* PlexDashboard.swift in Sources */,
 				F5EF663AA6770602771BD2F2 /* PortainerAPIClient.swift in Sources */,
 				60845D39E8A2BD7753B767BB /* PortainerDashboard.swift in Sources */,
 				B51871199ACBFB2987E2C165 /* PortainerModels.swift in Sources */,
@@ -931,7 +948,6 @@
 				BAA4219103CC83A339C434BD /* ServicesStore.swift in Sources */,
 				7EBB5603EC5B23E166D98E33 /* SettingsStore.swift in Sources */,
 				7E861F79CA67DDAD2078A333 /* SettingsView.swift in Sources */,
-				7E861F79CA67DDAD2078A334 /* ConfiguredServicesView.swift in Sources */,
 				8EADC34444DEB43F553D0513 /* SkeletonLoader.swift in Sources */,
 				0E5566DAE01FB0E9F10E98C8 /* StatusBadge.swift in Sources */,
 				B75BA3C1B775D95298E0933B /* SyntaxHighlighter.swift in Sources */,

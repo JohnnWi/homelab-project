@@ -367,7 +367,6 @@ private object FlexibleLoadAverageSerializer : KSerializer<PatchmonLoadAverage?>
                     fifteenMin = matches.getOrNull(2) ?: 0.0
                 )
             }
-            else -> null
         }
     }
 
@@ -460,7 +459,6 @@ private fun JsonElement?.asFlexibleString(): String? {
                 value.asFlexibleString()?.trim()?.takeIf { it.isNotEmpty() }
             } ?: element.toString()
         }
-        else -> element.toString()
     }
 }
 
@@ -480,7 +478,6 @@ private fun JsonElement?.asFlexibleInt(): Int? {
             }
             parseIntLoose(element.toString())
         }
-        else -> null
     }
 }
 
@@ -500,7 +497,6 @@ private fun JsonElement?.asFlexibleDouble(): Double? {
             }
             parseDoubleLoose(element.toString())
         }
-        else -> null
     }
 }
 
@@ -525,7 +521,6 @@ private fun JsonElement?.asFlexibleStringList(): List<String> {
             }
             listOfNotNull(element.asFlexibleString()?.takeIf { it.isNotBlank() })
         }
-        else -> emptyList()
     }
 }
 

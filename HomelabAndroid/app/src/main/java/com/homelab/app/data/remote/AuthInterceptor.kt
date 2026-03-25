@@ -109,7 +109,9 @@ class AuthInterceptor @Inject constructor(
                 response.close()
                 val retryBuilder = request.newBuilder()
                     .removeHeader("Authorization")
+                    .removeHeader("Cookie")
                     .addHeader("Authorization", "Bearer $newToken")
+                    .addHeader("Cookie", "token=$newToken")
                 return chain.proceed(retryBuilder.build())
             }
         }
@@ -198,6 +200,8 @@ class AuthInterceptor @Inject constructor(
             ServiceType.NGINX_PROXY_MANAGER -> {
                 if (!hasAuthorization && instance.token.isNotBlank()) {
                     builder.addHeader("Authorization", "Bearer ${instance.token}")
+                    // NPMplus uses cookie-based auth instead of Bearer
+                    builder.addHeader("Cookie", "token=${instance.token}")
                 }
             }
             ServiceType.HEALTHCHECKS -> {

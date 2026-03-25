@@ -374,6 +374,9 @@
     <string name="security_current_pin_desc">Enter your current PIN to continue</string>
     <string name="security_not_configured">No PIN configured</string>
     <string name="security_biometric_reason">Unlock Homelab</string>
+    <string name="security_biometric_prompt_title">Enable Biometric Unlock?</string>
+    <string name="security_biometric_prompt_desc">Use fingerprint or face unlock instead of entering your PIN every time.</string>
+    <string name="security_biometric_prompt_enable">Enable</string>
     <string name="security_skip">Skip for now</string>
     <string name="action_resume">Continue</string>
 
@@ -857,4 +860,33 @@
     <string name="jellystat_recent_trend">Recent trend</string>
     <string name="jellystat_no_data_for_period">No data for this period.</string>
     <string name="jellystat_views_suffix">%1$d views</string>
+    <!-- Backup & Restore -->
+    <string name="backupTitle">Backup &amp; Restore</string>
+    <string name="backupInfoTitle">Encrypted Backup</string>
+    <string name="backupInfoDesc">Your service configurations are encrypted using AES-256. The backup file is protected by a password of your choice.</string>
+    <string name="backupExportTitle">Create Backup</string>
+    <string name="backupExportAction">Create Backup</string>
+    <string name="backupImportTitle">Restore Backup</string>
+    <string name="backupImportAction">Restore Backup</string>
+    <string name="backupImportDesc">Import a .homelab backup file</string>
+    <string name="backupImportDecrypt">Decrypt</string>
+    <string name="backupImportPasswordDesc">Enter the password used when creating the backup.</string>
+    <string name="backupImportApply">Replace All</string>
+    <string name="backupImportPreviewTitle">Restore Preview</string>
+    <string name="backupPreviewServices">%1$d services found:</string>
+    <string name="backupPreviewUnknown">%1$d unknown services will be skipped.</string>
+    <string name="backupPreviewWarning">⚠️ This will replace all existing service configurations.</string>
+    <string name="backupPasswordPlaceholder">Password</string>
+    <string name="backupPasswordConfirm">Confirm password</string>
+    <string name="backupPasswordDesc">Choose a password to protect your backup. You will need it to restore.</string>
+    <string name="backupPasswordTooShort">Password must be at least 6 characters.</string>
+    <string name="backupPasswordMismatch">Passwords do not match.</string>
+    <string name="backupPasswordRequired">Password is required.</string>
+    <string name="backupExporting">Encrypting backup…</string>
+    <string name="backupDecrypting">Decrypting…</string>
+    <string name="backupApplying">Restoring…</string>
+    <string name="backupExportError">Export failed: %s</string>
+    <string name="backupDecryptError">Decryption failed. Wrong password or corrupted file.</string>
+    <string name="backupApplyError">Failed to apply backup: %s</string>
+    <string name="backupImportSuccess">Backup restored successfully!</string>
 </resources>

@@ -44,14 +44,6 @@ object NetworkModule {
         debugLoggingInterceptor: DebugLoggingInterceptor,
         htmlDetectionInterceptor: HtmlDetectionInterceptor
     ): OkHttpClient {
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) {
-                HttpLoggingInterceptor.Level.BODY
-            } else {
-                HttpLoggingInterceptor.Level.BASIC
-            }
-        }
-
         val trustAllCerts = arrayOf<TrustManager>(
             object : X509TrustManager {
                 override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
@@ -65,15 +57,27 @@ object NetworkModule {
         val sslSocketFactory = sslContext.socketFactory
         val trustManager = trustAllCerts.first() as X509TrustManager
 
-        return OkHttpClient.Builder()
+        val builder = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
             .addInterceptor(smartFallbackInterceptor)
             .addInterceptor(authInterceptor)
-            .addInterceptor(debugLoggingInterceptor)
-            .addInterceptor(htmlDetectionInterceptor)
-            .addInterceptor(loggingInterceptor)
+
+        if (BuildConfig.DEBUG) {
+            builder.addInterceptor(debugLoggingInterceptor)
+        }
+
+        builder.addInterceptor(htmlDetectionInterceptor)
+
+        if (BuildConfig.DEBUG) {
+            val loggingInterceptor = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+            builder.addInterceptor(loggingInterceptor)
+        }
+
+        return builder
             .sslSocketFactory(sslSocketFactory, trustManager)
             .hostnameVerifier { _, _ -> true }
             .build()
@@ -88,14 +92,6 @@ object NetworkModule {
         debugLoggingInterceptor: DebugLoggingInterceptor,
         htmlDetectionInterceptor: HtmlDetectionInterceptor
     ): OkHttpClient {
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) {
-                HttpLoggingInterceptor.Level.BODY
-            } else {
-                HttpLoggingInterceptor.Level.BASIC
-            }
-        }
-
         val trustAllCerts = arrayOf<TrustManager>(
             object : X509TrustManager {
                 override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
@@ -109,15 +105,27 @@ object NetworkModule {
         val sslSocketFactory = sslContext.socketFactory
         val trustManager = trustAllCerts.first() as X509TrustManager
 
-        return OkHttpClient.Builder()
+        val builder = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
             .addInterceptor(smartFallbackInterceptor)
             .addInterceptor(authInterceptor)
-            .addInterceptor(debugLoggingInterceptor)
-            .addInterceptor(htmlDetectionInterceptor)
-            .addInterceptor(loggingInterceptor)
+
+        if (BuildConfig.DEBUG) {
+            builder.addInterceptor(debugLoggingInterceptor)
+        }
+
+        builder.addInterceptor(htmlDetectionInterceptor)
+
+        if (BuildConfig.DEBUG) {
+            val loggingInterceptor = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+            builder.addInterceptor(loggingInterceptor)
+        }
+
+        return builder
             .sslSocketFactory(sslSocketFactory, trustManager)
             .hostnameVerifier { _, _ -> true }
             .build()

@@ -91,6 +91,7 @@ data class NpmProxyHostMeta(
 @Serializable
 data class NpmHealthResponse(
     val status: String = "",
+    @Serializable(with = NpmVersionSerializer::class)
     val version: NpmVersion? = null
 )
 
@@ -101,6 +102,54 @@ data class NpmVersion(
     val revision: Int = 0
 ) {
     val display: String get() = "$major.$minor.$revision"
+
+    companion object {
+        fun fromString(s: String): NpmVersion {
+            val parts = s.split(".")
+            return NpmVersion(
+                major = parts.getOrNull(0)?.toIntOrNull() ?: 0,
+                minor = parts.getOrNull(1)?.toIntOrNull() ?: 0,
+                revision = parts.getOrNull(2)?.toIntOrNull() ?: 0
+            )
+        }
+    }
+}
+
+/** Handles NPM (object) and NPMplus (string) version formats. */
+object NpmVersionSerializer : KSerializer<NpmVersion?> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("NpmVersion", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): NpmVersion? {
+        if (decoder is JsonDecoder) {
+            return when (val element = decoder.decodeJsonElement()) {
+                is JsonPrimitive -> {
+                    val str = element.content
+                    if (str.isBlank()) null else NpmVersion.fromString(str)
+                }
+                is JsonObject -> {
+                    val major = (element["major"] as? JsonPrimitive)?.intOrNull ?: 0
+                    val minor = (element["minor"] as? JsonPrimitive)?.intOrNull ?: 0
+                    val revision = (element["revision"] as? JsonPrimitive)?.intOrNull ?: 0
+                    NpmVersion(major, minor, revision)
+                }
+                else -> null
+            }
+        }
+        return null
+    }
+
+    override fun serialize(encoder: Encoder, value: NpmVersion?) {
+        if (value != null && encoder is JsonEncoder) {
+            encoder.encodeJsonElement(
+                JsonObject(mapOf(
+                    "major" to JsonPrimitive(value.major),
+                    "minor" to JsonPrimitive(value.minor),
+                    "revision" to JsonPrimitive(value.revision)
+                ))
+            )
+        }
+    }
 }
 
 @Serializable

@@ -26,6 +26,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Article
+import androidx.compose.material.icons.automirrored.filled.CallMade
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -779,7 +785,7 @@ fun HealthchecksEditorScreen(
                     item {
                         FormSection(
                             title = stringResource(R.string.healthchecks_basics),
-                            icon = Icons.Default.Article
+                            icon = Icons.AutoMirrored.Filled.Article
                         ) {
                             IconTextField(label = stringResource(R.string.healthchecks_field_name), value = name, onValueChange = { name = it }, icon = Icons.Default.TextFields)
                             IconTextField(
@@ -796,7 +802,7 @@ fun HealthchecksEditorScreen(
                                 icon = Icons.Default.Tag,
                                 placeholder = stringResource(R.string.healthchecks_tags_hint)
                             )
-                            IconTextArea(label = stringResource(R.string.healthchecks_field_desc), value = desc, onValueChange = { desc = it }, icon = Icons.Default.Notes)
+                            IconTextArea(label = stringResource(R.string.healthchecks_field_desc), value = desc, onValueChange = { desc = it }, icon = Icons.AutoMirrored.Filled.Notes)
                         }
                     }
 
@@ -1352,7 +1358,7 @@ private fun CheckOverviewCard(check: HealthchecksCheck) {
         StatItem(Icons.Default.Timer, stringResource(R.string.healthchecks_timeout), check.timeout?.let { "${it}s" } ?: "—", StatusPurple),
         StatItem(Icons.Default.HourglassBottom, stringResource(R.string.healthchecks_grace_period), check.grace?.let { "${it}s" } ?: "—", StatusOrange),
         StatItem(Icons.Default.Language, stringResource(R.string.healthchecks_timezone), check.tz ?: "—", StatusBlue),
-        StatItem(Icons.Default.CallMade, stringResource(R.string.healthchecks_methods), if (check.methods == "POST") stringResource(R.string.healthchecks_methods_post_only) else stringResource(R.string.healthchecks_methods_all), StatusBlue),
+        StatItem(Icons.AutoMirrored.Filled.CallMade, stringResource(R.string.healthchecks_methods), if (check.methods == "POST") stringResource(R.string.healthchecks_methods_post_only) else stringResource(R.string.healthchecks_methods_all), StatusBlue),
         StatItem(Icons.Default.PanTool, stringResource(R.string.healthchecks_manual_resume), if (check.manualResume == true) stringResource(R.string.yes) else stringResource(R.string.no), StatusPurple),
         StatItem(Icons.Default.QueryStats, stringResource(R.string.healthchecks_pings), check.nPings?.toString() ?: "—", StatusGreen)
     )
@@ -1499,7 +1505,7 @@ private fun PingRowItem(ping: HealthchecksPing, onClick: () -> Unit) {
             Text(String.format("%.2fs", ping.duration), style = MaterialTheme.typography.labelMedium)
         }
         if (ping.bodyUrl != null) {
-            Icon(Icons.Default.Article, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(Icons.AutoMirrored.Filled.Article, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -1894,10 +1900,10 @@ private fun IntegrationsSheet(
 @Composable
 private fun channelIcon(kind: String?): ImageVector = when (kind?.lowercase()) {
     "email" -> Icons.Default.Email
-    "sms" -> Icons.Default.Message
-    "slack" -> Icons.Default.Chat
+    "sms" -> Icons.AutoMirrored.Filled.Message
+    "slack" -> Icons.AutoMirrored.Filled.Chat
     "discord" -> Icons.Default.Forum
-    "webhook" -> Icons.Default.Send
+    "webhook" -> Icons.AutoMirrored.Filled.Send
     else -> Icons.Default.Notifications
 }
 

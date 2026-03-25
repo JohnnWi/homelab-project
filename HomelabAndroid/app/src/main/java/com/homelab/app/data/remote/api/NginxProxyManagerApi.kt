@@ -23,7 +23,7 @@ import retrofit2.http.*
 
 interface NginxProxyManagerApi {
 
-    @POST("api/tokens")
+    @POST
     suspend fun authenticate(
         @Url url: String,
         @Header("X-Homelab-Service") service: String = "NginxProxyManager",

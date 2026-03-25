@@ -53,7 +53,11 @@ import com.homelab.app.ui.home.HomeScreen
 import com.homelab.app.ui.settings.SettingsScreen
 import com.homelab.app.ui.settings.DebugLogsScreen
 import com.homelab.app.ui.settings.ConfiguredServicesScreen
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.homelab.app.ui.security.LockScreen
 import com.homelab.app.util.ServiceType
 
 sealed class Screen(
@@ -210,6 +214,9 @@ fun AppNavigation() {
                     },
                     onNavigateToConfiguredServices = {
                         navController.navigate("settings/configured-services")
+                    },
+                    onNavigateToBackup = {
+                        navController.navigate("settings/backup")
                     }
                 )
             }
@@ -219,12 +226,31 @@ fun AppNavigation() {
             }
 
             composable("settings/configured-services") {
-                ConfiguredServicesScreen(
-                    onNavigateBack = { navController.popBackStack() },
-                    onNavigateToLogin = { type, instanceId ->
-                        navController.navigate(loginRoute(type, instanceId))
-                    },
-                    viewModel = hiltViewModel()
+                val settingsVm: com.homelab.app.ui.settings.SettingsViewModel = hiltViewModel()
+                val isPinSet by settingsVm.isPinSet.collectAsStateWithLifecycle()
+                val biometricEnabled by settingsVm.biometricEnabled.collectAsStateWithLifecycle()
+                var isUnlocked by remember { mutableStateOf(false) }
+
+                if (isPinSet && !isUnlocked) {
+                    LockScreen(
+                        biometricEnabled = biometricEnabled,
+                        onUnlock = { isUnlocked = true },
+                        onVerifyPin = { settingsVm.verifyPin(it) }
+                    )
+                } else {
+                    ConfiguredServicesScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateToLogin = { type, instanceId ->
+                            navController.navigate(loginRoute(type, instanceId))
+                        },
+                        viewModel = settingsVm
+                    )
+                }
+            }
+
+            composable("settings/backup") {
+                com.homelab.app.ui.backup.BackupScreen(
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
 

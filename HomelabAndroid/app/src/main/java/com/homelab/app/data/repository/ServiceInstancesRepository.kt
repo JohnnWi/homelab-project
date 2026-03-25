@@ -52,6 +52,10 @@ class ServiceInstancesRepository @Inject constructor(
 
     suspend fun getInstance(id: String): ServiceInstance? = dao.getById(id)?.toDomain()
 
+    suspend fun getAllInstances(): List<ServiceInstance> {
+        return dao.getAll().map { it.toDomain() }
+    }
+
     suspend fun getInstances(type: ServiceType): List<ServiceInstance> {
         return dao.getByType(type.name).map { it.toDomain() }
     }

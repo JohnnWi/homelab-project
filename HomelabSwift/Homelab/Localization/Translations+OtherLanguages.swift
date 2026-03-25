@@ -822,7 +822,34 @@ extension Translations {
         unknown: "Inconnu",
         none: "aucun",
         statusOn: "ON",
-        statusOff: "OFF"
+        statusOff: "OFF",
+
+        // Backup & Restore
+        backupTitle: "Sauvegarde et Restauration",
+        backupInfoTitle: "Sauvegarde Chiffrée",
+        backupInfoDesc: "Les configurations de vos services sont chiffrées avec AES-256. Le fichier de sauvegarde est protégé par un mot de passe de votre choix.",
+        backupExportTitle: "Créer une Sauvegarde",
+        backupExportAction: "Créer une Sauvegarde",
+        backupExportDesc: "%d services seront exportés",
+        backupExportSuccess: "Sauvegarde créée avec succès",
+        backupImportTitle: "Restaurer une Sauvegarde",
+        backupImportAction: "Restaurer une Sauvegarde",
+        backupImportDesc: "Importer un fichier de sauvegarde .homelab",
+        backupImportDecrypt: "Déchiffrer",
+        backupImportPasswordDesc: "Entrez le mot de passe utilisé lors de la création de la sauvegarde.",
+        backupImportFileError: "Impossible d'accéder au fichier sélectionné.",
+        backupImportApply: "Tout Remplacer",
+        backupImportSuccess: "%d services restaurés avec succès",
+        backupImportPreviewTitle: "Aperçu de la Restauration",
+        backupPreviewServices: "%d services trouvés :",
+        backupPreviewUnknown: "%d services inconnus seront ignorés.",
+        backupPreviewWarning: "⚠️ Cela remplacera toutes les configurations de services existantes.",
+        backupPasswordPlaceholder: "Mot de passe",
+        backupPasswordConfirm: "Confirmer le mot de passe",
+        backupPasswordDesc: "Choisissez un mot de passe pour protéger votre sauvegarde. Vous en aurez besoin pour la restauration.",
+        backupPasswordRequired: "Le mot de passe est obligatoire.",
+        backupPasswordTooShort: "Le mot de passe doit contenir au moins 6 caractères.",
+        backupPasswordMismatch: "Les mots de passe ne correspondent pas."
     )
 
     static let spanish = Translations(
@@ -1646,7 +1673,34 @@ extension Translations {
         unknown: "Desconocido",
         none: "ninguno",
         statusOn: "ON",
-        statusOff: "OFF"
+        statusOff: "OFF",
+
+        // Backup & Restore
+        backupTitle: "Copia de Seguridad y Restauración",
+        backupInfoTitle: "Copia de Seguridad Cifrada",
+        backupInfoDesc: "Las configuraciones de tus servicios se cifran con AES-256. El archivo de respaldo está protegido con una contraseña que tú eliges.",
+        backupExportTitle: "Crear Copia de Seguridad",
+        backupExportAction: "Crear Copia de Seguridad",
+        backupExportDesc: "%d servicios serán exportados",
+        backupExportSuccess: "Copia de seguridad creada correctamente",
+        backupImportTitle: "Restaurar Copia de Seguridad",
+        backupImportAction: "Restaurar Copia de Seguridad",
+        backupImportDesc: "Importar un archivo de respaldo .homelab",
+        backupImportDecrypt: "Descifrar",
+        backupImportPasswordDesc: "Introduce la contraseña utilizada al crear la copia de seguridad.",
+        backupImportFileError: "No se puede acceder al archivo seleccionado.",
+        backupImportApply: "Reemplazar Todo",
+        backupImportSuccess: "%d servicios restaurados correctamente",
+        backupImportPreviewTitle: "Vista Previa de Restauración",
+        backupPreviewServices: "%d servicios encontrados:",
+        backupPreviewUnknown: "%d servicios desconocidos serán omitidos.",
+        backupPreviewWarning: "⚠️ Esto reemplazará todas las configuraciones de servicios existentes.",
+        backupPasswordPlaceholder: "Contraseña",
+        backupPasswordConfirm: "Confirmar contraseña",
+        backupPasswordDesc: "Elige una contraseña para proteger tu copia de seguridad. La necesitarás para restaurar.",
+        backupPasswordRequired: "La contraseña es obligatoria.",
+        backupPasswordTooShort: "La contraseña debe tener al menos 6 caracteres.",
+        backupPasswordMismatch: "Las contraseñas no coinciden."
     )
 
     static let german = Translations(
@@ -2470,6 +2524,33 @@ extension Translations {
         unknown: "Unbekannt",
         none: "keine",
         statusOn: "ON",
-        statusOff: "OFF"
+        statusOff: "OFF",
+
+        // Backup & Restore
+        backupTitle: "Sicherung & Wiederherstellung",
+        backupInfoTitle: "Verschlüsseltes Backup",
+        backupInfoDesc: "Deine Dienstkonfigurationen werden mit AES-256 verschlüsselt. Die Backup-Datei ist durch ein von dir gewähltes Passwort geschützt.",
+        backupExportTitle: "Backup erstellen",
+        backupExportAction: "Backup erstellen",
+        backupExportDesc: "%d Dienste werden exportiert",
+        backupExportSuccess: "Backup erfolgreich erstellt",
+        backupImportTitle: "Backup wiederherstellen",
+        backupImportAction: "Backup wiederherstellen",
+        backupImportDesc: "Eine .homelab-Backup-Datei importieren",
+        backupImportDecrypt: "Entschlüsseln",
+        backupImportPasswordDesc: "Gib das Passwort ein, das beim Erstellen des Backups verwendet wurde.",
+        backupImportFileError: "Auf die ausgewählte Datei kann nicht zugegriffen werden.",
+        backupImportApply: "Alles ersetzen",
+        backupImportSuccess: "%d Dienste erfolgreich wiederhergestellt",
+        backupImportPreviewTitle: "Wiederherstellungsvorschau",
+        backupPreviewServices: "%d Dienste gefunden:",
+        backupPreviewUnknown: "%d unbekannte Dienste werden übersprungen.",
+        backupPreviewWarning: "⚠️ Dies ersetzt alle vorhandenen Dienstkonfigurationen.",
+        backupPasswordPlaceholder: "Passwort",
+        backupPasswordConfirm: "Passwort bestätigen",
+        backupPasswordDesc: "Wähle ein Passwort zum Schutz deines Backups. Du benötigst es zur Wiederherstellung.",
+        backupPasswordRequired: "Passwort ist erforderlich.",
+        backupPasswordTooShort: "Das Passwort muss mindestens 6 Zeichen lang sein.",
+        backupPasswordMismatch: "Die Passwörter stimmen nicht überein."
     )
 }

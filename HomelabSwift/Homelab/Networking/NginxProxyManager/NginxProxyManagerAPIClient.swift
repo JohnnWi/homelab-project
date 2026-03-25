@@ -33,7 +33,12 @@ actor NginxProxyManagerAPIClient {
     }
 
     private func authHeaders() -> [String: String] {
-        ["Content-Type": "application/json", "Authorization": "Bearer \(token)"]
+        [
+            "Content-Type": "application/json",
+            "Authorization": "Bearer \(token)",
+            // NPMplus uses cookie-based auth instead of Bearer
+            "Cookie": "token=\(token)"
+        ]
     }
 
     // MARK: - Ping

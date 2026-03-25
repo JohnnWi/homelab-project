@@ -1,4 +1,40 @@
 import SwiftUI
+import LocalAuthentication
+
+// MARK: - Auth-Gated Wrapper
+
+/// Wraps ConfiguredServicesView with PIN/biometric authentication.
+/// Requires auth every time the view appears (enter or return from background).
+struct AuthGatedConfiguredServicesView: View {
+    @Environment(SettingsStore.self) private var settingsStore
+
+    @State private var isUnlocked = false
+
+    var body: some View {
+        ZStack {
+            if settingsStore.isPinSet && !isUnlocked {
+                LockScreenView {
+                    isUnlocked = true
+                }
+                .toolbar(.hidden, for: .tabBar)
+                .navigationBarBackButtonHidden(true)
+            } else {
+                ConfiguredServicesView()
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            if !settingsStore.isPinSet {
+                isUnlocked = true
+            }
+        }
+        .onDisappear {
+            isUnlocked = false
+        }
+    }
+}
+
+// MARK: - Service Editor Context
 
 struct ServiceEditorContext: Identifiable {
     let serviceType: ServiceType

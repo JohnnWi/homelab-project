@@ -820,6 +820,33 @@ extension Translations {
         unknown: "Sconosciuto",
         none: "nessuno",
         statusOn: "ON",
-        statusOff: "OFF"
+        statusOff: "OFF",
+
+        // Backup & Restore
+        backupTitle: "Backup e Ripristino",
+        backupInfoTitle: "Backup Crittografato",
+        backupInfoDesc: "Le configurazioni dei tuoi servizi vengono crittografate con AES-256. Il file di backup è protetto da una password a tua scelta.",
+        backupExportTitle: "Crea Backup",
+        backupExportAction: "Crea Backup",
+        backupExportDesc: "%d servizi verranno esportati",
+        backupExportSuccess: "Backup creato con successo",
+        backupImportTitle: "Ripristina Backup",
+        backupImportAction: "Ripristina Backup",
+        backupImportDesc: "Importa un file di backup .homelab",
+        backupImportDecrypt: "Decripta",
+        backupImportPasswordDesc: "Inserisci la password usata al momento della creazione del backup.",
+        backupImportFileError: "Impossibile accedere al file selezionato.",
+        backupImportApply: "Sostituisci Tutto",
+        backupImportSuccess: "%d servizi ripristinati con successo",
+        backupImportPreviewTitle: "Anteprima Ripristino",
+        backupPreviewServices: "%d servizi trovati:",
+        backupPreviewUnknown: "%d servizi sconosciuti verranno ignorati.",
+        backupPreviewWarning: "⚠️ Questo sostituirà tutte le configurazioni dei servizi esistenti.",
+        backupPasswordPlaceholder: "Password",
+        backupPasswordConfirm: "Conferma password",
+        backupPasswordDesc: "Scegli una password per proteggere il backup. Ti servirà per il ripristino.",
+        backupPasswordRequired: "La password è obbligatoria.",
+        backupPasswordTooShort: "La password deve essere di almeno 6 caratteri.",
+        backupPasswordMismatch: "Le password non corrispondono."
     )
 }

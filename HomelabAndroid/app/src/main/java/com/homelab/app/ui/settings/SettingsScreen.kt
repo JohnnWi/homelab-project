@@ -58,6 +58,7 @@ fun SettingsScreen(
     onNavigateToLogin: (ServiceType, String?) -> Unit = { _, _ -> },
     onNavigateToDebugLogs: () -> Unit = {},
     onNavigateToConfiguredServices: () -> Unit = {},
+    onNavigateToBackup: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
@@ -256,6 +257,15 @@ fun SettingsScreen(
                                 fontWeight = FontWeight.Medium
                             )
                         }
+                        val isPinSetForLock by viewModel.isPinSet.collectAsState()
+                        if (isPinSetForLock) {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                         Icon(
                             imageVector = Icons.Default.ChevronRight,
                             contentDescription = stringResource(R.string.settings_configured_services_title),
@@ -388,6 +398,7 @@ fun SettingsScreen(
                 val canUseBiometric = remember { com.homelab.app.util.BiometricHelper.canAuthenticate(context) }
                 var showDisableDialog by remember { mutableStateOf(false) }
                 var showChangePinSheet by remember { mutableStateOf(false) }
+                var showBiometricPrompt by remember { mutableStateOf(false) }
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -563,6 +574,35 @@ fun SettingsScreen(
                     )
                 }
 
+                // Biometric prompt after PIN setup
+                if (showBiometricPrompt) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            showBiometricPrompt = false
+                            android.widget.Toast.makeText(context, context.getString(R.string.security_pin_saved), android.widget.Toast.LENGTH_SHORT).show()
+                        },
+                        title = { Text(stringResource(R.string.security_biometric_prompt_title)) },
+                        text = { Text(stringResource(R.string.security_biometric_prompt_desc)) },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                viewModel.setBiometricEnabled(true)
+                                showBiometricPrompt = false
+                                android.widget.Toast.makeText(context, context.getString(R.string.security_pin_saved), android.widget.Toast.LENGTH_SHORT).show()
+                            }) {
+                                Text(stringResource(R.string.security_biometric_prompt_enable))
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = {
+                                showBiometricPrompt = false
+                                android.widget.Toast.makeText(context, context.getString(R.string.security_pin_saved), android.widget.Toast.LENGTH_SHORT).show()
+                            }) {
+                                Text(stringResource(R.string.security_skip))
+                            }
+                        }
+                    )
+                }
+
                 // Change PIN flow
                 if (showChangePinSheet) {
                     androidx.compose.ui.window.Dialog(
@@ -572,8 +612,10 @@ fun SettingsScreen(
                             decorFitsSystemWindows = false
                         )
                     ) {
-                        val startPinStep = if (isPinSet) 0 else 1
-                        var changePinStep by remember(startPinStep) { mutableStateOf(startPinStep) } // 0: current, 1: new/setup, 2: confirm
+                        // Capture initial step once — do NOT use isPinSet as remember key or
+                        // savePin() triggers recompose (isPinSet flips true), remember re-runs
+                        // and resets step to 0 (current-pin) before the dialog closes → loop.
+                        var changePinStep by remember { mutableStateOf(if (isPinSet) 0 else 1) } // 0: current, 1: new/setup, 2: confirm
                         var newPinInput by remember { mutableStateOf("") }
                         var pinError by remember { mutableStateOf<String?>(null) }
                         val scope = rememberCoroutineScope()
@@ -624,17 +666,23 @@ fun SettingsScreen(
                                             onPinComplete = { pin ->
                                                 if (pin == newPinInput) {
                                                     viewModel.savePin(pin)
-                                                    android.widget.Toast.makeText(
-                                                        context,
-                                                        context.getString(R.string.security_pin_saved),
-                                                        android.widget.Toast.LENGTH_SHORT
-                                                    ).show()
                                                     showChangePinSheet = false
+                                                    if (canUseBiometric && !biometricEnabled) {
+                                                        showBiometricPrompt = true
+                                                    } else {
+                                                        android.widget.Toast.makeText(
+                                                            context,
+                                                            context.getString(R.string.security_pin_saved),
+                                                            android.widget.Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    }
                                                 } else {
                                                     pinError = context.getString(R.string.security_pin_mismatch)
+                                                    newPinInput = ""
                                                     scope.launch {
                                                         kotlinx.coroutines.delay(1500)
                                                         pinError = null
+                                                        changePinStep = 1
                                                     }
                                                 }
                                             }
@@ -653,6 +701,57 @@ fun SettingsScreen(
                                 Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close))
                             }
                         }
+                    }
+                }
+            }
+
+            // --- BACKUP ---
+            item {
+                Text(
+                    text = stringResource(R.string.backupTitle).uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp, start = 8.dp)
+                )
+
+                Surface(
+                    onClick = onNavigateToBackup,
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    tonalElevation = 1.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Sync,
+                            contentDescription = stringResource(R.string.backupTitle),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.backupTitle),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = stringResource(R.string.backupInfoDesc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = stringResource(R.string.backupTitle),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }

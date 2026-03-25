@@ -1,5 +1,10 @@
 package com.homelab.app.util
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +32,9 @@ object LogStore {
     private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
         .withZone(ZoneId.systemDefault())
 
+    private val scope = CoroutineScope(Dispatchers.Default)
+    private var updateJob: Job? = null
+
     fun add(level: LogLevel, tag: String, message: String) {
         val entry = LogEntry(
             timestamp = System.currentTimeMillis(),
@@ -40,7 +48,14 @@ object LogStore {
                 buffer.removeFirst()
             }
             buffer.addLast(entry)
-            _logs.value = buffer.toList()
+            
+            if (updateJob?.isActive != true) {
+                updateJob = scope.launch(Dispatchers.Default) {
+                    delay(250)
+                    val newList = synchronized(lock) { buffer.toList() }
+                    _logs.value = newList
+                }
+            }
         }
     }
 
