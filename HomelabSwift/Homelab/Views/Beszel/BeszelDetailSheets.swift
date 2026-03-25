@@ -288,11 +288,13 @@ struct GpuDetailSheet: View {
     let records: [BeszelRecordStats]
     let localizer: Localizer
 
+    private var gpuKey: String { metricType.gpuKey }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    if let gpuName = records.last?.primaryGpu?.n {
+                    if let gpuName = records.last?.g?[gpuKey]?.n {
                         Text(gpuName)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -304,15 +306,15 @@ struct GpuDetailSheet: View {
 
                     switch metricType {
                     case .usage:
-                        let _ = (data = records.compactMap(\.gpuUsagePercent),
+                        let _ = (data = records.compactMap { $0.gpuUsagePercent(forKey: gpuKey) },
                                  color = .green,
                                  formatter = { String(format: "%.1f%%", $0) })
                     case .power:
-                        let _ = (data = records.compactMap(\.gpuPowerWatts),
+                        let _ = (data = records.compactMap { $0.gpuPowerWatts(forKey: gpuKey) },
                                  color = .orange,
                                  formatter = { String(format: "%.0fW", $0) })
                     case .vram:
-                        let _ = (data = records.compactMap(\.gpuVramPercent),
+                        let _ = (data = records.compactMap { $0.gpuVramPercent(forKey: gpuKey) },
                                  color = .purple,
                                  formatter = { String(format: "%.1f%%", $0) })
                     }

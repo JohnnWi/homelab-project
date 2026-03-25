@@ -18,6 +18,11 @@ internal enum class GpuMetricType {
     USAGE, POWER, VRAM
 }
 
+internal data class GpuMetricSelection(
+    val metric: GpuMetricType,
+    val gpuKey: String
+)
+
 internal enum class DockerMetricType {
     CPU, MEMORY, NETWORK
 }

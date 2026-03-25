@@ -193,6 +193,10 @@ data class BeszelRecordStats(
     val primaryGpu: BeszelGpuEntry?
         get() = g?.values?.firstOrNull()
 
+    /** All GPU entries sorted by key (e.g. "0", "1", …) */
+    val gpuEntries: List<Map.Entry<String, BeszelGpuEntry>>
+        get() = g?.entries?.sortedBy { it.key } ?: emptyList()
+
     val gpuUsagePercent: Double?
         get() = primaryGpu?.u
 
@@ -207,6 +211,10 @@ data class BeszelRecordStats(
 
     val gpuVramTotalMb: Double?
         get() = primaryGpu?.mt
+
+    fun gpuUsagePercent(key: String): Double? = g?.get(key)?.u
+    fun gpuPowerWatts(key: String): Double? = g?.get(key)?.p
+    fun gpuVramPercent(key: String): Double? = g?.get(key)?.memUsagePercent
 }
 
 @Serializable

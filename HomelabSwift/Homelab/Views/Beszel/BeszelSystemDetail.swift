@@ -70,7 +70,7 @@ struct BeszelSystemDetail: View {
                     }
 
                     // GPU
-                    if let stats = latestStats, stats.primaryGpu != nil {
+                    if let stats = latestStats, !stats.gpuEntries.isEmpty {
                         GpuMetricsSection(
                             stats: stats,
                             localizer: localizer,

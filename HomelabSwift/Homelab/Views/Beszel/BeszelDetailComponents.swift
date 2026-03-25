@@ -168,42 +168,50 @@ struct GpuMetricsSection: View {
     @Binding var expandedGpuMetric: GpuMetricType?
 
     var body: some View {
-        guard let gpu = stats.primaryGpu else { return AnyView(EmptyView()) }
+        let entries = stats.gpuEntries
+        if entries.isEmpty { return AnyView(EmptyView()) }
         return AnyView(
             VStack(alignment: .leading, spacing: 12) {
                 BeszelSectionHeader(icon: "gpu", title: localizer.t.beszelGpu, color: .green)
 
-                VStack(spacing: 0) {
-                    Text(gpu.n)
-                        .font(.caption.bold())
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 12)
-
-                    if let usage = gpu.u {
-                        metricRow(icon: "gauge.medium", label: localizer.t.beszelGpuUsage, value: String(format: "%.1f%%", usage),
-                                  progress: usage / 100.0, color: usageColor(usage))
-                        .onTapGesture { expandedGpuMetric = .usage }
-                    }
-                    if let power = gpu.p {
-                        Divider().padding(.leading, 52)
-                        metricRow(icon: "bolt", label: localizer.t.beszelGpuPower, value: String(format: "%.0fW", power),
-                                  progress: nil, color: .orange)
-                        .onTapGesture { expandedGpuMetric = .power }
-                    }
-                    if let vramPct = gpu.memUsagePercent {
-                        Divider().padding(.leading, 52)
-                        metricRow(icon: "memorychip", label: localizer.t.beszelGpuVram,
-                                  value: String(format: "%.0f / %.0f MB (%.0f%%)", gpu.memUsedMb, gpu.memTotalMb, vramPct),
-                                  progress: vramPct / 100.0, color: usageColor(vramPct))
-                        .onTapGesture { expandedGpuMetric = .vram }
-                    }
+                ForEach(entries, id: \.key) { entry in
+                    gpuCard(gpuKey: entry.key, gpu: entry.gpu)
                 }
-                .padding(.bottom, 12)
-                .glassCard()
             }
         )
+    }
+
+    @ViewBuilder
+    private func gpuCard(gpuKey: String, gpu: BeszelGpuEntry) -> some View {
+        VStack(spacing: 0) {
+            Text(gpu.n)
+                .font(.caption.bold())
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+
+            if let usage = gpu.u {
+                metricRow(icon: "gauge.medium", label: localizer.t.beszelGpuUsage, value: String(format: "%.1f%%", usage),
+                          progress: usage / 100.0, color: usageColor(usage))
+                .onTapGesture { expandedGpuMetric = .usage(gpuKey: gpuKey) }
+            }
+            if let power = gpu.p {
+                Divider().padding(.leading, 52)
+                metricRow(icon: "bolt", label: localizer.t.beszelGpuPower, value: String(format: "%.0fW", power),
+                          progress: nil, color: .orange)
+                .onTapGesture { expandedGpuMetric = .power(gpuKey: gpuKey) }
+            }
+            if let vramPct = gpu.memUsagePercent {
+                Divider().padding(.leading, 52)
+                metricRow(icon: "memorychip", label: localizer.t.beszelGpuVram,
+                          value: String(format: "%.0f / %.0f MB (%.0f%%)", gpu.memUsedMb, gpu.memTotalMb, vramPct),
+                          progress: vramPct / 100.0, color: usageColor(vramPct))
+                .onTapGesture { expandedGpuMetric = .vram(gpuKey: gpuKey) }
+            }
+        }
+        .padding(.bottom, 12)
+        .glassCard()
     }
 
     private func metricRow(icon: String, label: String, value: String, progress: Double?, color: Color) -> some View {

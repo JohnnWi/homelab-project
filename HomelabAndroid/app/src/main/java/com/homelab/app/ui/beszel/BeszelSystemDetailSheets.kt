@@ -435,10 +435,11 @@ internal fun DiskFsDetailsSheet(
 @Composable
 internal fun GpuDetailsSheet(
     metric: GpuMetricType,
+    gpuKey: String,
     history: List<BeszelRecordStats>,
     onDismiss: () -> Unit
 ) {
-    val latestGpu = history.lastOrNull()?.primaryGpu
+    val latestGpu = history.lastOrNull()?.g?.get(gpuKey)
 
     val title: String
     val series: List<Double>
@@ -448,19 +449,19 @@ internal fun GpuDetailsSheet(
     when (metric) {
         GpuMetricType.USAGE -> {
             title = stringResource(R.string.beszel_gpu_usage_label_full)
-            series = history.mapNotNull { it.gpuUsagePercent }.takeLast(240)
+            series = history.mapNotNull { it.gpuUsagePercent(gpuKey) }.takeLast(240)
             accent = ServiceType.BESZEL.primaryColor
             formatter = { v: Double -> String.format("%.0f%%", v) }
         }
         GpuMetricType.POWER -> {
             title = stringResource(R.string.beszel_gpu_power_label_full)
-            series = history.mapNotNull { it.gpuPowerWatts }.takeLast(240)
+            series = history.mapNotNull { it.gpuPowerWatts(gpuKey) }.takeLast(240)
             accent = StatusPurple
             formatter = { v: Double -> String.format("%.1f W", v) }
         }
         GpuMetricType.VRAM -> {
             title = stringResource(R.string.beszel_gpu_vram_label_full)
-            series = history.mapNotNull { it.gpuVramPercent }.takeLast(240)
+            series = history.mapNotNull { it.gpuVramPercent(gpuKey) }.takeLast(240)
             accent = StatusOrange
             formatter = { v: Double -> String.format("%.1f%%", v) }
         }
