@@ -13,8 +13,6 @@
 		03B92E43E53FDB090D96A183 /* NpmProxyHostForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F2913EA81E6CCF74EFC883C /* NpmProxyHostForm.swift */; };
 		05260E0A1A5781AC8EAE7011 /* EditBookmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CB770E60C2FE5FB6640BE98 /* EditBookmarkView.swift */; };
 		06B033BE66307E6CC8E75459 /* JellystatDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C74A7F7C1CB466CC7223840 /* JellystatDashboard.swift */; };
-		AA11223344556677AABBCCDD /* PlexAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB11223344556677AABBCCDD /* PlexAPIClient.swift */; };
-		CC11223344556677AABBCCDD /* PlexDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD11223344556677AABBCCDD /* PlexDashboard.swift */; };
 		0E5566DAE01FB0E9F10E98C8 /* StatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5B6FAE42892F4BEB3097FD /* StatusBadge.swift */; };
 		0F634D9389BDB5467A64C25E /* GlassStatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735477DB04233B4FDA23469D /* GlassStatCard.swift */; };
 		10FBD548812295AB0814803D /* HealthchecksModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD139A00611FED93C43C0833 /* HealthchecksModels.swift */; };
@@ -77,6 +75,7 @@
 		A3DF6B4D547020804E10A0C0 /* HealthchecksDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4425B283650DDB0057DE0E75 /* HealthchecksDashboard.swift */; };
 		A3E3BAB096611E807728CA89 /* ContainerListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3116D5544353B573C4C2B0B /* ContainerListView.swift */; };
 		A9AED87CFEFFDD6E065E3A0A /* AdGuardHomeAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F5CFB96CB606EB9EC34EBB /* AdGuardHomeAPIClient.swift */; };
+		AA11223344556677AABBCCDD /* PlexAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB11223344556677AABBCCDD /* PlexAPIClient.swift */; };
 		AAA9BC382610A55D8E374C95 /* Translations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7692F78990DA606D426BA429 /* Translations.swift */; };
 		ABCECDC5B2772BE727043AA3 /* BeszelDetailSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E3E6D321C7DB682436A5607 /* BeszelDetailSheets.swift */; };
 		AD2F16BDA6D33B25BA1DD4B7 /* GiteaModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F6D851F1B957C876FD6F0B /* GiteaModels.swift */; };
@@ -89,6 +88,7 @@
 		C18B23568F81455E4164835D /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 486E817863BA2B5DA5318488 /* GlassCard.swift */; };
 		C462B63CC5FE35CD624ADFCD /* NpmStreamCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8904009FE0CC197DE3B1492A /* NpmStreamCard.swift */; };
 		C86FF5E6A543278A18B16E9B /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB95F4E19C7D3082B4D6484C /* APIError.swift */; };
+		CC11223344556677AABBCCDD /* PlexDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD11223344556677AABBCCDD /* PlexDashboard.swift */; };
 		CD29007C4FB0AD271F85673C /* JellystatAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D364FA7AED9BAC9B522C01 /* JellystatAPIClient.swift */; };
 		CE78DBCA639D954A7CCB26D3 /* ServiceErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBB688D017EE8175FB27EC7D /* ServiceErrorView.swift */; };
 		CF0124025064FF55FAD14233 /* BeszelDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 408F0E514FDE46F6A78D0A58 /* BeszelDashboard.swift */; };
@@ -204,14 +204,13 @@
 		AD139A00611FED93C43C0833 /* HealthchecksModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksModels.swift; sourceTree = "<group>"; };
 		AE1461ABFFED5C380B73195B /* AdGuardHomeFiltersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeFiltersView.swift; sourceTree = "<group>"; };
 		B0D364FA7AED9BAC9B522C01 /* JellystatAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellystatAPIClient.swift; sourceTree = "<group>"; };
-		BB11223344556677AABBCCDD /* PlexAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexAPIClient.swift; sourceTree = "<group>"; };
-		DD11223344556677AABBCCDD /* PlexDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexDashboard.swift; sourceTree = "<group>"; };
 		B0F5CFB96CB606EB9EC34EBB /* AdGuardHomeAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeAPIClient.swift; sourceTree = "<group>"; };
 		B1CB48124608D3A220C3A444 /* Translations+OtherLanguages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Translations+OtherLanguages.swift"; sourceTree = "<group>"; };
 		B1EBFFF57A15B47F78E81D04 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
 		B236EC8434642BB311F3E1A8 /* PiHoleAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiHoleAPIClient.swift; sourceTree = "<group>"; };
 		B518BC3D0A31F29612A69B75 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BA8931C718CFC9019DCFF462 /* BookmarkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkManager.swift; sourceTree = "<group>"; };
+		BB11223344556677AABBCCDD /* PlexAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexAPIClient.swift; sourceTree = "<group>"; };
 		BB3E11D0571609D7927FCD5A /* AdGuardHomeQueryLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeQueryLogView.swift; sourceTree = "<group>"; };
 		BB7A6237B741BF62F16D9F8B /* OfflineBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineBanner.swift; sourceTree = "<group>"; };
 		BE0A64E52150CEEA94E249D7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -227,6 +226,7 @@
 		DB56E3990A5DE62509F3F7C4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		DBB688D017EE8175FB27EC7D /* ServiceErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceErrorView.swift; sourceTree = "<group>"; };
 		DC1DFC10F93EE792ED01CF97 /* HealthchecksAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksAPIClient.swift; sourceTree = "<group>"; };
+		DD11223344556677AABBCCDD /* PlexDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexDashboard.swift; sourceTree = "<group>"; };
 		DDFB66029D52483B7F25F83F /* NpmDeadHostCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmDeadHostCard.swift; sourceTree = "<group>"; };
 		DFCAD7944220A8EA3DDFC3A6 /* BeszelDetailComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelDetailComponents.swift; sourceTree = "<group>"; };
 		E0D0F063C9B955AB9794F2AF /* BeszelLineGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelLineGraph.swift; sourceTree = "<group>"; };
@@ -395,14 +395,6 @@
 			path = Jellystat;
 			sourceTree = "<group>";
 		};
-		EE11223344556677AABBCCDD /* Plex */ = {
-			isa = PBXGroup;
-			children = (
-				BB11223344556677AABBCCDD /* PlexAPIClient.swift */,
-			);
-			path = Plex;
-			sourceTree = "<group>";
-		};
 		58F8A8040064B68291A0616F /* ServiceLogin */ = {
 			isa = PBXGroup;
 			children = (
@@ -436,14 +428,6 @@
 				4C74A7F7C1CB466CC7223840 /* JellystatDashboard.swift */,
 			);
 			path = Jellystat;
-			sourceTree = "<group>";
-		};
-		FF11223344556677AABBCCDD /* Plex */ = {
-			isa = PBXGroup;
-			children = (
-				DD11223344556677AABBCCDD /* PlexDashboard.swift */,
-			);
-			path = Plex;
 			sourceTree = "<group>";
 		};
 		69A014381BA51401C9862848 /* Healthchecks */ = {
@@ -706,6 +690,14 @@
 			path = Bookmarks;
 			sourceTree = "<group>";
 		};
+		EE11223344556677AABBCCDD /* Plex */ = {
+			isa = PBXGroup;
+			children = (
+				BB11223344556677AABBCCDD /* PlexAPIClient.swift */,
+			);
+			path = Plex;
+			sourceTree = "<group>";
+		};
 		F1265188363BF5B5C00056A5 /* Beszel */ = {
 			isa = PBXGroup;
 			children = (
@@ -742,6 +734,14 @@
 				853EA1B757B0BD3540F2AEED /* PatchmonModels.swift */,
 			);
 			path = Patchmon;
+			sourceTree = "<group>";
+		};
+		FF11223344556677AABBCCDD /* Plex */ = {
+			isa = PBXGroup;
+			children = (
+				DD11223344556677AABBCCDD /* PlexDashboard.swift */,
+			);
+			path = Plex;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
