@@ -35,14 +35,6 @@
           "minOSVersion": "18.0"
         },
         {
-          "version": "0.8.2",
-          "date": "2026-03-25",
-          "localizedDescription": "## What's New\n\n- **NPMplus Support**: Added cookie-based token fallback for NPMplus (Nginx Proxy Manager fork with CrowdSec)\n- **Configured Services Page**: New dedicated page in Settings to manage all connected services\n- **Update Popup**: Full-screen popup notification on app launch when a new version is available\n- **Settings Redesigned**: Reordered sections, neutral card style for Debug and Services\n\n## Fixes\n- Fixed `ic_splash_welcome.png` resource (was JPEG with .png extension)\n- Version bumped to 0.8.2 (build 12) on both platforms",
-          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v0.8.2/Homelab.ipa",
-          "size": 8056006,
-          "minOSVersion": "18.0"
-        },
-        {
           "version": "0.8.1",
           "date": "2026-03-25",
           "localizedDescription": "## What's New\n\n- **Multi-GPU support in Beszel**: Systems with multiple GPUs now display all GPUs as separate cards with individual metrics and history charts (thanks @FlintyLemming!)\n- Fix Android build issues (PNG format, missing ProGuard rules)\n\n## Downloads\n- **Homelab.ipa** — iOS (sideload via SideStore/AltStore)\n- **Homelab.apk** — Android",
