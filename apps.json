@@ -31,7 +31,7 @@
           "date": "2026-03-25",
           "localizedDescription": "## What's New in v0.9.0\n\n- **Backup & Restore**: New encrypted backup system — export and import your entire configuration (services, settings, PIN) on both iOS and Android\n- **NPMplus Fix**: Fixed authentication flow for NPMplus (Nginx Proxy Manager fork) on both platforms\n- **PIN Screen**: Fixed layout and interaction issues on the PIN lock screen\n- **Android Battery Fix**: Fixed battery stats not displaying correctly in Beszel\n\n### Platforms\n- 📱 **iOS** (Swift / SwiftUI / Liquid Glass) — requires iOS 18.0+\n- 🤖 **Android** (Kotlin / Jetpack Compose / Material 3) — requires Android 8.0+",
           "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v0.9.0/Homelab.ipa",
-          "size": 8147746,
+          "size": 8147037,
           "minOSVersion": "18.0"
         },
         {
