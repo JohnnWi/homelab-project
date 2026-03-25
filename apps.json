@@ -27,6 +27,14 @@
       ],
       "versions": [
         {
+          "version": "0.8.1",
+          "date": "2026-03-25",
+          "localizedDescription": "## What's New\n\n- **Multi-GPU support in Beszel**: Systems with multiple GPUs now display all GPUs as separate cards with individual metrics and history charts (thanks @FlintyLemming!)\n- Fix Android build issues (PNG format, missing ProGuard rules)\n\n## Downloads\n- **Homelab.ipa** — iOS (sideload via SideStore/AltStore)\n- **Homelab.apk** — Android",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v0.8.1/Homelab.ipa",
+          "size": 8039005,
+          "minOSVersion": "18.0"
+        },
+        {
           "version": "0.8.0",
           "date": "2026-03-23",
           "localizedDescription": "## What's New in v0.8.0\n\n### New Service: Plex\n- Monitor your Plex Media Server from your phone\n- View libraries, total items (Movies, Shows, Episodes, Music)\n- Active sessions with real-time playback info (resolution, bitrate, user)\n- Recently added media overview\n- Server info with version and platform details\n\n### Other\n- Vibe-coding disclaimer added to README\n- Star history chart restored\n- Updated to 12 integrated services\n\n**Full Changelog**: https://github.com/JohnnWi/homelab-project/compare/v0.7.2...v0.8.0",
@@ -93,6 +101,16 @@
     }
   ],
   "news": [
+    {
+      "title": "v0.8.1 — What's New",
+      "identifier": "release-0.8.1",
+      "caption": "What's New - **Multi-GPU support in Beszel**: Systems with multiple GPUs now display all GPUs as separate cards with individual metrics and history charts (thanks @FlintyLemming!) - Fix Android build issues (PNG format, missing ProGuard rules)",
+      "date": "2026-03-25",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v0.8.1",
+      "appID": "homelab.foreverhomelab"
+    },
     {
       "title": "v0.8.0 — What's New in v0.8.0",
       "identifier": "release-0.8.0",
