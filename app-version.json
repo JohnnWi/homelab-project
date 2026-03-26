@@ -1,6 +1,6 @@
 {
-  "latest": "0.9.1",
-  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v0.9.1/Homelab.ipa",
-  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v0.9.1/Homelab.apk",
-  "changelog": "What's New in v0.9.1\n\n- **Translations complete**: Italian, French, Spanish, and German now have 100% translation coverage — all strings for backup, biometric auth, Beszel metrics, Gitea, NPM, and Plex are fully localized\n- **Bug Fix**: Fixed missing translations for backup/restore and biometric authentication screens on all languages\n\nPlatforms\n- 📱 **iOS** (Swift / SwiftUI / Liquid Glass) — requires iOS 18.0+\n- 🤖 **Android** (Kotlin / Jetpack Compose / Material 3) — requires Android 8.0+"
+  "latest": "0.9.2",
+  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v0.9.2/Homelab.ipa",
+  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v0.9.2/Homelab.apk",
+  "changelog": "What's New in v0.9.2\n\n- **Fix**: Update popup now appears on app launch from the dashboard, not only when opening Settings\n- **UI**: Update popup is taller and more readable — changelog no longer gets cut off\n\nPlatforms\n- 📱 **iOS** (Swift / SwiftUI / Liquid Glass) — requires iOS 18.0+\n- 🤖 **Android** (Kotlin / Jetpack Compose / Material 3) — requires Android 8.0+"
 }
