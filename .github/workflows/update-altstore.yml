@@ -7,6 +7,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: update-altstore
+  cancel-in-progress: false
+
 jobs:
   update-source:
     runs-on: ubuntu-latest
