@@ -101,7 +101,7 @@ Developed with **Swift 6** and **SwiftUI**, utilizing the latest native iOS 26 t
   </tr>
 </table>
 
-**Gitea** · **Patchmon** · **Jellystat** · **Plex**
+**Gitea / Forgejo** · **Patchmon** · **Jellystat** · **Plex**
 <table>
   <tr>
     <td align="center"><img src="media-docs/foto-ios/IMG_9200.jpg" width="145" /></td>
@@ -263,7 +263,7 @@ The app will update automatically when new versions are released.
 <summary><b>📋 View all 12 services...</b></summary>
 <br>
 
-<img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/gitea.png" width="20" style="vertical-align:middle"> **Gitea** — Manage your code natively. Browse repositories, view contribution heatmaps, read code files with full syntax highlighting, and keep track of your latest commits.
+<img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/gitea.png" width="20" style="vertical-align:middle"> **Gitea / Forgejo** — Manage your code natively. Browse repositories, view contribution heatmaps, read code files with full syntax highlighting, and keep track of your latest commits. [Forgejo](https://forgejo.org/) (a community fork of Gitea) is fully supported — just use the Gitea integration with your Forgejo instance URL.
 
 <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/tailscale.png" width="20" style="vertical-align:middle"> **Tailscale** — Integrated Tailscale support helps you securely reach your homelab from anywhere, with quick launch actions and connection status surfaced directly inside the app experience.
 
