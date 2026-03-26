@@ -27,6 +27,14 @@
       ],
       "versions": [
         {
+          "version": "0.9.1",
+          "date": "2026-03-26",
+          "localizedDescription": "## What's New in v0.9.1\n\n- **Translations complete**: Italian, French, Spanish, and German now have 100% translation coverage — all strings for backup, biometric auth, Beszel metrics, Gitea, NPM, and Plex are fully localized\n- **Bug Fix**: Fixed missing translations for backup/restore and biometric authentication screens on all languages\n\n### Platforms\n- 📱 **iOS** (Swift / SwiftUI / Liquid Glass) — requires iOS 18.0+\n- 🤖 **Android** (Kotlin / Jetpack Compose / Material 3) — requires Android 8.0+",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v0.9.1/Homelab.ipa",
+          "size": 8155766,
+          "minOSVersion": "18.0"
+        },
+        {
           "version": "0.9.0",
           "date": "2026-03-25",
           "localizedDescription": "## What's New in v0.9.0\n\n- **Backup & Restore**: New encrypted backup system — export and import your entire configuration (services, settings, PIN) on both iOS and Android\n- **NPMplus Fix**: Fixed authentication flow for NPMplus (Nginx Proxy Manager fork) on both platforms\n- **PIN Screen**: Fixed layout and interaction issues on the PIN lock screen\n- **Android Battery Fix**: Fixed battery stats not displaying correctly in Beszel\n\n### Platforms\n- 📱 **iOS** (Swift / SwiftUI / Liquid Glass) — requires iOS 18.0+\n- 🤖 **Android** (Kotlin / Jetpack Compose / Material 3) — requires Android 8.0+",
@@ -117,6 +125,16 @@
     }
   ],
   "news": [
+    {
+      "title": "v0.9.1 — - **Translations complete**: Italian, French, Spanish, and German now have 100% translation coverage — all strings for backup, biometric auth, Beszel metrics, Gitea, NPM, and Plex are fully localized",
+      "identifier": "release-0.9.1",
+      "caption": "- **Translations complete**: Italian, French, Spanish, and German now have 100% translation coverage — all strings for backup, biometric auth, Beszel metrics, Gitea, NPM, and Plex are fully localized - **Bug Fix**: Fixed missing translations for backup/restore and biometric authentication screens on all languages - 📱 **iOS** (Swift / SwiftUI / Liquid Glass) — requires iOS 18.0+",
+      "date": "2026-03-26",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v0.9.1",
+      "appID": "homelab.foreverhomelab"
+    },
     {
       "title": "v0.9.0 — - **Backup & Restore**: New encrypted backup system — export and import your entire configuration (services, settings, PIN) on both iOS and Android",
       "identifier": "release-0.9.0",
