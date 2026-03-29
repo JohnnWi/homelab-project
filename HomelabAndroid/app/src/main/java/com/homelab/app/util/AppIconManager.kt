@@ -14,20 +14,28 @@ class AppIconManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     fun isApplied(option: AppIconOption): Boolean {
-        val packageManager = context.packageManager
-        val packageName = context.packageName
-        val selectedComponent = option.componentName(packageName)
-        val selectedState = packageManager.getComponentEnabledSetting(selectedComponent)
-        if (selectedState == PackageManager.COMPONENT_ENABLED_STATE_DISABLED) {
-            return false
-        }
-
-        return AppIconOption.entries
-            .filter { it != option }
-            .all { candidate ->
-                packageManager.getComponentEnabledSetting(candidate.componentName(packageName)) ==
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        return try {
+            val packageManager = context.packageManager
+            val packageName = context.packageName
+            val selectedComponent = option.componentName(packageName)
+            val selectedState = packageManager.getComponentEnabledSetting(selectedComponent)
+            if (selectedState == PackageManager.COMPONENT_ENABLED_STATE_DISABLED) {
+                return false
             }
+
+            AppIconOption.entries
+                .filter { it != option }
+                .all { candidate ->
+                    packageManager.getComponentEnabledSetting(candidate.componentName(packageName)) ==
+                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+                }
+        } catch (error: Exception) {
+            // On MIUI/Xiaomi devices the PackageManager may throw SecurityException or
+            // NameNotFoundException for component aliases. Treat as "not applied" so the
+            // caller can attempt to re-apply without crashing.
+            Log.e("AppIconManager", "Failed to check icon state for ${option.persistedValue}", error)
+            false
+        }
     }
 
     fun apply(option: AppIconOption, relaunchApp: Boolean = false): Boolean {

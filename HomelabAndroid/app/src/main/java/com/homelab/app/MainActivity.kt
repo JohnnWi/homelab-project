@@ -18,8 +18,11 @@ import com.homelab.app.ui.security.SecurityViewModel
 import com.homelab.app.ui.settings.SettingsViewModel
 import com.homelab.app.ui.settings.UpdatePopupDialog
 import com.homelab.app.util.NotificationHelper
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 import javax.inject.Inject
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -63,18 +66,37 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         lifecycleScope.launch {
-            val languageMode = preferencesRepository.languageMode.first()
-            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(languageMode.code))
-            val selectedIcon = preferencesRepository.appIcon.first()
-            if (!appIconManager.isApplied(selectedIcon)) {
-                appIconManager.apply(selectedIcon)
-            }
-            servicesRepository.initialize()
+            try {
+                // Safety timeout: if any DataStore read or DB call hangs (e.g. corrupted
+                // storage, MIUI restrictions), the splash screen must still dismiss within 10s.
+                withTimeoutOrNull(10_000L) {
+                    val languageMode = preferencesRepository.languageMode.first()
+                    AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(languageMode.code))
+                    val selectedIcon = preferencesRepository.appIcon.first()
+                    // Isolate icon switching: on MIUI/Xiaomi the PackageManager can throw
+                    // SecurityException or NameNotFoundException for component aliases.
+                    runCatching {
+                        if (!appIconManager.isApplied(selectedIcon)) {
+                            appIconManager.apply(selectedIcon)
+                        }
+                    }
+                    servicesRepository.initialize()
 
-            val hasCompletedOnboarding = preferencesRepository.hasCompletedOnboarding.first()
-            needsSetup = !hasCompletedOnboarding
-            if (needsSetup) isUnlocked = false
-            servicesReady = true
+                    val hasCompletedOnboarding = preferencesRepository.hasCompletedOnboarding.first()
+                    needsSetup = !hasCompletedOnboarding
+                    if (needsSetup) isUnlocked = false
+                }
+            } catch (e: CancellationException) {
+                // Re-throw so the coroutine lifecycle is properly cancelled when the
+                // Activity is destroyed before init completes.
+                throw e
+            } catch (_: Exception) {
+                // Any other error (DataStore IO, Room exception, etc.) — continue with
+                // safe defaults so the app is still usable.
+            } finally {
+                // Always unblock the splash screen, no matter what happened above.
+                servicesReady = true
+            }
         }
 
         enableEdgeToEdge()
@@ -171,9 +193,13 @@ class MainActivity : AppCompatActivity() {
             val gracePeriodMs = 60_000L // 1 minute
             if (elapsed > gracePeriodMs) {
                 lifecycleScope.launch {
-                    val pin = preferencesRepository.appPin.first()
-                    if (pin != null) {
-                        isUnlocked = false
+                    try {
+                        val pin = preferencesRepository.appPin.first()
+                        if (pin != null) {
+                            isUnlocked = false
+                        }
+                    } catch (_: Exception) {
+                        // If DataStore fails, leave the current unlock state unchanged.
                     }
                 }
             }
@@ -183,10 +209,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Force refresh Tailscale status on app resume for instant UI updates
-        val securityVm = ViewModelProvider(this)[SecurityViewModel::class.java]
-        securityVm.checkTailscale()
-
+        // Run Tailscale detection off the main thread: iterating NetworkInterface can be slow
+        // on devices with many interfaces and would cause jank/ANR if run synchronously.
+        lifecycleScope.launch(Dispatchers.Default) {
+            servicesRepository.checkTailscale()
+        }
         // Refresh all services reachability on app resume
         lifecycleScope.launch {
             servicesRepository.checkAllReachability()
