@@ -29,7 +29,7 @@
         {
           "version": "1.0.0",
           "date": "2026-03-29",
-          "localizedDescription": "## What's New in v1.0.0\n\nThis is a major milestone release — **Homelab 1.0** is here!\n\n### New Services\n- **Servarr Stack** — Full dashboard for Sonarr, Radarr, Lidarr, Prowlarr, qBittorrent (+ Gluetun status)\n- **Technitium DNS** — DNS statistics and query monitoring\n- **Pangolin / Newt** — VPN tunnel dashboard\n- **Dockhand** — Container manager dashboard\n- **Linux Update** — System update status across your hosts\n\n### Design & Customization\n- **Home redesign** — Refreshed colors, icons, and card layout\n- **Alternate app icons** — 6 variants: Default, Dark, Clear Light, Clear Dark, Tinted Light, Tinted Dark\n- **New color theme options** in Settings\n\n### Other Improvements\n- Various bug fixes and performance improvements\n\n---\n\n> **A small note:** I'm taking a short break from development to focus on my studies. Thank you for all the support — it means a lot! Development will resume soon. 🙏\n\n---\n\n### Platforms\n- 📱 **iOS** (Swift / SwiftUI) — requires iOS 18.0+\n- 🤖 **Android** (Kotlin / Jetpack Compose) — requires Android 8.0+",
+          "localizedDescription": "## What's New in v1.0.0\n\nThis is a major milestone release — **Homelab 1.0** is here!\n\n### New Services\n- **Servarr Stack** — Full dashboard for the complete media automation suite:\n  - Sonarr, Radarr, Lidarr, Prowlarr (arr apps with downloads, health, upcoming)\n  - qBittorrent (speeds, DHT nodes, Gluetun tunnel/firewall status)\n  - Bazarr (subtitle manager — missing subtitles, download status)\n  - FlareSolverr (Cloudflare bypass proxy — status and version)\n  - Jellyseerr (requests and pending approvals)\n- **Technitium DNS** — DNS statistics and query monitoring\n- **Pangolin / Newt** — VPN tunnel dashboard\n- **Dockhand** — Container manager dashboard\n- **Linux Update** — System update status across your hosts\n\n### Design & Customization\n- **Home redesign** — Refreshed colors, icons, and card layout\n- **Alternate app icons** — 6 variants: Default, Dark, Clear Light, Clear Dark, Tinted Light, Tinted Dark\n- **New color theme options** in Settings\n\n### Other Improvements\n- Various bug fixes and performance improvements\n\n---\n\n> **A small note:** I'm taking a short break from development to focus on my studies. Thank you for all the support — it means a lot! Development will resume soon. 🙏\n\n---\n\n### Platforms\n- 📱 **iOS** (Swift / SwiftUI) — requires iOS 18.0+\n- 🤖 **Android** (Kotlin / Jetpack Compose) — requires Android 8.0+",
           "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v1.0.0/Homelab.ipa",
           "size": 27558365,
           "minOSVersion": "18.0"
@@ -144,7 +144,7 @@
     {
       "title": "v1.0.0 — This is a major milestone release — **Homelab 1.0** is here!",
       "identifier": "release-1.0.0",
-      "caption": "This is a major milestone release — **Homelab 1.0** is here! - **Servarr Stack** — Full dashboard for Sonarr, Radarr, Lidarr, Prowlarr, qBittorrent (+ Gluetun status) - **Technitium DNS** — DNS statistics and query monitoring",
+      "caption": "This is a major milestone release — **Homelab 1.0** is here! - **Servarr Stack** — Full dashboard for the complete media automation suite: - Sonarr, Radarr, Lidarr, Prowlarr (arr apps with downloads, health, upcoming)",
       "date": "2026-03-29",
       "tintColor": "#4A90D9",
       "notify": true,
