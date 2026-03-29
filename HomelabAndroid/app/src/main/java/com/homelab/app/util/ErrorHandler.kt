@@ -48,14 +48,14 @@ object ErrorHandler {
                 }
             }
             is IllegalStateException -> {
-                if (
-                    error.message == "Healthchecks authentication failed" ||
-                    error.message == "Linux Update authentication failed" ||
-                    error.message == "Pangolin authentication failed"
-                ) {
-                    context.getString(R.string.error_invalid_credentials)
-                } else {
-                    error.localizedMessage ?: context.getString(R.string.error_unknown)
+                val msg = error.message.orEmpty()
+                when {
+                    msg == "Healthchecks authentication failed" ||
+                    msg == "Linux Update authentication failed" ||
+                    msg == "Pangolin authentication failed" ||
+                    msg.startsWith("401:") || msg.startsWith("403:") ->
+                        context.getString(R.string.error_invalid_credentials)
+                    else -> error.localizedMessage ?: context.getString(R.string.error_unknown)
                 }
             }
             else -> error?.localizedMessage ?: context.getString(R.string.error_unknown)

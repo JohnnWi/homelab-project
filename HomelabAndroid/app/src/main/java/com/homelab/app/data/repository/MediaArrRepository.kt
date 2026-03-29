@@ -215,7 +215,7 @@ class MediaArrRepository @Inject constructor(
         serviceType: ServiceType,
         apiKey: String,
         fallbackUrl: String? = null
-    ) {
+    ) = withContext(Dispatchers.IO) {
         val path = when (serviceType) {
             ServiceType.RADARR, ServiceType.SONARR -> "/api/v3/system/status"
             ServiceType.LIDARR -> "/api/v1/system/status"
@@ -257,7 +257,7 @@ class MediaArrRepository @Inject constructor(
                     headers = headers,
                     bypass = true
                 )
-                return
+                return@withContext
             } catch (error: Throwable) {
                 lastError = error
             }

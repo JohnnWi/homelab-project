@@ -77,6 +77,10 @@ class SmartFallbackInterceptor @Inject constructor(
             return response
             
         } catch (e: IOException) {
+            // HtmlResponseException means the server responded with an HTML page (e.g. a proxy
+            // login page). This is an application-level error, not a network-level failure — do
+            // NOT retry with the fallback URL, just propagate the error immediately.
+            if (e is HtmlResponseException) throw e
             if (isConnectedToHomeWifi && fallbackUrl != null) {
                 if (primaryUrl != null) {
                     val fbUrl = rewriteUrl(
