@@ -77,6 +77,13 @@ class MediaArrViewModel @Inject constructor(
         }
     }
 
+    fun toggleServiceVisibility(serviceType: ServiceType) {
+        if (serviceType == ServiceType.UNKNOWN) return
+        viewModelScope.launch {
+            localPreferencesRepository.toggleServiceVisibility(serviceType.name)
+        }
+    }
+
     fun dismissTutorial() {
         viewModelScope.launch {
             localPreferencesRepository.setMediaArrTutorialDismissed(true)

@@ -3,6 +3,7 @@ package com.homelab.app.ui.backup
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.background
@@ -22,8 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -217,39 +220,39 @@ fun BackupScreen(
                         }
                     } else {
                         FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            FilterChip(
+                            BackupSelectionChip(
+                                label = stringResource(R.string.backupSelectionAll),
                                 selected = configuredTypeSet.isNotEmpty() && selectedExportTypes.containsAll(configuredTypeSet),
-                                onClick = viewModel::toggleAllExportTypes,
-                                label = { Text(stringResource(R.string.backupSelectionAll)) }
+                                onClick = viewModel::toggleAllExportTypes
                             )
-                            FilterChip(
+                            BackupSelectionChip(
+                                label = stringResource(R.string.backupSelectionHome),
                                 selected = homeTypeSet.isNotEmpty() && selectedExportTypes.containsAll(homeTypeSet),
-                                onClick = viewModel::toggleHomeExportTypes,
                                 enabled = homeTypeSet.isNotEmpty(),
-                                label = { Text(stringResource(R.string.backupSelectionHome)) }
+                                onClick = viewModel::toggleHomeExportTypes
                             )
-                            FilterChip(
+                            BackupSelectionChip(
+                                label = stringResource(R.string.backupSelectionArr),
                                 selected = arrTypeSet.isNotEmpty() && selectedExportTypes.containsAll(arrTypeSet),
-                                onClick = viewModel::toggleArrExportTypes,
                                 enabled = arrTypeSet.isNotEmpty(),
-                                label = { Text(stringResource(R.string.backupSelectionArr)) }
+                                onClick = viewModel::toggleArrExportTypes
                             )
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
 
                         FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             configuredTypes.forEach { type ->
-                                FilterChip(
+                                BackupSelectionChip(
                                     selected = selectedExportTypes.contains(type),
                                     onClick = { viewModel.toggleExportType(type) },
-                                    label = { Text(backupServiceDisplayName(type)) }
+                                    label = backupServiceDisplayName(type)
                                 )
                             }
                         }
@@ -401,6 +404,8 @@ fun BackupScreen(
             )
         }
         is BackupUiState.ImportPreview -> {
+            val configuration = LocalConfiguration.current
+            val previewScroll = rememberScrollState()
             val previewKnownTypes = remember(state.previewInfo.envelope.services) {
                 state.previewInfo.envelope.services
                     .mapNotNull { BackupServiceTypeMapper.serviceType(it.type) }
@@ -421,98 +426,110 @@ fun BackupScreen(
             Dialog(onDismissRequest = viewModel::resetState) {
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .heightIn(max = configuration.screenHeightDp.dp * 0.82f)
                 ) {
                     Column(
-                        modifier = Modifier.padding(24.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text(
-                            text = stringResource(R.string.backupImportPreviewTitle),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        val totalStr = stringResource(R.string.backupPreviewServices, state.previewInfo.totalFound)
-                        Text(totalStr)
-
-                        if (state.previewInfo.unknownCount > 0) {
-                            val unknownStr = stringResource(R.string.backupPreviewUnknown, state.previewInfo.unknownCount)
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .verticalScroll(previewScroll),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
                             Text(
-                                text = unknownStr,
-                                color = MaterialTheme.colorScheme.error
+                                text = stringResource(R.string.backupImportPreviewTitle),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
                             )
-                        }
+                            val totalStr = stringResource(R.string.backupPreviewServices, state.previewInfo.totalFound)
+                            Text(totalStr)
 
-                        Text(
-                            text = stringResource(R.string.backupSelectionTitle),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = stringResource(R.string.backupSelectionSubtitle),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                            if (state.previewInfo.unknownCount > 0) {
+                                val unknownStr = stringResource(R.string.backupPreviewUnknown, state.previewInfo.unknownCount)
+                                Text(
+                                    text = unknownStr,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
 
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            FilterChip(
-                                selected = previewKnownTypes.isNotEmpty() && selectedImportTypes.containsAll(previewKnownTypes),
-                                onClick = { viewModel.toggleAllImportTypes() },
-                                label = { Text(stringResource(R.string.backupSelectionAll)) }
+                            Text(
+                                text = stringResource(R.string.backupSelectionTitle),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
                             )
-                            FilterChip(
-                                selected = previewHomeTypeSet.isNotEmpty() && selectedImportTypes.containsAll(previewHomeTypeSet),
-                                onClick = { viewModel.toggleHomeImportTypes() },
-                                enabled = previewHomeTypeSet.isNotEmpty(),
-                                label = { Text(stringResource(R.string.backupSelectionHome)) }
+                            Text(
+                                text = stringResource(R.string.backupSelectionSubtitle),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            FilterChip(
-                                selected = previewArrTypeSet.isNotEmpty() && selectedImportTypes.containsAll(previewArrTypeSet),
-                                onClick = { viewModel.toggleArrImportTypes() },
-                                enabled = previewArrTypeSet.isNotEmpty(),
-                                label = { Text(stringResource(R.string.backupSelectionArr)) }
-                            )
-                        }
 
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            ServiceType.homeTypes.plus(ServiceType.arrStackTypes).distinct().forEach { type ->
-                                if (previewKnownTypes.contains(type)) {
-                                    FilterChip(
-                                        selected = selectedImportTypes.contains(type),
-                                        onClick = { viewModel.toggleImportType(type) },
-                                        label = { Text(backupServiceDisplayName(type)) }
-                                    )
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                BackupSelectionChip(
+                                    label = stringResource(R.string.backupSelectionAll),
+                                    selected = previewKnownTypes.isNotEmpty() && selectedImportTypes.containsAll(previewKnownTypes),
+                                    onClick = { viewModel.toggleAllImportTypes() }
+                                )
+                                BackupSelectionChip(
+                                    label = stringResource(R.string.backupSelectionHome),
+                                    selected = previewHomeTypeSet.isNotEmpty() && selectedImportTypes.containsAll(previewHomeTypeSet),
+                                    enabled = previewHomeTypeSet.isNotEmpty(),
+                                    onClick = { viewModel.toggleHomeImportTypes() }
+                                )
+                                BackupSelectionChip(
+                                    label = stringResource(R.string.backupSelectionArr),
+                                    selected = previewArrTypeSet.isNotEmpty() && selectedImportTypes.containsAll(previewArrTypeSet),
+                                    enabled = previewArrTypeSet.isNotEmpty(),
+                                    onClick = { viewModel.toggleArrImportTypes() }
+                                )
+                            }
+
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                ServiceType.homeTypes.plus(ServiceType.arrStackTypes).distinct().forEach { type ->
+                                    if (previewKnownTypes.contains(type)) {
+                                        BackupSelectionChip(
+                                            label = backupServiceDisplayName(type),
+                                            selected = selectedImportTypes.contains(type),
+                                            onClick = { viewModel.toggleImportType(type) }
+                                        )
+                                    }
                                 }
                             }
-                        }
 
-                        Text(
-                            text = stringResource(R.string.backupSelectionSelectedCount, selectedImportInstanceCount),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.errorContainer)
-                                .padding(12.dp)
-                        ) {
-                            Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
-                            Spacer(Modifier.width(8.dp))
                             Text(
-                                text = stringResource(R.string.backupPreviewWarning),
+                                text = stringResource(R.string.backupSelectionSelectedCount, selectedImportInstanceCount),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.errorContainer)
+                                    .padding(12.dp)
+                            ) {
+                                Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.backupPreviewWarning),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            }
                         }
 
                         Row(
@@ -585,6 +602,49 @@ fun BackupScreen(
             )
         }
         else -> {}
+    }
+}
+
+@Composable
+private fun BackupSelectionChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    enabled: Boolean = true
+) {
+    val containerColor = when {
+        !enabled -> MaterialTheme.colorScheme.surfaceContainerLowest
+        selected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
+        else -> MaterialTheme.colorScheme.surfaceContainerLow
+    }
+    val contentColor = when {
+        !enabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+        selected -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+    val strokeColor = when {
+        !enabled -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
+        selected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.36f)
+        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    }
+
+    Surface(
+        shape = RoundedCornerShape(10.dp),
+        color = containerColor,
+        contentColor = contentColor,
+        border = BorderStroke(1.dp, strokeColor),
+        modifier = Modifier,
+        enabled = enabled,
+        onClick = onClick
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+        )
     }
 }
 

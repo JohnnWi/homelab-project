@@ -864,6 +864,9 @@ class DockhandRepository @Inject constructor(
     }
 
     private fun parseContainerObject(obj: JsonObject, environmentId: String?): DockhandContainer? {
+        val stateObject = obj.objectValue("State")
+        val configObject = obj.objectValue("Config")
+        val healthObject = stateObject?.objectValue("Health")
         val id = obj.string("id") ?: obj.string("Id") ?: obj.string("containerId") ?: return null
         val resolvedEnvironmentId = firstNonBlank(
             obj.string("environmentId"),
@@ -873,15 +876,45 @@ class DockhandRepository @Inject constructor(
             environmentId
         ).ifBlank { null }
 
-        val rawName = firstNonBlank(obj.string("name"), obj.string("Names"), obj.string("Name"), id)
+        val rawName = firstNonBlank(
+            obj.string("name"),
+            obj.firstArrayString("Names"),
+            obj.string("Name"),
+            configObject?.string("Hostname"),
+            id
+        )
         val cleanedName = rawName
             .removePrefix("/")
+            .removePrefix("[")
+            .removeSuffix("]")
             .ifBlank { id.take(12) }
 
-        val image = firstNonBlank(obj.string("image"), obj.string("Image"), "-")
-        val state = firstNonBlank(obj.string("state"), obj.string("State"), "unknown")
-        val status = firstNonBlank(obj.string("status"), obj.string("Status"), state)
-        val health = firstNonBlank(obj.string("health"), obj.string("Health"))
+        val image = firstNonBlank(
+            obj.string("image"),
+            obj.string("Image"),
+            configObject?.string("Image"),
+            "-"
+        )
+        val state = firstNonBlank(
+            obj.string("state"),
+            stateObject?.string("Status"),
+            stateObject?.string("State"),
+            obj.string("State"),
+            stateObject?.boolean("Running")?.let { if (it) "running" else "stopped" },
+            "unknown"
+        )
+        val status = firstNonBlank(
+            obj.string("status"),
+            obj.string("Status"),
+            stateObject?.string("Status"),
+            stateObject?.string("Error"),
+            state
+        )
+        val health = firstNonBlank(
+            obj.string("health"),
+            obj.string("Health"),
+            healthObject?.string("Status")
+        )
 
         val portsSummary = parsePortsSummary(obj)
 
@@ -915,6 +948,22 @@ class DockhandRepository @Inject constructor(
                 }
                 if (chunks.isNotEmpty()) return chunks.take(3).joinToString(", ")
             }
+        }
+        val networkPorts = obj.objectValue("NetworkSettings")?.get("Ports") as? JsonObject
+        if (networkPorts != null) {
+            val chunks = networkPorts.entries.mapNotNull { (key, value) ->
+                val bindings = value as? JsonArray
+                val hostPort = bindings
+                    ?.firstOrNull()
+                    ?.let { it as? JsonObject }
+                    ?.string("HostPort")
+                when {
+                    !hostPort.isNullOrBlank() -> "$hostPort:$key"
+                    key.isNotBlank() -> key
+                    else -> null
+                }
+            }
+            if (chunks.isNotEmpty()) return chunks.take(3).joinToString(", ")
         }
         return "-"
     }
@@ -1013,10 +1062,10 @@ class DockhandRepository @Inject constructor(
             id = firstNonBlank(obj.string("id"), obj.int("id")?.toString(), fallbackId),
             name = firstNonBlank(obj.string("name"), obj.string("task"), fallbackName),
             enabled = obj.boolean("enabled") ?: obj.boolean("isEnabled") ?: true,
-            schedule = firstNonBlank(obj.string("cron"), obj.string("schedule"), obj.string("interval")),
+            schedule = firstNonBlank(obj.string("cronExpression"), obj.string("cron"), obj.string("schedule"), obj.string("interval")),
             environmentId = resolvedEnvironmentId,
-            nextRun = firstNonBlank(obj.string("nextRun"), obj.string("nextExecution"), obj.string("next")),
-            lastRun = firstNonBlank(obj.string("lastRun"), obj.string("lastExecution"), obj.string("last"))
+            nextRun = firstNonBlank(obj.string("nextRun"), obj.string("nextExecution"), obj.string("next"), obj.string("nextRound")),
+            lastRun = firstNonBlank(obj.string("lastRun"), obj.string("lastExecution"), obj.string("last"), obj.string("completedAt"))
         )
     }
 
@@ -1083,22 +1132,32 @@ class DockhandRepository @Inject constructor(
     }
 
     private fun JsonObject.string(key: String): String? {
-        return this[key]
-            ?.jsonPrimitive
+        return (this[key] as? JsonPrimitive)
+            ?.contentOrNull
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+    }
+
+    private fun JsonObject.objectValue(key: String): JsonObject? = this[key] as? JsonObject
+
+    private fun JsonObject.firstArrayString(key: String): String? {
+        val array = this[key] as? JsonArray ?: return null
+        return array.firstOrNull()
+            ?.let { it as? JsonPrimitive }
             ?.contentOrNull
             ?.trim()
             ?.takeIf { it.isNotEmpty() }
     }
 
     private fun JsonObject.int(key: String): Int? {
-        val primitive = this[key]?.jsonPrimitive ?: return null
+        val primitive = this[key] as? JsonPrimitive ?: return null
         return primitive.intOrNull
             ?: primitive.doubleOrNull?.toInt()
             ?: primitive.contentOrNull?.toIntOrNull()
     }
 
     private fun JsonObject.boolean(key: String): Boolean? {
-        val primitive = this[key]?.jsonPrimitive ?: return null
+        val primitive = this[key] as? JsonPrimitive ?: return null
         return primitive.booleanOrNull ?: primitive.contentOrNull?.let {
             when (it.lowercase()) {
                 "1", "true", "yes", "on" -> true

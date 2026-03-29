@@ -50,6 +50,8 @@ import androidx.compose.material.icons.filled.Source
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -279,8 +281,10 @@ fun HomeScreen(
     if (showReorderDialog) {
         ServiceOrderDialog(
             serviceOrder = serviceOrder.filter { it.isHomeService },
+            hiddenServices = hiddenServices,
             onMoveUp = { type -> viewModel.moveService(type, -1) },
             onMoveDown = { type -> viewModel.moveService(type, 1) },
+            onToggleVisibility = { type -> viewModel.toggleServiceVisibility(type) },
             onDismiss = { showReorderDialog = false }
         )
     }
@@ -361,9 +365,10 @@ private fun InstanceCard(
             "adguard_total_queries" -> stringResource(R.string.adguard_total_queries)
             "systems_online" -> stringResource(R.string.beszel_systems_online)
             "repos" -> stringResource(R.string.gitea_repos)
-            "linux_update_systems_up_to_date" -> stringResource(R.string.linux_update_systems_up_to_date)
+            "linux_update_systems_up_to_date" -> stringResource(R.string.linux_update_widget_label)
             "technitium_blocked_queries" -> stringResource(R.string.technitium_blocked_queries)
             "dockhand_running_containers" -> stringResource(R.string.dockhand_running_containers)
+            "dockhand_containers" -> stringResource(R.string.dockhand_containers)
             "proxy_hosts" -> stringResource(R.string.npm_proxy_hosts)
             "pangolin_sites_clients" -> stringResource(R.string.pangolin_sites_clients)
             "checks" -> stringResource(R.string.healthchecks_checks)
@@ -969,8 +974,10 @@ fun ServiceCard(
 @Composable
 private fun ServiceOrderDialog(
     serviceOrder: List<ServiceType>,
+    hiddenServices: Set<String>,
     onMoveUp: (ServiceType) -> Unit,
     onMoveDown: (ServiceType) -> Unit,
+    onToggleVisibility: (ServiceType) -> Unit,
     onDismiss: () -> Unit
 ) {
     androidx.compose.material3.AlertDialog(
@@ -985,16 +992,38 @@ private fun ServiceOrderDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 serviceOrder.forEachIndexed { index, type ->
+                    val isHidden = hiddenServices.contains(type.name)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = type.displayName,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.weight(1f)
-                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = type.displayName,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            if (isHidden) {
+                                Text(
+                                    text = stringResource(R.string.settings_hidden_badge),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                        IconButton(onClick = { onToggleVisibility(type) }) {
+                            Icon(
+                                imageVector = if (isHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = stringResource(
+                                    if (isHidden) R.string.settings_show_service_generic else R.string.settings_hide_service_generic
+                                )
+                            )
+                        }
                         IconButton(
                             onClick = { onMoveUp(type) },
                             enabled = index > 0

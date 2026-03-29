@@ -171,6 +171,8 @@
     <string name="settings_disconnect_confirm_desc">Dovrai rieffettuare l\'accesso inserendo URL e API Key.</string>
     <string name="settings_hide_service">Nascosto dalla Home</string>
     <string name="settings_show_service">Visibile nella Home</string>
+    <string name="settings_hide_service_generic">Nascondi servizio</string>
+    <string name="settings_show_service_generic">Mostra servizio</string>
 
     <!-- Pi-hole -->
     <string name="pihole_status_active">Attivo</string>
@@ -456,6 +458,7 @@
     <string name="home_summary_pihole">%1$d query</string>
     <string name="home_summary_beszel">%1$d/%2$d sistemi online</string>
     <string name="linux_update_systems_up_to_date">Sistemi aggiornati</string>
+    <string name="linux_update_widget_label">aggiornati</string>
     <plurals name="home_summary_gitea">
         <item quantity="one">%d repository</item>
         <item quantity="other">%d repository</item>
@@ -1178,6 +1181,8 @@
     <string name="dockhand_action_restart">Riavvia</string>
     <string name="dockhand_logs">Log</string>
     <string name="dockhand_details">Dettagli</string>
+    <string name="dockhand_show_more_details">Più dettagli</string>
+    <string name="dockhand_hide_extra_details">Nascondi dettagli extra</string>
     <string name="dockhand_schedule_disabled">Disabilitato</string>
     <string name="dockhand_settings_title">Impostazioni Dockhand</string>
     <string name="dockhand_settings_refresh_section">Aggiornamento</string>

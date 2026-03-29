@@ -217,8 +217,6 @@ Built with **Kotlin** and **Jetpack Compose**, following the **Material Expressi
 ## 👨‍🎓 Project & Author
 This project is a solo endeavor developed by a single **University Student**. It was born from the need for a beautiful, unified way to manage home servers without sacrificing the performance and "feel" of native development.
 
-> **Note (v1.0.0):** I'm taking a short break from active development to focus on my studies. The project is stable and fully functional — development will resume when time allows. Thank you for all the support!
-
 ### ☕ Support the Project
 If you find this dashboard useful, consider supporting my studies with a donation. Every bit helps!
 

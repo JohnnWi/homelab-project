@@ -780,6 +780,8 @@ extension Translations {
         settingsContactLinuxUpdate: "GitHub",
         settingsHideService: "Hidden from Home",
         settingsShowService: "Visible on Home",
+        settingsHideServiceGeneric: "Hide service",
+        settingsShowServiceGeneric: "Show service",
         settingsHiddenBadge: "Hidden",
         settingsNoInstances: "No instances yet. Add one to connect.",
         settingsInstanceSingular: "instance",

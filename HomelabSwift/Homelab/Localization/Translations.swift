@@ -829,6 +829,8 @@ struct Translations {
     let settingsContactLinuxUpdate: String
     let settingsHideService: String
     let settingsShowService: String
+    let settingsHideServiceGeneric: String
+    let settingsShowServiceGeneric: String
     let settingsHiddenBadge: String
     let settingsNoInstances: String
     let settingsInstanceSingular: String

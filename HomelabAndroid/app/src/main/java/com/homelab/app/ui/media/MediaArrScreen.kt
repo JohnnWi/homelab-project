@@ -4,6 +4,8 @@ import android.content.ClipData
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -46,6 +49,8 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
@@ -114,9 +119,15 @@ import com.homelab.app.ui.components.ServiceIcon
 import com.homelab.app.ui.theme.primaryColor
 import com.homelab.app.util.ServiceType
 import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
 import java.util.Locale
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+
+private const val MEDIA_TAILSCALE_ICON_URL = "https://cdn.jsdelivr.net/gh/selfhst/icons/png/tailscale.png"
+private const val QBITTORRENT_REFRESH_INTERVAL_MS = 10_000L
 
 @Composable
 fun MediaArrScreen(
@@ -127,6 +138,7 @@ fun MediaArrScreen(
     val instancesByType by viewModel.instancesByType.collectAsStateWithLifecycle()
     val reachability by viewModel.reachability.collectAsStateWithLifecycle()
     val pinging by viewModel.pinging.collectAsStateWithLifecycle()
+    val hiddenServices by viewModel.hiddenServices.collectAsStateWithLifecycle()
     val mediaOrder by viewModel.mediaServiceOrder.collectAsStateWithLifecycle()
     val tutorialDismissed by viewModel.tutorialDismissed.collectAsStateWithLifecycle()
     val tailscaleConnected by viewModel.isTailscaleConnected.collectAsStateWithLifecycle()
@@ -309,11 +321,35 @@ fun MediaArrScreen(
                             modifier = Modifier.padding(14.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = if (tailscaleConnected) Icons.Default.CheckCircle else Icons.Default.Warning,
-                                contentDescription = null,
-                                tint = if (tailscaleConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
-                            )
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainer,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    SubcomposeAsyncImage(
+                                        model = MEDIA_TAILSCALE_ICON_URL,
+                                        contentDescription = stringResource(R.string.tailscale_open),
+                                        modifier = Modifier.size(24.dp),
+                                        contentScale = ContentScale.Fit,
+                                        loading = {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(14.dp),
+                                                strokeWidth = 1.8.dp,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        },
+                                        error = {
+                                            Icon(
+                                                imageVector = if (tailscaleConnected) Icons.Default.CheckCircle else Icons.Default.Warning,
+                                                contentDescription = null,
+                                                tint = if (tailscaleConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    )
+                                }
+                            }
                             Spacer(modifier = Modifier.width(10.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
@@ -405,9 +441,11 @@ fun MediaArrScreen(
 
     if (showReorderDialog) {
         MediaServiceOrderDialog(
-            serviceOrder = mediaOrder,
+            serviceOrder = viewModel.serviceOrder.collectAsStateWithLifecycle().value.filter { it.isArrStack },
+            hiddenServices = hiddenServices,
             onMoveUp = { type -> viewModel.moveMediaService(type, -1) },
             onMoveDown = { type -> viewModel.moveMediaService(type, 1) },
+            onToggleVisibility = { type -> viewModel.toggleServiceVisibility(type) },
             onDismiss = { showReorderDialog = false }
         )
     }
@@ -421,26 +459,56 @@ private sealed class MediaGridEntry(val key: String) {
 @Composable
 private fun MediaServiceOrderDialog(
     serviceOrder: List<ServiceType>,
+    hiddenServices: Set<String>,
     onMoveUp: (ServiceType) -> Unit,
     onMoveDown: (ServiceType) -> Unit,
+    onToggleVisibility: (ServiceType) -> Unit,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.home_reorder_services)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 serviceOrder.forEachIndexed { index, type ->
+                    val isHidden = hiddenServices.contains(type.name)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = mediaServiceDisplayName(type),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.weight(1f)
-                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = mediaServiceDisplayName(type),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            if (isHidden) {
+                                Text(
+                                    text = stringResource(R.string.settings_hidden_badge),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                        IconButton(onClick = { onToggleVisibility(type) }) {
+                            Icon(
+                                imageVector = if (isHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = stringResource(
+                                    if (isHidden) R.string.settings_show_service_generic else R.string.settings_hide_service_generic
+                                )
+                            )
+                        }
                         IconButton(
                             onClick = { onMoveUp(type) },
                             enabled = index > 0
@@ -692,15 +760,15 @@ private fun MediaCardStatusChip(
 ) {
     val statusText = when {
         !isConnected -> stringResource(R.string.login_connect)
-        pinging -> stringResource(R.string.home_verifying)
         reachable == true -> stringResource(R.string.home_status_online)
+        pinging -> stringResource(R.string.home_verifying)
         reachable == false -> stringResource(R.string.home_status_offline)
         else -> stringResource(R.string.home_verifying)
     }
     val statusColor = when {
         !isConnected -> MaterialTheme.colorScheme.onSurfaceVariant
-        pinging -> MaterialTheme.colorScheme.tertiary
         reachable == true -> accentColor
+        pinging -> MaterialTheme.colorScheme.tertiary
         reachable == false -> accentColor
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
@@ -714,7 +782,7 @@ private fun MediaCardStatusChip(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            if (isConnected && pinging && reachable == null) {
+            if (isConnected && pinging && reachable != true) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(8.dp),
                     strokeWidth = 1.5.dp,
@@ -1019,6 +1087,15 @@ fun MediaServiceDashboardScreen(
     val actionMessageText = actionMessage?.let { actionResultLabel(it) }
     LaunchedEffect(Unit) {
         viewModel.load()
+    }
+
+    LaunchedEffect(serviceType) {
+        if (serviceType == ServiceType.QBITTORRENT) {
+            while (isActive) {
+                delay(QBITTORRENT_REFRESH_INTERVAL_MS)
+                viewModel.load()
+            }
+        }
     }
 
     LaunchedEffect(actionMessageText) {

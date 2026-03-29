@@ -373,7 +373,12 @@ class ServiceLoginViewModel @Inject constructor(
                                 throw IllegalArgumentException(context.getString(R.string.login_error_password_required))
                             }
                             require(resolvedPassword.isNotBlank()) { context.getString(R.string.login_error_password_required) }
-                            val sid = mediaArrRepository.authenticateQbittorrent(cleanUrl, trimmedUsername, resolvedPassword)
+                            val sid = mediaArrRepository.authenticateQbittorrent(
+                                url = cleanUrl,
+                                username = trimmedUsername,
+                                password = resolvedPassword,
+                                fallbackUrl = cleanFallbackUrl
+                            )
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -392,7 +397,12 @@ class ServiceLoginViewModel @Inject constructor(
                         ServiceType.PROWLARR,
                         ServiceType.BAZARR -> {
                             require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
-                            mediaArrRepository.authenticateWithApiKey(cleanUrl, serviceType, trimmedApiKey)
+                            mediaArrRepository.authenticateWithApiKey(
+                                url = cleanUrl,
+                                serviceType = serviceType,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl
+                            )
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -404,7 +414,12 @@ class ServiceLoginViewModel @Inject constructor(
                         }
                         ServiceType.GLUETUN,
                         ServiceType.FLARESOLVERR -> {
-                            mediaArrRepository.authenticateWithApiKey(cleanUrl, serviceType, trimmedApiKey)
+                            mediaArrRepository.authenticateWithApiKey(
+                                url = cleanUrl,
+                                serviceType = serviceType,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl
+                            )
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,

@@ -54,6 +54,39 @@ class SmartFallbackInterceptorTest {
         assertEquals("/api/system", capturedRequest.captured.url.encodedPath)
     }
 
+    @Test
+    fun `preserves fallback base path when routing external requests`() {
+        val context = mockk<Context>(relaxed = true)
+        val settingsManager = mockk<SettingsManager>()
+        val instancesRepository = mockk<ServiceInstancesRepository>()
+        val interceptor = SmartFallbackInterceptor(context, settingsManager, instancesRepository)
+        val chain = mockk<Interceptor.Chain>()
+        val capturedRequest = slot<Request>()
+        val request = Request.Builder()
+            .url("https://placeholder.local/api/v3/system/status")
+            .header("X-Homelab-Instance-Id", "instance-servarr")
+            .build()
+
+        every { settingsManager.internalSsid } returns flowOf(null)
+        coEvery { instancesRepository.getInstance("instance-servarr") } returns ServiceInstance(
+            id = "instance-servarr",
+            type = ServiceType.SONARR,
+            label = "Sonarr",
+            url = "http://192.168.1.20:8989",
+            fallbackUrl = "https://example.com/sonarr",
+            apiKey = "token"
+        )
+        every { chain.request() } returns request
+        every { chain.proceed(capture(capturedRequest)) } answers {
+            response(capturedRequest.captured)
+        }
+
+        interceptor.intercept(chain)
+
+        assertEquals("example.com", capturedRequest.captured.url.host)
+        assertEquals("/sonarr/api/v3/system/status", capturedRequest.captured.url.encodedPath)
+    }
+
     private fun response(request: Request): Response {
         return Response.Builder()
             .request(request)

@@ -782,6 +782,8 @@ extension Translations {
         settingsContactLinuxUpdate: "GitHub",
         settingsHideService: "Masqué de l'accueil",
         settingsShowService: "Visible sur l'accueil",
+        settingsHideServiceGeneric: "Masquer le service",
+        settingsShowServiceGeneric: "Afficher le service",
         settingsHiddenBadge: "Masqué",
         settingsNoInstances: "Aucune instance pour l’instant. Ajoutez-en une pour vous connecter.",
         settingsInstanceSingular: "instance",

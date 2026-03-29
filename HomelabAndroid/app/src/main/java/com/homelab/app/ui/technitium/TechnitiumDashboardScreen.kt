@@ -6,6 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,7 +41,9 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -170,7 +174,6 @@ fun TechnitiumDashboardScreen(
     val accent = ServiceType.TECHNITIUM.primaryColor
     val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.45f
     val pageBrush = remember(isDarkTheme) { technitiumPageBackground(isDarkTheme, accent) }
-    val pageGlow = remember(isDarkTheme) { if (isDarkTheme) accent.copy(alpha = 0.09f) else accent.copy(alpha = 0.045f) }
     val cardColor = remember(isDarkTheme) { technitiumCardColor(isDarkTheme, accent) }
     val raisedCardColor = remember(isDarkTheme) { technitiumRaisedCardColor(isDarkTheme, accent) }
     val borderColor = remember(isDarkTheme) { technitiumBorderColor(isDarkTheme, accent) }
@@ -334,7 +337,11 @@ fun TechnitiumDashboardScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(pageBrush)
+        ) {
             when (val state = uiState) {
                 UiState.Loading, UiState.Idle -> {
                     Box(
@@ -403,6 +410,7 @@ fun TechnitiumDashboardScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TechnitiumDashboardContent(
     data: TechnitiumDashboardData,
@@ -453,7 +461,11 @@ private fun TechnitiumDashboardContent(
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         TechnitiumStatsRange.entries.forEach { range ->
                             FilterChip(
                                 selected = range == selectedRange,
@@ -465,7 +477,9 @@ private fun TechnitiumDashboardContent(
                                         overflow = TextOverflow.Ellipsis
                                     )
                                 },
-                                modifier = Modifier.weight(1f, fill = false)
+                                leadingIcon = if (range == selectedRange) {
+                                    { Icon(Icons.Default.AutoGraph, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                } else null
                             )
                         }
                     }
@@ -515,31 +529,48 @@ private fun TechnitiumDashboardContent(
                             )
                         }
 
-                        Button(
+                        FilledTonalButton(
                             onClick = { onToggleBlocking(!blockingEnabled) },
                             enabled = actionsEnabled
                         ) {
                             Text(
-                                if (blockingEnabled) {
+                                text = if (blockingEnabled) {
                                     stringResource(R.string.technitium_action_disable)
                                 } else {
                                     stringResource(R.string.technitium_action_enable)
-                                }
+                                },
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         AssistChip(
                             onClick = onForceUpdateBlockLists,
                             enabled = actionsEnabled,
-                            label = { Text(stringResource(R.string.technitium_force_update)) },
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.technitium_force_update),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            },
                             leadingIcon = { Icon(Icons.Default.Refresh, null) }
                         )
                         AssistChip(
                             onClick = onAddBlockedDomain,
                             enabled = actionsEnabled,
-                            label = { Text(stringResource(R.string.technitium_add_blocked_domain)) },
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.technitium_add_blocked_domain),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            },
                             leadingIcon = { Icon(Icons.Default.Block, null) }
                         )
                     }
@@ -661,6 +692,54 @@ private fun TechnitiumDashboardContent(
                             text = stringResource(R.string.no_data),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+
+        item {
+            Surface(
+                color = cardColor,
+                shape = RoundedCornerShape(18.dp),
+                border = BorderStroke(1.dp, borderColor)
+            ) {
+                Column(
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.home_summary_title),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        TechnitiumPanelChip(
+                            title = stringResource(R.string.technitium_top_clients),
+                            selected = selectedPanel == TechnitiumViewModel.SummaryPanel.CLIENTS,
+                            accent = accent,
+                            onClick = { onSelectPanel(TechnitiumViewModel.SummaryPanel.CLIENTS) }
+                        )
+                        TechnitiumPanelChip(
+                            title = stringResource(R.string.technitium_top_domains),
+                            selected = selectedPanel == TechnitiumViewModel.SummaryPanel.DOMAINS,
+                            accent = accent,
+                            onClick = { onSelectPanel(TechnitiumViewModel.SummaryPanel.DOMAINS) }
+                        )
+                        TechnitiumPanelChip(
+                            title = stringResource(R.string.technitium_blocked_domains),
+                            selected = selectedPanel == TechnitiumViewModel.SummaryPanel.BLOCKED,
+                            accent = StatusRed,
+                            onClick = { onSelectPanel(TechnitiumViewModel.SummaryPanel.BLOCKED) }
+                        )
+                        TechnitiumPanelChip(
+                            title = stringResource(R.string.technitium_zone_details),
+                            selected = selectedPanel == TechnitiumViewModel.SummaryPanel.ZONES,
+                            accent = StatusOrange,
+                            onClick = { onSelectPanel(TechnitiumViewModel.SummaryPanel.ZONES) }
                         )
                     }
                 }
@@ -793,10 +872,38 @@ private fun TechnitiumDashboardContent(
 @Composable
 private fun SectionTitle(title: String) {
     Text(
-        text = title.uppercase(Locale.getDefault()),
+        text = title,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         fontWeight = FontWeight.SemiBold
+    )
+}
+
+@Composable
+private fun TechnitiumPanelChip(
+    title: String,
+    selected: Boolean,
+    accent: Color,
+    onClick: () -> Unit
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = {
+            Text(
+                text = title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        leadingIcon = if (selected) {
+            { Icon(Icons.Default.AutoGraph, contentDescription = null, modifier = Modifier.size(18.dp)) }
+        } else null,
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = accent.copy(alpha = 0.14f),
+            selectedLabelColor = accent,
+            selectedLeadingIconColor = accent
+        )
     )
 }
 

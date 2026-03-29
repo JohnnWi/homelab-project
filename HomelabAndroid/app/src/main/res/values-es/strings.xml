@@ -164,6 +164,8 @@
     <string name="settings_disconnect_confirm_desc">Deberás volver a iniciar sesión ingresando la URL y la clave API.</string>
     <string name="settings_hide_service">Oculto del inicio</string>
     <string name="settings_show_service">Visible en el inicio</string>
+    <string name="settings_hide_service_generic">Ocultar servicio</string>
+    <string name="settings_show_service_generic">Mostrar servicio</string>
 
     <!-- Pi-hole -->
     <string name="pihole_status_active">Activo</string>
@@ -1161,6 +1163,8 @@
     <string name="dockhand_action_restart">Reiniciar</string>
     <string name="dockhand_logs">Logs</string>
     <string name="dockhand_details">Detalles</string>
+    <string name="dockhand_show_more_details">Más detalles</string>
+    <string name="dockhand_hide_extra_details">Ocultar detalles extra</string>
     <string name="dockhand_schedule_disabled">Deshabilitado</string>
     <string name="dockhand_settings_title">Ajustes de Dockhand</string>
     <string name="dockhand_settings_refresh_section">Actualización</string>
@@ -1215,6 +1219,7 @@
     <string name="linux_update_status_updates">Actualizaciones pendientes</string>
     <string name="linux_update_status_up_to_date">Actualizado</string>
     <string name="linux_update_systems_up_to_date">Sistemas actualizados</string>
+    <string name="linux_update_widget_label">al día</string>
     <string name="linux_update_action_check">Comprobar</string>
     <string name="linux_update_action_check_all">Comprobar todos los sistemas</string>
     <string name="linux_update_action_upgrade">Actualizar</string>

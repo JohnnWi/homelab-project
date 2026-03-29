@@ -42,7 +42,7 @@ val ServiceType.primaryColor: Color
         ServiceType.PANGOLIN -> Color(0xFFFF8A3D)
         ServiceType.HEALTHCHECKS -> Color(0xFF16A34A)
         ServiceType.LINUX_UPDATE -> Color(0xFF14B8A6)
-        ServiceType.DOCKHAND -> Color(0xFF1E88E5)
+        ServiceType.DOCKHAND -> Color(0xFF4A90A4)
         ServiceType.PATCHMON -> Color(0xFF0EA5E9)
         ServiceType.RADARR -> Color(0xFFFFC230)
         ServiceType.SONARR -> Color(0xFF89C5CF)
@@ -71,7 +71,7 @@ val ServiceType.backgroundColor: Color
         ServiceType.PANGOLIN -> Color(0xFFFF8A3D).copy(alpha = 0.12f)
         ServiceType.HEALTHCHECKS -> Color(0xFF16A34A).copy(alpha = 0.12f)
         ServiceType.LINUX_UPDATE -> Color(0xFF14B8A6).copy(alpha = 0.12f)
-        ServiceType.DOCKHAND -> Color(0xFF1E88E5).copy(alpha = 0.12f)
+        ServiceType.DOCKHAND -> Color(0xFF4A90A4).copy(alpha = 0.10f)
         ServiceType.PATCHMON -> Color(0xFF0EA5E9).copy(alpha = 0.12f)
         ServiceType.RADARR -> Color(0xFFFFC230).copy(alpha = 0.12f)
         ServiceType.SONARR -> Color(0xFF89C5CF).copy(alpha = 0.12f)
@@ -99,7 +99,7 @@ val ServiceType.iconUrl: String
         ServiceType.PANGOLIN -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/pangolin.png"
         ServiceType.HEALTHCHECKS -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/healthchecks.png"
         ServiceType.LINUX_UPDATE -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/linux-update-dashboard.png"
-        ServiceType.DOCKHAND -> "https://dockhand.pro/favicon.ico"
+        ServiceType.DOCKHAND -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/dockhand.png"
         ServiceType.PATCHMON -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/patchmon.png"
         ServiceType.RADARR -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/radarr.png"
         ServiceType.SONARR -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/sonarr.png"
@@ -125,6 +125,13 @@ val ServiceType.iconCandidates: List<String>
             candidates += "https://cdn.jsdelivr.net/gh/selfhst/icons/png/technitium-dns-server.png"
             candidates += "https://raw.githubusercontent.com/selfhst/icons/main/png/technitium.png"
             candidates += "https://raw.githubusercontent.com/selfhst/icons/main/png/technitium-dns-server.png"
+            return candidates.toList()
+        }
+
+        if (this == ServiceType.DOCKHAND) {
+            candidates += "https://raw.githubusercontent.com/selfhst/icons/main/png/dockhand.png"
+            candidates += "https://dockhand.pro/favicon-32x32.png"
+            candidates += "https://dockhand.pro/favicon.ico"
             return candidates.toList()
         }
 

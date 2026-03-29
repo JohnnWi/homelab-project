@@ -16,7 +16,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
+import okhttp3.MediaType.Companion.toMediaType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -57,6 +63,45 @@ class ServicesRepositoryTest {
         val reachability = repository.reachability.first()
         assertEquals(false, reachability[first.id])
         assertNull(reachability[second.id])
+    }
+
+    @Test
+    fun `reachability probe includes instance id header`() = runTest {
+        val dao = ReachabilityFakeDao()
+        val state = ReachabilitySettingsState(migrated = MutableStateFlow(true))
+        val instanceRepository = ServiceInstancesRepository(dao, settingsManager(state))
+        val captured = mutableListOf<Request>()
+        val repository = ServicesRepository(
+            serviceInstancesRepository = instanceRepository,
+            okHttpClient = OkHttpClient.Builder()
+                .addInterceptor(Interceptor { chain ->
+                    val request = chain.request()
+                    captured += request
+                    Response.Builder()
+                        .request(request)
+                        .protocol(Protocol.HTTP_1_1)
+                        .code(200)
+                        .message("OK")
+                        .body("{}".toResponseBody("application/json".toMediaType()))
+                        .build()
+                })
+                .build(),
+            globalEventBus = GlobalEventBus()
+        )
+        val instance = ServiceInstance(
+            id = "instance-radarr",
+            type = ServiceType.RADARR,
+            label = "Radarr",
+            url = "https://radarr.example.com",
+            apiKey = "token"
+        )
+
+        instanceRepository.saveInstance(instance)
+
+        repository.checkReachability(instance.id, force = true)
+
+        assertEquals("instance-radarr", captured.first().header("X-Homelab-Instance-Id"))
+        assertEquals("/api/v3/system/status", captured.first().url.encodedPath)
     }
 
     private fun settingsManager(state: ReachabilitySettingsState): SettingsManager {

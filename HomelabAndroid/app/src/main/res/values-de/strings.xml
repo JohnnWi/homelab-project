@@ -164,6 +164,8 @@
     <string name="settings_disconnect_confirm_desc">Sie müssen sich erneut anmelden, indem Sie die URL und den API-Key eingeben.</string>
     <string name="settings_hide_service">Von Start ausgeblendet</string>
     <string name="settings_show_service">Auf Start sichtbar</string>
+    <string name="settings_hide_service_generic">Dienst ausblenden</string>
+    <string name="settings_show_service_generic">Dienst anzeigen</string>
 
     <!-- Pi-hole -->
     <string name="pihole_status_active">Aktiv</string>
@@ -1159,6 +1161,8 @@
     <string name="dockhand_action_restart">Neustarten</string>
     <string name="dockhand_logs">Logs</string>
     <string name="dockhand_details">Details</string>
+    <string name="dockhand_show_more_details">Mehr Details</string>
+    <string name="dockhand_hide_extra_details">Zusätzliche Details ausblenden</string>
     <string name="dockhand_schedule_disabled">Deaktiviert</string>
     <string name="dockhand_settings_title">Dockhand-Einstellungen</string>
     <string name="dockhand_settings_refresh_section">Aktualisierung</string>
@@ -1213,6 +1217,7 @@
     <string name="linux_update_status_updates">Updates ausstehend</string>
     <string name="linux_update_status_up_to_date">Aktuell</string>
     <string name="linux_update_systems_up_to_date">Aktuelle Systeme</string>
+    <string name="linux_update_widget_label">aktuell</string>
     <string name="linux_update_action_check">Prüfen</string>
     <string name="linux_update_action_check_all">Alle Systeme prüfen</string>
     <string name="linux_update_action_upgrade">Aktualisieren</string>

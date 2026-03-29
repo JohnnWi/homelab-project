@@ -9,6 +9,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +26,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -78,6 +82,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -109,16 +114,16 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private val DockhandRunningColor = Color(0xFF16A34A)
-private val DockhandInfoColor = Color(0xFF3B82F6)
-private val DockhandWarningColor = Color(0xFFF59E0B)
+private val DockhandInfoColor = Color(0xFF4A90A4)
+private val DockhandWarningColor = Color(0xFFE8A317)
 
 private fun dockhandPageBackground(isDarkTheme: Boolean, accent: Color): Brush = if (isDarkTheme) {
     Brush.verticalGradient(
         listOf(
-            Color(0xFF07131F),
-            Color(0xFF0D1824),
-            accent.copy(alpha = 0.05f),
-            Color(0xFF08111A)
+            Color(0xFF0A0F13),
+            Color(0xFF0E1418),
+            accent.copy(alpha = 0.025f),
+            Color(0xFF090D11)
         )
     )
 } else {
@@ -132,17 +137,22 @@ private fun dockhandPageBackground(isDarkTheme: Boolean, accent: Color): Brush =
     )
 }
 
-private fun dockhandCardColor(isDarkTheme: Boolean, accent: Color): Color =
-    accent.copy(alpha = if (isDarkTheme) 0.05f else 0.025f)
-        .compositeOver(if (isDarkTheme) Color(0xFF111C28) else Color(0xFFF9FBFE))
+private fun dockhandCardColor(isDarkTheme: Boolean): Color =
+    if (isDarkTheme) Color(0xFF14181C) else Color(0xFFFFFFFF)
 
-private fun dockhandRaisedCardColor(isDarkTheme: Boolean, accent: Color): Color =
-    accent.copy(alpha = if (isDarkTheme) 0.075f else 0.04f)
-        .compositeOver(if (isDarkTheme) Color(0xFF172432) else Color(0xFFFDFEFF))
+private fun dockhandRaisedCardColor(isDarkTheme: Boolean): Color =
+    if (isDarkTheme) Color(0xFF181D22) else Color(0xFFF8FAFC)
 
-private fun dockhandBorderColor(isDarkTheme: Boolean, accent: Color): Color =
-    accent.copy(alpha = if (isDarkTheme) 0.12f else 0.07f)
-        .compositeOver(if (isDarkTheme) Color(0xFF2C4057) else Color(0xFFC4D7EA))
+private fun dockhandSelectedCardColor(isDarkTheme: Boolean, accent: Color): Color =
+    accent.copy(alpha = if (isDarkTheme) 0.05f else 0.04f)
+        .compositeOver(if (isDarkTheme) Color(0xFF181D22) else Color(0xFFF7FAFC))
+
+private fun dockhandBorderColor(isDarkTheme: Boolean): Color =
+    if (isDarkTheme) Color(0xFF2A3138) else Color(0xFFD8E2EC)
+
+private fun dockhandSubtleAccentSurface(isDarkTheme: Boolean, accent: Color): Color =
+    accent.copy(alpha = if (isDarkTheme) 0.035f else 0.03f)
+        .compositeOver(if (isDarkTheme) Color(0xFF161B21) else Color(0xFFF8FBFD))
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -182,10 +192,10 @@ fun DockhandDashboardScreen(
     val accent = ServiceType.DOCKHAND.primaryColor
     val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.45f
     val pageBrush = remember(isDarkTheme) { dockhandPageBackground(isDarkTheme, accent) }
-    val pageGlow = remember(isDarkTheme) { if (isDarkTheme) accent.copy(alpha = 0.08f) else accent.copy(alpha = 0.04f) }
-    val cardColor = remember(isDarkTheme) { dockhandCardColor(isDarkTheme, accent) }
-    val raisedCardColor = remember(isDarkTheme) { dockhandRaisedCardColor(isDarkTheme, accent) }
-    val borderColor = remember(isDarkTheme) { dockhandBorderColor(isDarkTheme, accent) }
+    val cardColor = remember(isDarkTheme) { dockhandCardColor(isDarkTheme) }
+    val raisedCardColor = remember(isDarkTheme) { dockhandRaisedCardColor(isDarkTheme) }
+    val selectedCardColor = remember(isDarkTheme) { dockhandSelectedCardColor(isDarkTheme, accent) }
+    val borderColor = remember(isDarkTheme) { dockhandBorderColor(isDarkTheme) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
@@ -237,7 +247,11 @@ fun DockhandDashboardScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(pageBrush)
+        ) {
             when (val state = uiState) {
                 UiState.Loading, UiState.Idle -> {
                     Box(
@@ -280,6 +294,8 @@ fun DockhandDashboardScreen(
                         filteredContainers = filteredContainers,
                         cardColor = cardColor,
                         raisedCardColor = raisedCardColor,
+                        selectedCardColor = selectedCardColor,
+                        subtleAccentCardColor = remember(isDarkTheme) { dockhandSubtleAccentSurface(isDarkTheme, accent) },
                         borderColor = borderColor,
                         onSelectInstance = { instanceId ->
                             viewModel.setPreferredInstance(instanceId)
@@ -366,6 +382,8 @@ private fun DockhandDashboardContent(
     filteredContainers: List<DockhandContainer>,
     cardColor: Color,
     raisedCardColor: Color,
+    selectedCardColor: Color,
+    subtleAccentCardColor: Color,
     borderColor: Color,
     onSelectInstance: (String) -> Unit,
     onSelectEnvironment: (String?) -> Unit,
@@ -408,7 +426,7 @@ private fun DockhandDashboardContent(
                 accent = accent,
                 selectedFilter = selectedFilter,
                 cardColor = cardColor,
-                raisedCardColor = raisedCardColor,
+                selectedCardColor = selectedCardColor,
                 borderColor = borderColor,
                 onSelectFilter = {
                     onSelectFilter(it)
@@ -428,6 +446,7 @@ private fun DockhandDashboardContent(
                 cardColor = cardColor,
                 raisedCardColor = raisedCardColor,
                 borderColor = borderColor,
+                subtleAccentCardColor = subtleAccentCardColor,
                 onSelectTab = onSelectTab
             )
         }
@@ -565,7 +584,7 @@ private fun DockhandOverviewSection(
     accent: Color,
     selectedFilter: DockhandContainerFilter,
     cardColor: Color,
-    raisedCardColor: Color,
+    selectedCardColor: Color,
     borderColor: Color,
     onSelectFilter: (DockhandContainerFilter) -> Unit
 ) {
@@ -604,7 +623,7 @@ private fun DockhandOverviewSection(
                     selected = selectedFilter == DockhandContainerFilter.ALL,
                     tint = accent,
                     cardColor = cardColor,
-                    selectedCardColor = raisedCardColor,
+                    selectedCardColor = selectedCardColor,
                     defaultBorderColor = borderColor,
                     onClick = { onSelectFilter(DockhandContainerFilter.ALL) }
                 )
@@ -616,7 +635,7 @@ private fun DockhandOverviewSection(
                     selected = selectedFilter == DockhandContainerFilter.RUNNING,
                     tint = DockhandRunningColor,
                     cardColor = cardColor,
-                    selectedCardColor = raisedCardColor,
+                    selectedCardColor = selectedCardColor,
                     defaultBorderColor = borderColor,
                     onClick = { onSelectFilter(DockhandContainerFilter.RUNNING) }
                 )
@@ -631,7 +650,7 @@ private fun DockhandOverviewSection(
                     selected = selectedFilter == DockhandContainerFilter.STOPPED,
                     tint = DockhandWarningColor,
                     cardColor = cardColor,
-                    selectedCardColor = raisedCardColor,
+                    selectedCardColor = selectedCardColor,
                     defaultBorderColor = borderColor,
                     onClick = { onSelectFilter(DockhandContainerFilter.STOPPED) }
                 )
@@ -643,7 +662,7 @@ private fun DockhandOverviewSection(
                     selected = selectedFilter == DockhandContainerFilter.ISSUES,
                     tint = MaterialTheme.colorScheme.error,
                     cardColor = cardColor,
-                    selectedCardColor = raisedCardColor,
+                    selectedCardColor = selectedCardColor,
                     defaultBorderColor = borderColor,
                     onClick = { onSelectFilter(DockhandContainerFilter.ISSUES) }
                 )
@@ -711,6 +730,7 @@ private fun DockhandStatCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DockhandTabSelector(
     selectedTab: DockhandDashboardTab,
@@ -722,60 +742,70 @@ private fun DockhandTabSelector(
     cardColor: Color,
     raisedCardColor: Color,
     borderColor: Color,
+    subtleAccentCardColor: Color,
     onSelectTab: (DockhandDashboardTab) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            DockhandTabChip(
-                modifier = Modifier.weight(1f),
-                tab = DockhandDashboardTab.OVERVIEW,
-                selected = selectedTab == DockhandDashboardTab.OVERVIEW,
-                accent = accent,
-                badge = null,
-                onClick = { onSelectTab(DockhandDashboardTab.OVERVIEW) }
-            )
-            DockhandTabChip(
-                modifier = Modifier.weight(1f),
-                tab = DockhandDashboardTab.CONTAINERS,
-                selected = selectedTab == DockhandDashboardTab.CONTAINERS,
-                accent = accent,
-                badge = filteredContainersCount.toString(),
-                onClick = { onSelectTab(DockhandDashboardTab.CONTAINERS) }
-            )
-            DockhandTabChip(
-                modifier = Modifier.weight(1f),
-                tab = DockhandDashboardTab.STACKS,
-                selected = selectedTab == DockhandDashboardTab.STACKS,
-                accent = accent,
-                badge = stacksCount.toString(),
-                onClick = { onSelectTab(DockhandDashboardTab.STACKS) }
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            DockhandTabChip(
-                modifier = Modifier.weight(1f),
-                tab = DockhandDashboardTab.ACTIVITY,
-                selected = selectedTab == DockhandDashboardTab.ACTIVITY,
-                accent = accent,
-                badge = activityCount.toString(),
-                onClick = { onSelectTab(DockhandDashboardTab.ACTIVITY) }
-            )
-            DockhandTabChip(
-                modifier = Modifier.weight(1f),
-                tab = DockhandDashboardTab.SCHEDULES,
-                selected = selectedTab == DockhandDashboardTab.SCHEDULES,
-                accent = accent,
-                badge = schedulesCount.toString(),
-                onClick = { onSelectTab(DockhandDashboardTab.SCHEDULES) }
-            )
-        }
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        maxItemsInEachRow = 3,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        DockhandTabChip(
+            modifier = Modifier.weight(1f),
+            tab = DockhandDashboardTab.OVERVIEW,
+            selected = selectedTab == DockhandDashboardTab.OVERVIEW,
+            accent = accent,
+            cardColor = raisedCardColor,
+            selectedCardColor = subtleAccentCardColor,
+            borderColor = borderColor,
+            badge = null,
+            onClick = { onSelectTab(DockhandDashboardTab.OVERVIEW) }
+        )
+        DockhandTabChip(
+            modifier = Modifier.weight(1f),
+            tab = DockhandDashboardTab.CONTAINERS,
+            selected = selectedTab == DockhandDashboardTab.CONTAINERS,
+            accent = accent,
+            cardColor = raisedCardColor,
+            selectedCardColor = subtleAccentCardColor,
+            borderColor = borderColor,
+            badge = filteredContainersCount.toString(),
+            onClick = { onSelectTab(DockhandDashboardTab.CONTAINERS) }
+        )
+        DockhandTabChip(
+            modifier = Modifier.weight(1f),
+            tab = DockhandDashboardTab.STACKS,
+            selected = selectedTab == DockhandDashboardTab.STACKS,
+            accent = accent,
+            cardColor = raisedCardColor,
+            selectedCardColor = subtleAccentCardColor,
+            borderColor = borderColor,
+            badge = stacksCount.toString(),
+            onClick = { onSelectTab(DockhandDashboardTab.STACKS) }
+        )
+        DockhandTabChip(
+            modifier = Modifier.weight(1f),
+            tab = DockhandDashboardTab.ACTIVITY,
+            selected = selectedTab == DockhandDashboardTab.ACTIVITY,
+            accent = accent,
+            cardColor = raisedCardColor,
+            selectedCardColor = subtleAccentCardColor,
+            borderColor = borderColor,
+            badge = activityCount.toString(),
+            onClick = { onSelectTab(DockhandDashboardTab.ACTIVITY) }
+        )
+        DockhandTabChip(
+            modifier = Modifier.weight(1f),
+            tab = DockhandDashboardTab.SCHEDULES,
+            selected = selectedTab == DockhandDashboardTab.SCHEDULES,
+            accent = accent,
+            cardColor = raisedCardColor,
+            selectedCardColor = subtleAccentCardColor,
+            borderColor = borderColor,
+            badge = schedulesCount.toString(),
+            onClick = { onSelectTab(DockhandDashboardTab.SCHEDULES) }
+        )
     }
 }
 
@@ -784,6 +814,9 @@ private fun DockhandTabChip(
     tab: DockhandDashboardTab,
     selected: Boolean,
     accent: Color,
+    cardColor: Color,
+    selectedCardColor: Color,
+    borderColor: Color,
     badge: String? = null,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
@@ -800,36 +833,43 @@ private fun DockhandTabChip(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        color = if (selected) accent.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, if (selected) accent.copy(alpha = 0.45f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+        color = if (selected) selectedCardColor else cardColor,
+        border = BorderStroke(1.dp, if (selected) accent.copy(alpha = 0.28f) else borderColor.copy(alpha = 0.82f))
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(min = 64.dp)
                 .padding(horizontal = 12.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(
-                imageVector = tab.icon(),
-                contentDescription = null,
-                tint = if (selected) accent else tint,
-                modifier = Modifier.size(16.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = tab.icon(),
+                    contentDescription = null,
+                    tint = if (selected) accent else tint,
+                    modifier = Modifier.size(16.dp)
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                if (badge != null) {
+                    MiniPill(label = badge, tint = if (selected) accent else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
 
             Text(
                 text = stringResource(tab.labelRes()),
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
                 color = if (selected) accent else MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
-
-            if (badge != null) {
-                MiniPill(label = badge, tint = if (selected) accent else MaterialTheme.colorScheme.onSurfaceVariant)
-            }
         }
     }
 }
@@ -885,7 +925,7 @@ private fun DockhandEnvironmentRow(
                 fontWeight = FontWeight.Bold
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 AssistChip(
                     onClick = { onSelectEnvironment(null) },
                     label = { Text(text = stringResource(R.string.all), maxLines = 1) },
@@ -1127,8 +1167,8 @@ private fun ResourceTile(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        color = raisedCardColor.copy(alpha = 0.92f),
-        border = BorderStroke(1.dp, tint.copy(alpha = 0.24f))
+        color = raisedCardColor,
+        border = BorderStroke(1.dp, borderColor.copy(alpha = 0.88f))
     ) {
         Column(
             modifier = Modifier
@@ -1273,6 +1313,7 @@ private fun DockhandScheduleCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DockhandSettingsSheet(
     settings: DockhandViewModel.DockhandSettingsUiState,
@@ -1325,7 +1366,10 @@ private fun DockhandSettingsSheet(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     listOf(15, 30, 45, 60, 120).forEach { seconds ->
                         FilterChip(
                             selected = settings.refreshIntervalSeconds == seconds,
@@ -1335,7 +1379,7 @@ private fun DockhandSettingsSheet(
                                 }
                             },
                             enabled = settings.autoRefreshEnabled,
-                            label = { Text("${seconds}s") }
+                            label = { Text("${seconds}s", maxLines = 1) }
                         )
                     }
                 }
@@ -1360,7 +1404,10 @@ private fun DockhandSettingsSheet(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     listOf(10, 20, 50, 100).forEach { limit ->
                         FilterChip(
                             selected = settings.activityLimit == limit,
@@ -1421,6 +1468,13 @@ private fun compactDockhandValue(raw: String, limit: Int = 180): String {
         .replace('\n', ' ')
         .trim()
     return if (normalized.length <= limit) normalized else normalized.take(limit) + "..."
+}
+
+private fun compactDockhandHeadlineValue(raw: String, limit: Int = 44): String {
+    val normalized = raw.trim()
+    if (normalized.isBlank()) return "-"
+    if (normalized.length <= limit) return normalized
+    return normalized.take(limit - 1) + "…"
 }
 
 private fun dockhandLabel(context: Context, key: String): String = when (key.lowercase()) {
@@ -1502,6 +1556,8 @@ private fun DockhandContainerDetailSheet(
     val context = LocalContext.current
     val clipboardScope = rememberCoroutineScope()
     var showFullLogs by remember(state) { mutableStateOf(false) }
+    var showAdvancedDetails by remember(state) { mutableStateOf(false) }
+    val contentScroll = rememberScrollState()
     when (state) {
         UiState.Loading, UiState.Idle -> {
             Box(modifier = Modifier.fillMaxWidth().heightIn(min = 260.dp), contentAlignment = Alignment.Center) {
@@ -1536,7 +1592,6 @@ private fun DockhandContainerDetailSheet(
         }
         is UiState.Success -> {
             val detail = state.data
-            val context = LocalContext.current
             val stateLabel = dockhandLabel(context, "state")
             val statusLabel = dockhandLabel(context, "status")
             val portsLabel = dockhandLabel(context, "ports")
@@ -1549,7 +1604,9 @@ private fun DockhandContainerDetailSheet(
                 detail.container.health?.takeIf { it.isNotBlank() }?.let {
                     add(healthLabel to it)
                 }
-                detailMap["created"]?.takeIf { it.isNotBlank() }?.let { add(dockhandLabel(context, "created") to compactDockhandValue(it)) }
+                detailMap["created"]?.takeIf { it.isNotBlank() }?.let {
+                    add(dockhandLabel(context, "created") to (formatDockhandDate(it) ?: compactDockhandValue(it)))
+                }
                 detailMap["platform"]?.takeIf { it.isNotBlank() }?.let { add(dockhandLabel(context, "platform") to compactDockhandValue(it)) }
                 detailMap["runtime"]?.takeIf { it.isNotBlank() }?.let { add(dockhandLabel(context, "runtime") to compactDockhandValue(it)) }
                 detailMap["driver"]?.takeIf { it.isNotBlank() }?.let { add(dockhandLabel(context, "driver") to compactDockhandValue(it)) }
@@ -1558,167 +1615,118 @@ private fun DockhandContainerDetailSheet(
                 detailMap["command"]?.takeIf { it.isNotBlank() }?.let { add(dockhandLabel(context, "command") to compactDockhandValue(it)) }
                 detailMap["entrypoint"]?.takeIf { it.isNotBlank() }?.let { add(dockhandLabel(context, "entrypoint") to compactDockhandValue(it)) }
             }
+            val primaryRows = overviewRows.take(6)
+            val secondaryRows = overviewRows.drop(6)
             val logLines = detail.logs.lines()
-            val displayLogs = if (showFullLogs || logLines.size <= 40) {
+            val displayLogs = if (showFullLogs || logLines.size <= 18) {
                 detail.logs
             } else {
-                logLines.take(40).joinToString("\n")
+                logLines.take(18).joinToString("\n")
             }
 
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 740.dp),
-                contentPadding = PaddingValues(horizontal = 18.dp, vertical = 10.dp),
+                    .heightIn(max = 740.dp)
+                    .verticalScroll(contentScroll)
+                    .padding(horizontal = 18.dp, vertical = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(detail.container.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Text(detail.container.image, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-
-                item {
-                    OutlinedButton(onClick = onRefresh, enabled = !isRunningAction) {
-                        Icon(Icons.Default.Refresh, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.refresh))
-                    }
-                }
-
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(
-                            onClick = { onAction(DockhandContainerAction.START) },
-                            enabled = !isRunningAction,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = null)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(stringResource(R.string.dockhand_action_start), maxLines = 1)
-                        }
-                        OutlinedButton(
-                            onClick = { onAction(DockhandContainerAction.STOP) },
-                            enabled = !isRunningAction,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(Icons.Default.Stop, contentDescription = null)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(stringResource(R.string.dockhand_action_stop), maxLines = 1)
-                        }
-                        OutlinedButton(
-                            onClick = { onAction(DockhandContainerAction.RESTART) },
-                            enabled = !isRunningAction,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(Icons.Default.Refresh, contentDescription = null)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(stringResource(R.string.dockhand_action_restart), maxLines = 1)
-                        }
-                    }
-                }
-
-                item {
-                    SectionTitle(title = stringResource(R.string.dockhand_details), trailing = overviewRows.size.toString())
-                }
-
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        MiniPill(
-                            label = detail.container.state,
-                            tint = if (detail.container.isIssue) MaterialTheme.colorScheme.error else DockhandRunningColor
-                        )
-                        MiniPill(label = detail.container.status, tint = DockhandWarningColor)
-                        if (!detail.container.health.isNullOrBlank()) {
-                            MiniPill(label = detail.container.health, tint = DockhandRunningColor)
-                        }
-                    }
-                }
-
-                items(overviewRows, key = { it.first }) { (key, value) ->
-                    Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(10.dp), verticalAlignment = Alignment.Top) {
-                            Text(
-                                text = key,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.weight(0.35f)
-                            )
-                            Text(
-                                text = value,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.weight(0.65f)
-                            )
-                        }
-                    }
-                }
-
-                item {
-                    SectionTitle(
-                        title = stringResource(R.string.dockhand_logs),
-                        trailing = if (detail.logs.isNotBlank()) logLines.size.toString() else null
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(detail.container.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(
+                        compactDockhandHeadlineValue(detail.container.image),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                item {
-                    Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            if (detail.logs.isNotBlank()) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    MiniPill(label = logLines.size.toString(), tint = ServiceType.DOCKHAND.primaryColor)
-                                    OutlinedButton(
-                                        onClick = {
-                                            clipboardScope.launch {
-                                                clipboard.setClipEntry(
-                                                    ClipEntry(
-                                                        ClipData.newPlainText(
-                                                            context.getString(R.string.copy),
-                                                            detail.logs
-                                                        )
-                                                    )
-                                                )
-                                            }
-                                            Toast.makeText(context, context.getString(R.string.copy), Toast.LENGTH_SHORT).show()
-                                        }
-                                    ) {
-                                        Text(stringResource(R.string.copy))
-                                    }
-                                }
-                            }
-                            SelectionContainer {
-                                Text(
-                                    text = displayLogs.ifBlank { stringResource(R.string.not_available) },
-                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
-                        }
+                Spacer(modifier = Modifier.height(12.dp))
+                DockhandActionButtons(
+                    isBusy = isRunningAction,
+                    onRefresh = onRefresh,
+                    onStart = { onAction(DockhandContainerAction.START) },
+                    onStop = { onAction(DockhandContainerAction.STOP) },
+                    onRestart = { onAction(DockhandContainerAction.RESTART) }
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+                SectionTitle(title = stringResource(R.string.dockhand_details), trailing = overviewRows.size.toString())
+
+                Spacer(modifier = Modifier.height(8.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    MiniPill(
+                        label = detail.container.state,
+                        tint = if (detail.container.isIssue) MaterialTheme.colorScheme.error else DockhandRunningColor
+                    )
+                    MiniPill(label = detail.container.status, tint = DockhandWarningColor)
+                    if (!detail.container.health.isNullOrBlank()) {
+                        MiniPill(label = detail.container.health, tint = DockhandRunningColor)
                     }
                 }
 
-                if (logLines.size > 40) {
-                    item {
-                        OutlinedButton(onClick = { showFullLogs = !showFullLogs }) {
-                            Text(
-                                if (showFullLogs) {
-                                    stringResource(R.string.dockhand_show_less_logs)
-                                } else {
-                                    stringResource(R.string.dockhand_show_full_logs)
-                                }
+                Spacer(modifier = Modifier.height(8.dp))
+                DockhandDetailGrid(rows = primaryRows)
+
+                if (secondaryRows.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(onClick = { showAdvancedDetails = !showAdvancedDetails }) {
+                        Text(
+                            if (showAdvancedDetails) {
+                                stringResource(R.string.dockhand_hide_extra_details)
+                            } else {
+                                stringResource(R.string.dockhand_show_more_details)
+                            }
+                        )
+                    }
+                }
+
+                if (showAdvancedDetails && secondaryRows.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    DockhandDetailGrid(rows = secondaryRows)
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                SectionTitle(
+                    title = stringResource(R.string.dockhand_logs),
+                    trailing = if (detail.logs.isNotBlank()) logLines.size.toString() else null
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+                DockhandLogViewer(
+                    logs = detail.logs,
+                    displayLogs = displayLogs,
+                    lineCount = logLines.size,
+                    onCopy = {
+                        clipboardScope.launch {
+                            clipboard.setClipEntry(
+                                ClipEntry(
+                                    ClipData.newPlainText(
+                                        context.getString(R.string.copy),
+                                        detail.logs
+                                    )
+                                )
                             )
                         }
+                        Toast.makeText(context, context.getString(R.string.copy), Toast.LENGTH_SHORT).show()
+                    }
+                )
+
+                if (logLines.size > 18) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(onClick = { showFullLogs = !showFullLogs }) {
+                        Text(
+                            if (showFullLogs) {
+                                stringResource(R.string.dockhand_show_less_logs)
+                            } else {
+                                stringResource(R.string.dockhand_show_full_logs)
+                            }
+                        )
                     }
                 }
             }
@@ -1744,6 +1752,8 @@ private fun DockhandStackDetailSheet(
     val clipboardScope = rememberCoroutineScope()
     var isEditingCompose by rememberSaveable(stack.name) { mutableStateOf(false) }
     var composeDraft by remember(stack.name) { mutableStateOf("") }
+    var showAdvancedDetails by rememberSaveable(stack.name) { mutableStateOf(false) }
+    val contentScroll = rememberScrollState()
     val stackContainers = remember(stack.name, stack.environmentId, relatedContainers) {
         val stackNeedle = stack.name.lowercase()
         relatedContainers
@@ -1764,83 +1774,51 @@ private fun DockhandStackDetailSheet(
         }
     }
 
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(max = 760.dp),
-        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 10.dp),
+            .heightIn(max = 760.dp)
+            .verticalScroll(contentScroll)
+            .padding(horizontal = 18.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Text(text = stack.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        }
-        item {
-            Text(
-                text = stack.source?.takeIf { it.isNotBlank() } ?: stack.status,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Text(text = stack.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = compactDockhandHeadlineValue(stack.source?.takeIf { it.isNotBlank() } ?: stack.status),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
 
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    onClick = { onAction(DockhandStackAction.START) },
-                    enabled = !isRunningAction && !isSavingCompose,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(stringResource(R.string.dockhand_action_start), maxLines = 1)
-                }
-                OutlinedButton(
-                    onClick = { onAction(DockhandStackAction.STOP) },
-                    enabled = !isRunningAction && !isSavingCompose,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.Stop, contentDescription = null)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(stringResource(R.string.dockhand_action_stop), maxLines = 1)
-                }
-                OutlinedButton(
-                    onClick = { onAction(DockhandStackAction.RESTART) },
-                    enabled = !isRunningAction && !isSavingCompose,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.Refresh, contentDescription = null)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(stringResource(R.string.dockhand_action_restart), maxLines = 1)
-                }
-            }
-        }
-
-        item {
-            OutlinedButton(onClick = onRefresh, enabled = !isRunningAction && !isSavingCompose) {
-                Icon(Icons.Default.Refresh, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.refresh))
-            }
-        }
+        Spacer(modifier = Modifier.height(12.dp))
+        DockhandActionButtons(
+            isBusy = isRunningAction || isSavingCompose,
+            onRefresh = onRefresh,
+            onStart = { onAction(DockhandStackAction.START) },
+            onStop = { onAction(DockhandStackAction.STOP) },
+            onRestart = { onAction(DockhandStackAction.RESTART) }
+        )
 
         when (detailState) {
             UiState.Loading, UiState.Idle -> {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth().height(120.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(modifier = Modifier.fillMaxWidth().height(120.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
             }
             is UiState.Error -> {
-                item {
-                    Text(
-                        text = detailState.message,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = detailState.message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             UiState.Offline -> {
-                item { Text(text = stringResource(R.string.error_server_unreachable)) }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(text = stringResource(R.string.error_server_unreachable))
             }
             is UiState.Success -> {
                 val statusLabel = dockhandLabel(context, "status")
@@ -1853,37 +1831,49 @@ private fun DockhandStackDetailSheet(
                     detailState.data.stack.environmentId?.takeIf { it.isNotBlank() }?.let { add(dockhandLabel(context, "environment") to it) }
                     detailMap["id"]?.takeIf { it.isNotBlank() }?.let { add(dockhandLabel(context, "id") to compactDockhandValue(it)) }
                 }
+                val primaryRows = detailRows.take(4)
+                val secondaryRows = detailRows.drop(4)
                 val canEditCompose = composeIsEditable(detailState.data.compose)
-                item {
-                    SectionTitle(title = stringResource(R.string.dockhand_details), trailing = detailRows.size.toString())
+                Spacer(modifier = Modifier.height(12.dp))
+                SectionTitle(title = stringResource(R.string.dockhand_details), trailing = detailRows.size.toString())
+                Spacer(modifier = Modifier.height(8.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    MiniPill(label = detailState.data.stack.status, tint = if (detailState.data.stack.status.contains("run", true) || detailState.data.stack.status.contains("up", true)) DockhandRunningColor else DockhandWarningColor)
+                    MiniPill(
+                        label = "${detailState.data.stack.services} ${stringResource(R.string.dockhand_containers)}",
+                        tint = ServiceType.DOCKHAND.primaryColor
+                    )
                 }
-                items(detailRows, key = { it.first }) { (key, value) ->
-                    Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(10.dp), verticalAlignment = Alignment.Top) {
-                            Text(
-                                text = key,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.weight(0.35f)
-                            )
-                            Text(
-                                text = value,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.weight(0.65f)
-                            )
-                        }
+                Spacer(modifier = Modifier.height(8.dp))
+                DockhandDetailGrid(rows = primaryRows)
+                if (secondaryRows.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(onClick = { showAdvancedDetails = !showAdvancedDetails }) {
+                        Text(
+                            if (showAdvancedDetails) {
+                                stringResource(R.string.dockhand_hide_extra_details)
+                            } else {
+                                stringResource(R.string.dockhand_show_more_details)
+                            }
+                        )
                     }
+                }
+                if (showAdvancedDetails && secondaryRows.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    DockhandDetailGrid(rows = secondaryRows)
                 }
 
                 if (stackContainers.isNotEmpty()) {
-                    item {
-                        SectionTitle(
-                            title = stringResource(R.string.portainer_containers),
-                            trailing = stackContainers.size.toString()
-                        )
-                    }
-                    items(stackContainers, key = { it.id }) { container ->
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SectionTitle(
+                        title = stringResource(R.string.portainer_containers),
+                        trailing = stackContainers.size.toString()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    stackContainers.forEach { container ->
                         val tint = when {
                             container.isIssue -> MaterialTheme.colorScheme.error
                             container.isRunning -> DockhandRunningColor
@@ -1929,76 +1919,84 @@ private fun DockhandStackDetailSheet(
                     }
                 }
 
-                item { SectionTitle(title = stringResource(R.string.portainer_compose), trailing = null) }
+                Spacer(modifier = Modifier.height(12.dp))
+                SectionTitle(title = stringResource(R.string.portainer_compose), trailing = null)
                 if (isEditingCompose) {
-                    item {
-                        OutlinedTextField(
-                            value = composeDraft,
-                            onValueChange = { composeDraft = it },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 180.dp),
-                            maxLines = 18
-                        )
-                    }
-                    item {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(
-                                onClick = {
-                                    isEditingCompose = false
-                                    composeDraft = detailState.data.compose
-                                },
-                                enabled = !isSavingCompose,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(stringResource(R.string.cancel))
-                            }
-                            Button(
-                                onClick = {
-                                    onSaveCompose(composeDraft)
-                                    isEditingCompose = false
-                                },
-                                enabled = !isSavingCompose && composeDraft.isNotBlank(),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(stringResource(R.string.save))
-                            }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = composeDraft,
+                        onValueChange = { composeDraft = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 180.dp),
+                        maxLines = 18
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(
+                            onClick = {
+                                isEditingCompose = false
+                                composeDraft = detailState.data.compose
+                            },
+                            enabled = !isSavingCompose,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(stringResource(R.string.cancel))
+                        }
+                        Button(
+                            onClick = {
+                                onSaveCompose(composeDraft)
+                                isEditingCompose = false
+                            },
+                            enabled = !isSavingCompose && composeDraft.isNotBlank(),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(stringResource(R.string.save))
                         }
                     }
                 } else {
-                    item {
-                        Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                if (detailState.data.compose.isNotBlank()) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.End
-                                    ) {
-                                        OutlinedButton(
-                                            onClick = {
-                                                clipboardScope.launch {
-                                                    clipboard.setClipEntry(
-                                                        ClipEntry(
-                                                            ClipData.newPlainText(
-                                                                context.getString(R.string.copy),
-                                                                detailState.data.compose
-                                                            )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (detailState.data.compose.isNotBlank()) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    MiniPill(label = "YAML", tint = ServiceType.DOCKHAND.primaryColor)
+                                    OutlinedButton(
+                                        onClick = {
+                                            clipboardScope.launch {
+                                                clipboard.setClipEntry(
+                                                    ClipEntry(
+                                                        ClipData.newPlainText(
+                                                            context.getString(R.string.copy),
+                                                            detailState.data.compose
                                                         )
                                                     )
-                                                }
-                                                Toast.makeText(context, context.getString(R.string.copy), Toast.LENGTH_SHORT).show()
+                                                )
                                             }
-                                        ) {
-                                            Text(stringResource(R.string.copy))
+                                            Toast.makeText(context, context.getString(R.string.copy), Toast.LENGTH_SHORT).show()
                                         }
+                                    ) {
+                                        Text(stringResource(R.string.copy))
                                     }
                                 }
-                                SelectionContainer {
+                            }
+                            val composeScroll = rememberScrollState()
+                            SelectionContainer {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(min = 160.dp, max = 280.dp)
+                                        .verticalScroll(composeScroll)
+                                ) {
                                     Text(
                                         text = detailState.data.compose.ifBlank { stringResource(R.string.not_available) },
                                         style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
@@ -2010,10 +2008,9 @@ private fun DockhandStackDetailSheet(
                         }
                     }
                     if (canEditCompose) {
-                        item {
-                            OutlinedButton(onClick = { isEditingCompose = true }, enabled = !isSavingCompose) {
-                                Text(stringResource(R.string.edit))
-                            }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(onClick = { isEditingCompose = true }, enabled = !isSavingCompose) {
+                            Text(stringResource(R.string.edit))
                         }
                     }
                 }
@@ -2170,6 +2167,171 @@ private fun DockhandScheduleDetailSheet(
                     cardColor = MaterialTheme.colorScheme.surfaceContainerLow,
                     borderColor = ServiceType.DOCKHAND.primaryColor.copy(alpha = 0.16f)
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DockhandActionButtons(
+    isBusy: Boolean,
+    onRefresh: () -> Unit,
+    onStart: () -> Unit,
+    onStop: () -> Unit,
+    onRestart: () -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DockhandActionButton(
+                label = stringResource(R.string.refresh),
+                icon = Icons.Default.Refresh,
+                tint = ServiceType.DOCKHAND.primaryColor,
+                enabled = !isBusy,
+                onClick = onRefresh,
+                modifier = Modifier.weight(1f)
+            )
+            DockhandActionButton(
+                label = stringResource(R.string.dockhand_action_start),
+                icon = Icons.Default.PlayArrow,
+                tint = DockhandRunningColor,
+                enabled = !isBusy,
+                onClick = onStart,
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DockhandActionButton(
+                label = stringResource(R.string.dockhand_action_restart),
+                icon = Icons.Default.Refresh,
+                tint = DockhandInfoColor,
+                enabled = !isBusy,
+                onClick = onRestart,
+                modifier = Modifier.weight(1f)
+            )
+            DockhandActionButton(
+                label = stringResource(R.string.dockhand_action_stop),
+                icon = Icons.Default.Stop,
+                tint = DockhandWarningColor,
+                enabled = !isBusy,
+                onClick = onStop,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun DockhandActionButton(
+    label: String,
+    icon: ImageVector,
+    tint: Color,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.heightIn(min = 52.dp),
+        border = BorderStroke(1.dp, tint.copy(alpha = 0.34f))
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = tint)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = label,
+            maxLines = 2,
+            textAlign = TextAlign.Center,
+            color = tint
+        )
+    }
+}
+
+@Composable
+private fun DockhandDetailValueCard(label: String, value: String) {
+    Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            SelectionContainer {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DockhandDetailGrid(rows: List<Pair<String, String>>) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        rows.chunked(2).forEach { chunk ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                chunk.forEach { (label, value) ->
+                    Box(modifier = Modifier.weight(1f)) {
+                        DockhandDetailValueCard(label = label, value = value)
+                    }
+                }
+                if (chunk.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DockhandLogViewer(
+    logs: String,
+    displayLogs: String,
+    lineCount: Int,
+    onCopy: () -> Unit
+) {
+    val logScroll = rememberScrollState()
+    Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (logs.isNotBlank()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    MiniPill(label = lineCount.toString(), tint = ServiceType.DOCKHAND.primaryColor)
+                    OutlinedButton(onClick = onCopy) {
+                        Text(stringResource(R.string.copy))
+                    }
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 96.dp, max = 176.dp)
+                    .verticalScroll(logScroll)
+            ) {
+                SelectionContainer {
+                    Text(
+                        text = displayLogs.ifBlank { stringResource(R.string.not_available) },
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
     }

@@ -275,7 +275,7 @@ class HomeViewModel @Inject constructor(
                     running = data.stats.runningContainers,
                     total = data.stats.totalContainers
                 )
-                InstanceSummary("${data.stats.runningContainers}", "/ ${data.stats.totalContainers}", "dockhand_running_containers")
+                InstanceSummary("${data.stats.runningContainers}", "/ ${data.stats.totalContainers}", "dockhand_containers")
             }
             ServiceType.NGINX_PROXY_MANAGER -> {
                 val report = nginxProxyManagerRepository.getHostReport(instanceId)
@@ -333,6 +333,12 @@ class HomeViewModel @Inject constructor(
     fun moveService(serviceType: ServiceType, offset: Int) {
         viewModelScope.launch {
             localPreferencesRepository.moveService(serviceType, offset)
+        }
+    }
+
+    fun toggleServiceVisibility(serviceType: ServiceType) {
+        viewModelScope.launch {
+            localPreferencesRepository.toggleServiceVisibility(serviceType.name)
         }
     }
 }

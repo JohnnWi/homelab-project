@@ -1,7 +1,6 @@
 package com.homelab.app.ui.pangolin
 
 import android.content.Context
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,22 +15,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Lan
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.VpnLock
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -39,6 +41,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -67,6 +70,17 @@ import com.homelab.app.ui.theme.primaryColor
 import com.homelab.app.util.ServiceType
 import kotlin.math.roundToInt
 
+private fun pangolinPageBackground(accent: Color): Brush = Brush.verticalGradient(
+    listOf(
+        Color(0xFF0A0E12),
+        Color(0xFF0F1318),
+        accent.copy(alpha = 0.03f),
+        Color(0xFF0A0D11)
+    )
+)
+
+private fun pangolinCardBorder(accent: Color): BorderStroke = BorderStroke(1.dp, accent.copy(alpha = 0.12f))
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PangolinDashboardScreen(
@@ -83,19 +97,25 @@ fun PangolinDashboardScreen(
             TopAppBar(
                 title = { Text(strings.serviceName) },
                 navigationIcon = {
-                    TextButton(onClick = onNavigateBack) {
-                        Text(strings.back)
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.back)
                     }
                 },
                 actions = {
-                    TextButton(onClick = { viewModel.refresh() }) {
-                        Text(strings.refresh, color = accent)
+                    IconButton(onClick = { viewModel.refresh() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = strings.refresh, tint = accent)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { padding ->
-        when (val state = uiState) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(pangolinPageBackground(accent))
+        ) {
+            when (val state = uiState) {
             PangolinUiState.Loading -> {
                 Box(
                     modifier = Modifier
@@ -137,6 +157,7 @@ fun PangolinDashboardScreen(
                     onSelectOrg = viewModel::selectOrg
                 )
             }
+        }
         }
     }
 }
@@ -424,7 +445,11 @@ private fun PangolinSection(title: String, trailing: String) {
 
 @Composable
 private fun OverviewPill(icon: ImageVector, title: String, value: String, accent: Color) {
-    Surface(shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f)) {
+    Surface(
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
+        border = pangolinCardBorder(accent)
+    ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -441,7 +466,13 @@ private fun OverviewPill(icon: ImageVector, title: String, value: String, accent
             }
             Column {
                 Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
@@ -456,7 +487,11 @@ private fun PangolinRowCard(
     detailChips: List<String> = emptyList(),
     extraContent: (@Composable () -> Unit)? = null
 ) {
-    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = pangolinCardBorder(accent)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -484,9 +519,9 @@ private fun PangolinRowCard(
                 }
             }
             if (detailChips.isNotEmpty()) {
-                Row(
-                    modifier = Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     detailChips.forEach { chip ->
                         PangolinDetailChip(text = chip, accent = accent)
@@ -508,7 +543,9 @@ private fun PangolinDetailChip(text: String, accent: Color) {
             text = text,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
             style = MaterialTheme.typography.labelSmall,
-            color = accent
+            color = accent,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

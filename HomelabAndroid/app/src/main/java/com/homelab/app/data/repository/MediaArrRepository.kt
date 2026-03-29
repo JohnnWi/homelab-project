@@ -210,7 +210,12 @@ class MediaArrRepository @Inject constructor(
     private val okHttpClient: OkHttpClient
 ) {
 
-    suspend fun authenticateWithApiKey(url: String, serviceType: ServiceType, apiKey: String) {
+    suspend fun authenticateWithApiKey(
+        url: String,
+        serviceType: ServiceType,
+        apiKey: String,
+        fallbackUrl: String? = null
+    ) {
         val path = when (serviceType) {
             ServiceType.RADARR, ServiceType.SONARR -> "/api/v3/system/status"
             ServiceType.LIDARR -> "/api/v1/system/status"
@@ -222,48 +227,86 @@ class MediaArrRepository @Inject constructor(
             else -> throw IllegalArgumentException("Unsupported API key service: $serviceType")
         }
 
-        val headers = buildMap {
+        val headers = buildMap<String, String> {
             put("Accept", "application/json")
-            if (apiKey.isNotBlank()) {
-                put("X-Api-Key", apiKey)
-                put("Authorization", "Bearer $apiKey")
+            if (apiKey.isBlank()) {
+                return@buildMap
+            }
+            when (serviceType) {
+                ServiceType.GLUETUN, ServiceType.FLARESOLVERR -> {
+                    put("X-Api-Key", apiKey)
+                    put("Authorization", "Bearer $apiKey")
+                }
+                else -> {
+                    put("X-Api-Key", apiKey)
+                }
             }
         }
 
-        requestRaw(
-            baseUrl = url,
-            path = path,
-            method = "GET",
-            headers = headers,
-            bypass = true
-        )
+        val baseCandidates = listOf(url, fallbackUrl)
+            .mapNotNull { candidate -> candidate?.takeIf { it.isNotBlank() }?.let(::cleanUrl) }
+            .distinct()
+
+        var lastError: Throwable? = null
+        for (baseUrl in baseCandidates) {
+            try {
+                requestRaw(
+                    baseUrl = baseUrl,
+                    path = path,
+                    method = "GET",
+                    headers = headers,
+                    bypass = true
+                )
+                return
+            } catch (error: Throwable) {
+                lastError = error
+            }
+        }
+
+        throw lastError ?: IllegalStateException("Authentication failed")
     }
 
-    suspend fun authenticateQbittorrent(url: String, username: String, password: String): String {
+    suspend fun authenticateQbittorrent(
+        url: String,
+        username: String,
+        password: String,
+        fallbackUrl: String? = null
+    ): String {
         return withContext(Dispatchers.IO) {
-            val clean = cleanUrl(url)
-            val request = Request.Builder()
-                .url("$clean/api/v2/auth/login")
-                .post(
-                    FormBody.Builder()
-                        .add("username", username)
-                        .add("password", password)
-                        .build()
-                )
-                .addHeader("X-Homelab-Bypass", "true")
+            val baseCandidates = listOf(url, fallbackUrl)
+                .mapNotNull { candidate -> candidate?.takeIf { it.isNotBlank() }?.let(::cleanUrl) }
+                .distinct()
+            val formBody = FormBody.Builder()
+                .add("username", username)
+                .add("password", password)
                 .build()
 
-            okHttpClient.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    throw IllegalStateException("qBittorrent authentication failed")
+            var lastError: Throwable? = null
+            for (baseUrl in baseCandidates) {
+                val request = Request.Builder()
+                    .url("$baseUrl/api/v2/auth/login")
+                    .post(formBody)
+                    .addHeader("X-Homelab-Bypass", "true")
+                    .build()
+
+                try {
+                    okHttpClient.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) {
+                            throw IllegalStateException("qBittorrent authentication failed")
+                        }
+                        val setCookie = response.headers("Set-Cookie").joinToString(";")
+                        val sid = parseSidFromSetCookie(setCookie)
+                        if (sid.isNullOrBlank()) {
+                            throw IllegalStateException("Missing SID cookie from qBittorrent")
+                        }
+                        return@withContext sid
+                    }
+                } catch (error: Throwable) {
+                    lastError = error
                 }
-                val setCookie = response.headers("Set-Cookie").joinToString(";")
-                val sid = parseSidFromSetCookie(setCookie)
-                if (sid.isNullOrBlank()) {
-                    throw IllegalStateException("Missing SID cookie from qBittorrent")
-                }
-                sid
             }
+
+            throw lastError ?: IllegalStateException("qBittorrent authentication failed")
         }
     }
 
@@ -1380,7 +1423,12 @@ class MediaArrRepository @Inject constructor(
             throw IllegalStateException("qBittorrent session expired and credentials are unavailable")
         }
 
-        val sid = authenticateQbittorrent(instance.url, username, password)
+        val sid = authenticateQbittorrent(
+            url = instance.url,
+            username = username,
+            password = password,
+            fallbackUrl = instance.fallbackUrl
+        )
         val refreshed = instance.copy(token = sid)
         serviceInstancesRepository.saveInstance(refreshed)
         return refreshed

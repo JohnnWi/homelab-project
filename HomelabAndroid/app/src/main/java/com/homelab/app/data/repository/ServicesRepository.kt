@@ -87,8 +87,11 @@ class ServicesRepository @Inject constructor(
 
         val instance = serviceInstancesRepository.getInstance(instanceId) ?: return
 
+        val previousReachability = _reachability.value[instanceId]
         updatePingingMap(instanceId, true)
-        updateReachabilityMap(instanceId, null)
+        if (previousReachability == null) {
+            updateReachabilityMap(instanceId, null)
+        }
 
         val reachable = withContext(Dispatchers.IO) {
             val baseUrl = instance.url.trimEnd('/').takeIf { it.isNotBlank() } ?: return@withContext false
@@ -115,6 +118,7 @@ class ServicesRepository @Inject constructor(
                     okHttpClient.newCall(
                         Request.Builder()
                             .url(baseUrl + path)
+                            .addHeader("X-Homelab-Instance-Id", instance.id)
                             .build()
                     ).execute().use { true }
                 }.getOrDefault(false)

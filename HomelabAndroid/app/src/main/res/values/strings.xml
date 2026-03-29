@@ -117,6 +117,8 @@
     <string name="settings_disconnect_confirm_desc">You will need to log in again by entering URL and API Key.</string>
     <string name="settings_hide_service">Hidden from Home</string>
     <string name="settings_show_service">Visible on Home</string>
+    <string name="settings_hide_service_generic">Hide service</string>
+    <string name="settings_show_service_generic">Show service</string>
 
     <!-- Pi-hole -->
     <string name="pihole_status_active">Active</string>
@@ -290,6 +292,8 @@
     <string name="dockhand_logs">Logs</string>
     <string name="dockhand_show_full_logs">Show full logs</string>
     <string name="dockhand_show_less_logs">Show less</string>
+    <string name="dockhand_show_more_details">More details</string>
+    <string name="dockhand_hide_extra_details">Hide extra details</string>
     <string name="dockhand_details">Details</string>
     <string name="dockhand_schedule_disabled">Disabled</string>
     <string name="dockhand_settings_title">Dockhand Settings</string>
@@ -504,6 +508,7 @@
     <string name="home_summary_pihole">%1$d queries</string>
     <string name="home_summary_beszel">%1$d/%2$d systems online</string>
     <string name="linux_update_systems_up_to_date">Up to date systems</string>
+    <string name="linux_update_widget_label">updated</string>
     <plurals name="home_summary_gitea">
         <item quantity="one">%d repository</item>
         <item quantity="other">%d repositories</item>

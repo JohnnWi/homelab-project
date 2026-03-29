@@ -6,6 +6,7 @@ import android.net.NetworkCapabilities
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -39,17 +40,17 @@ class SmartFallbackInterceptor @Inject constructor(
         val isConnectedToHomeWifi = isHomeWifi(configuredSsid)
 
         // 3. Logica di Routing Primaria (Internal vs External)
-        val primaryUrl = connection.url
-        val fallbackUrl = connection.fallbackUrl
+        val primaryUrl = connection.url.toHttpUrlOrNull()
+        val fallbackUrl = connection.fallbackUrl?.toHttpUrlOrNull()
 
-        val targetHost = if (isConnectedToHomeWifi || fallbackUrl == null) primaryUrl.toHttpUrlOrNull() else fallbackUrl.toHttpUrlOrNull()
+        val targetHost = if (isConnectedToHomeWifi || fallbackUrl == null) primaryUrl else fallbackUrl
 
-        if (targetHost != null) {
-            val newUrl = request.url.newBuilder()
-                .scheme(targetHost.scheme)
-                .host(targetHost.host)
-                .port(targetHost.port)
-                .build()
+        if (targetHost != null && primaryUrl != null) {
+            val newUrl = rewriteUrl(
+                originalUrl = request.url,
+                sourceBase = primaryUrl,
+                targetBase = targetHost
+            )
 
             request = request.newBuilder()
                 .url(newUrl)
@@ -61,14 +62,13 @@ class SmartFallbackInterceptor @Inject constructor(
             
             // 4. Fallback in caso di fallimento su rete locale
             if (!response.isSuccessful && response.code in 500..504 && isConnectedToHomeWifi && fallbackUrl != null) {
-                val fbHost = fallbackUrl.toHttpUrlOrNull()
-                if (fbHost != null) {
-                    val fbUrl = request.url.newBuilder()
-                        .scheme(fbHost.scheme)
-                        .host(fbHost.host)
-                        .port(fbHost.port)
-                        .build()
-                        
+                if (primaryUrl != null) {
+                    val fbUrl = rewriteUrl(
+                        originalUrl = request.url,
+                        sourceBase = primaryUrl,
+                        targetBase = fallbackUrl
+                    )
+
                     val fallbackRequest = request.newBuilder().url(fbUrl).build()
                     response.close()
                     response = chain.proceed(fallbackRequest)
@@ -78,20 +78,58 @@ class SmartFallbackInterceptor @Inject constructor(
             
         } catch (e: IOException) {
             if (isConnectedToHomeWifi && fallbackUrl != null) {
-                val fbHost = fallbackUrl.toHttpUrlOrNull()
-                if (fbHost != null) {
-                    val fbUrl = request.url.newBuilder()
-                        .scheme(fbHost.scheme)
-                        .host(fbHost.host)
-                        .port(fbHost.port)
-                        .build()
-                        
+                if (primaryUrl != null) {
+                    val fbUrl = rewriteUrl(
+                        originalUrl = request.url,
+                        sourceBase = primaryUrl,
+                        targetBase = fallbackUrl
+                    )
+
                     val fallbackRequest = request.newBuilder().url(fbUrl).build()
                     return chain.proceed(fallbackRequest)
                 }
             }
             throw e
         }
+    }
+
+    private fun rewriteUrl(originalUrl: HttpUrl, sourceBase: HttpUrl, targetBase: HttpUrl): HttpUrl {
+        val relativePath = extractRelativePath(
+            requestPath = originalUrl.encodedPath,
+            sourceBasePath = sourceBase.encodedPath
+        )
+
+        return originalUrl.newBuilder()
+            .scheme(targetBase.scheme)
+            .host(targetBase.host)
+            .port(targetBase.port)
+            .encodedPath(joinPaths(targetBase.encodedPath, relativePath))
+            .build()
+    }
+
+    private fun extractRelativePath(requestPath: String, sourceBasePath: String): String {
+        val normalizedBase = normalizeBasePath(sourceBasePath)
+        return when {
+            normalizedBase.isEmpty() -> requestPath
+            requestPath == normalizedBase -> "/"
+            requestPath.startsWith("$normalizedBase/") -> requestPath.removePrefix(normalizedBase)
+            else -> requestPath
+        }
+    }
+
+    private fun joinPaths(basePath: String, relativePath: String): String {
+        val normalizedBase = normalizeBasePath(basePath)
+        val normalizedRelative = when {
+            relativePath.isBlank() || relativePath == "/" -> ""
+            relativePath.startsWith("/") -> relativePath
+            else -> "/$relativePath"
+        }
+        return (normalizedBase + normalizedRelative).ifBlank { "/" }
+    }
+
+    private fun normalizeBasePath(path: String): String {
+        if (path.isBlank() || path == "/") return ""
+        return path.removeSuffix("/")
     }
 
     private fun isHomeWifi(configuredSsid: String?): Boolean {

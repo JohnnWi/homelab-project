@@ -18,8 +18,12 @@ struct HomeView: View {
     private let columns = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
     private let tailscaleIconURL = URL(string: "https://cdn.jsdelivr.net/gh/selfhst/icons/png/tailscale.png")
 
+    private var hiddenServiceKeys: Set<String> {
+        settingsStore.hiddenServices
+    }
+
     private var visibleTypes: [ServiceType] {
-        settingsStore.serviceOrder.filter { ServiceType.homeServices.contains($0) && !settingsStore.isServiceHidden($0) }
+        settingsStore.serviceOrder.filter { ServiceType.homeServices.contains($0) && !hiddenServiceKeys.contains($0.rawValue) }
     }
 
     private var hasServices: Bool {
@@ -486,13 +490,34 @@ private struct ServiceOrderSheet: View {
         NavigationStack {
             List {
                 ForEach(settingsStore.serviceOrder.filter { ServiceType.homeServices.contains($0) }) { type in
+                    let isHidden = settingsStore.isServiceHidden(type)
                     HStack {
-                        Text(type.displayName)
-                            .font(.body.weight(.semibold))
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(type.displayName)
+                                .font(.body.weight(.semibold))
+                            if isHidden {
+                                Text(localizer.t.settingsHiddenBadge)
+                                    .font(.caption2.bold())
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(Color.secondary.opacity(0.12), in: Capsule())
+                            }
+                        }
                         Spacer()
                         HStack(spacing: 12) {
                             Button {
+                                settingsStore.toggleServiceVisibility(type)
+                                HapticManager.light()
+                            } label: {
+                                Image(systemName: isHidden ? "eye.slash" : "eye")
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel(isHidden ? localizer.t.settingsShowServiceGeneric : localizer.t.settingsHideServiceGeneric)
+
+                            Button {
                                 settingsStore.moveService(type, offset: -1, within: ServiceType.homeServices)
+                                HapticManager.light()
                             } label: {
                                 Image(systemName: "chevron.up")
                             }
@@ -502,6 +527,7 @@ private struct ServiceOrderSheet: View {
 
                             Button {
                                 settingsStore.moveService(type, offset: 1, within: ServiceType.homeServices)
+                                HapticManager.light()
                             } label: {
                                 Image(systemName: "chevron.down")
                             }
