@@ -205,6 +205,13 @@ fun ServiceLoginScreen(
                 ServiceType.BAZARR -> stringResource(R.string.login_hint_bazarr)
                 ServiceType.GLUETUN -> stringResource(R.string.login_hint_gluetun)
                 ServiceType.FLARESOLVERR -> stringResource(R.string.login_hint_flaresolverr)
+                ServiceType.JELLYFIN -> stringResource(R.string.login_hint_jellyfin)
+                ServiceType.IMMICH -> stringResource(R.string.login_hint_immich)
+                ServiceType.GRAFANA -> stringResource(R.string.login_hint_grafana)
+                ServiceType.SABNZBD -> stringResource(R.string.login_hint_sabnzbd)
+                ServiceType.PROXMOX -> stringResource(R.string.login_hint_proxmox)
+                ServiceType.PROXMOX_BACKUP_SERVER -> stringResource(R.string.login_hint_pbs)
+                ServiceType.TDARR -> stringResource(R.string.login_hint_tdarr)
                 else -> null
             }
 
@@ -419,7 +426,13 @@ fun ServiceLoginScreen(
                 serviceType == ServiceType.LIDARR ||
                 serviceType == ServiceType.JELLYSEERR ||
                 serviceType == ServiceType.PROWLARR ||
-                serviceType == ServiceType.BAZARR
+                serviceType == ServiceType.BAZARR ||
+                serviceType == ServiceType.JELLYFIN ||
+                serviceType == ServiceType.IMMICH ||
+                serviceType == ServiceType.GRAFANA ||
+                serviceType == ServiceType.SABNZBD ||
+                serviceType == ServiceType.PROXMOX ||
+                serviceType == ServiceType.PROXMOX_BACKUP_SERVER
             ) {
                 SecretField(
                     value = apiKey,
@@ -430,7 +443,8 @@ fun ServiceLoginScreen(
                 )
             } else if (
                 serviceType == ServiceType.GLUETUN ||
-                serviceType == ServiceType.FLARESOLVERR
+                serviceType == ServiceType.FLARESOLVERR ||
+                serviceType == ServiceType.TDARR
             ) {
                 SecretField(
                     value = apiKey,

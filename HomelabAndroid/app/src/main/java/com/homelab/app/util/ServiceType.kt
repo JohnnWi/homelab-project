@@ -29,6 +29,13 @@ enum class ServiceType(val displayName: String) {
     BAZARR("Bazarr"),
     GLUETUN("Gluetun"),
     FLARESOLVERR("FlareSolverr"),
+    JELLYFIN("Jellyfin"),
+    IMMICH("Immich"),
+    GRAFANA("Grafana"),
+    SABNZBD("SABnzbd"),
+    PROXMOX("Proxmox VE"),
+    PROXMOX_BACKUP_SERVER("Proxmox Backup Server"),
+    TDARR("Tdarr"),
     UNKNOWN("Unknown");
 
     companion object {
@@ -41,7 +48,10 @@ enum class ServiceType(val displayName: String) {
             PROWLARR,
             BAZARR,
             GLUETUN,
-            FLARESOLVERR
+            FLARESOLVERR,
+            JELLYFIN,
+            SABNZBD,
+            TDARR
         )
 
         val homeTypes: List<ServiceType> = entries.filter { it != UNKNOWN && it !in arrStackTypes }
@@ -57,6 +67,17 @@ enum class ServiceType(val displayName: String) {
                 "TECHNITIUMDNS" -> TECHNITIUM
                 "PANGOLIN" -> PANGOLIN
                 "DOCKHAND" -> DOCKHAND
+                "JELLYFIN" -> JELLYFIN
+                "IMMICH" -> IMMICH
+                "GRAFANA" -> GRAFANA
+                "SABNZBD" -> SABNZBD
+                "PROXMOX",
+                "PROXMOX_VE",
+                "PROXMOXVE" -> PROXMOX
+                "PBS",
+                "PROXMOX_BACKUP_SERVER",
+                "PROXMOXBACKUPSERVER" -> PROXMOX_BACKUP_SERVER
+                "TDARR" -> TDARR
                 else -> entries.firstOrNull { it.name == normalized } ?: UNKNOWN
             }
         }

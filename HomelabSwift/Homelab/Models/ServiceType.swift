@@ -24,6 +24,13 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
     case bazarr
     case gluetun
     case flaresolverr
+    case jellyfin
+    case immich
+    case grafana
+    case sabnzbd
+    case proxmox
+    case proxmoxBackupServer = "proxmox_backup_server"
+    case tdarr
 
     public var id: String { rawValue }
 
@@ -52,6 +59,8 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
             return .dockhand
         case "pangolin":
             return .pangolin
+        case "proxmox_backup_server", "proxmoxbackupserver", "pbs":
+            return .proxmoxBackupServer
         default:
             return nil
         }
@@ -75,13 +84,16 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
     }
 
     public static let mediaServices: [ServiceType] = [
+        .jellyfin,
         .radarr,
         .sonarr,
         .lidarr,
         .qbittorrent,
+        .sabnzbd,
         .jellyseerr,
         .prowlarr,
         .bazarr,
+        .tdarr,
         .gluetun,
         .flaresolverr
     ]
@@ -119,6 +131,13 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .bazarr:             return "Bazarr"
         case .gluetun:            return "Gluetun"
         case .flaresolverr:       return "FlareSolverr"
+        case .jellyfin:           return "Jellyfin"
+        case .immich:             return "Immich"
+        case .grafana:            return "Grafana"
+        case .sabnzbd:            return "SABnzbd"
+        case .proxmox:            return "Proxmox VE"
+        case .proxmoxBackupServer: return "Proxmox Backup Server"
+        case .tdarr:              return "Tdarr"
         }
     }
 
@@ -149,6 +168,13 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .bazarr:             return t.serviceBazarrDesc
         case .gluetun:            return t.serviceGluetunDesc
         case .flaresolverr:       return t.serviceFlaresolverrDesc
+        case .jellyfin:           return "Media server dashboard"
+        case .immich:             return "Photo and video backup"
+        case .grafana:            return "Monitoring and observability"
+        case .sabnzbd:            return "Usenet download client"
+        case .proxmox:            return "Virtualization management"
+        case .proxmoxBackupServer: return "Backup server dashboard"
+        case .tdarr:              return "Media transcoding manager"
         }
     }
 
@@ -177,6 +203,13 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .bazarr:             return "text.bubble.fill"
         case .gluetun:            return "lock.shield.fill"
         case .flaresolverr:       return "flame.fill"
+        case .jellyfin:           return "play.rectangle.fill"
+        case .immich:             return "photo.on.rectangle.angled"
+        case .grafana:            return "chart.bar.xaxis"
+        case .sabnzbd:            return "arrow.down.doc.fill"
+        case .proxmox:            return "cpu.fill"
+        case .proxmoxBackupServer: return "externaldrive.fill.badge.checkmark"
+        case .tdarr:              return "waveform.path"
         }
     }
 
@@ -205,6 +238,13 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .bazarr:             return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/bazarr.png"
         case .gluetun:            return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/gluetun.png"
         case .flaresolverr:       return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/flaresolverr.png"
+        case .jellyfin:           return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/jellyfin.png"
+        case .immich:             return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/immich.png"
+        case .grafana:            return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/grafana.png"
+        case .sabnzbd:            return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/sabnzbd.png"
+        case .proxmox:            return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/proxmox.png"
+        case .proxmoxBackupServer: return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/proxmox-backup-server.png"
+        case .tdarr:              return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/tdarr.png"
         }
     }
 
@@ -234,6 +274,13 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .bazarr:             slug = "bazarr"
         case .gluetun:            slug = "gluetun"
         case .flaresolverr:       slug = "flaresolverr"
+        case .jellyfin:           slug = "jellyfin"
+        case .immich:             slug = "immich"
+        case .grafana:            slug = "grafana"
+        case .sabnzbd:            slug = "sabnzbd"
+        case .proxmox:            slug = "proxmox"
+        case .proxmoxBackupServer: slug = "proxmox-backup-server"
+        case .tdarr:              slug = "tdarr"
         }
         var orderedCandidates: [String] = []
         let primary = iconUrl.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -277,6 +324,13 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .bazarr:             return "service-bazarr"
         case .gluetun:            return "service-gluetun"
         case .flaresolverr:       return "service-flaresolverr"
+        case .jellyfin:           return "service-jellyfin"
+        case .immich:             return "service-immich"
+        case .grafana:            return "service-grafana"
+        case .sabnzbd:            return "service-sabnzbd"
+        case .proxmox:            return "service-proxmox"
+        case .proxmoxBackupServer: return "service-proxmox-backup-server"
+        case .tdarr:              return "service-tdarr"
         }
     }
 
@@ -305,6 +359,13 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .bazarr:             return ServiceColorSet(primary: Color(hex: "#2563EB"), dark: Color(hex: "#1D4ED8"), bg: Color(hex: "#2563EB").opacity(0.09))
         case .gluetun:            return ServiceColorSet(primary: Color(hex: "#06B6D4"), dark: Color(hex: "#0891B2"), bg: Color(hex: "#06B6D4").opacity(0.09))
         case .flaresolverr:       return ServiceColorSet(primary: Color(hex: "#FF4500"), dark: Color(hex: "#CC3700"), bg: Color(hex: "#FF4500").opacity(0.09))
+        case .jellyfin:           return ServiceColorSet(primary: Color(hex: "#00A4DC"), dark: Color(hex: "#0082B0"), bg: Color(hex: "#00A4DC").opacity(0.09))
+        case .immich:             return ServiceColorSet(primary: Color(hex: "#4250AF"), dark: Color(hex: "#333F8C"), bg: Color(hex: "#4250AF").opacity(0.09))
+        case .grafana:            return ServiceColorSet(primary: Color(hex: "#F46800"), dark: Color(hex: "#C35300"), bg: Color(hex: "#F46800").opacity(0.09))
+        case .sabnzbd:            return ServiceColorSet(primary: Color(hex: "#EAB12B"), dark: Color(hex: "#C89422"), bg: Color(hex: "#EAB12B").opacity(0.09))
+        case .proxmox:            return ServiceColorSet(primary: Color(hex: "#E57000"), dark: Color(hex: "#B85A00"), bg: Color(hex: "#E57000").opacity(0.09))
+        case .proxmoxBackupServer: return ServiceColorSet(primary: Color(hex: "#E57000"), dark: Color(hex: "#B85A00"), bg: Color(hex: "#E57000").opacity(0.09))
+        case .tdarr:              return ServiceColorSet(primary: Color(hex: "#6366F1"), dark: Color(hex: "#4F46E5"), bg: Color(hex: "#6366F1").opacity(0.09))
         }
     }
 }

@@ -319,6 +319,13 @@ struct HomeView: View {
         case .radarr:            RadarrDashboard(instanceId: route.instanceId)
         case .sonarr:            SonarrDashboard(instanceId: route.instanceId)
         case .lidarr:            LidarrDashboard(instanceId: route.instanceId)
+        case .jellyfin:          JellyfinDashboard(instanceId: route.instanceId)
+        case .immich:            ImmichDashboard(instanceId: route.instanceId)
+        case .grafana:           GrafanaDashboard(instanceId: route.instanceId)
+        case .sabnzbd:           SABnzbdDashboard(instanceId: route.instanceId)
+        case .proxmox:           ProxmoxDashboard(instanceId: route.instanceId)
+        case .proxmoxBackupServer: PBSDashboard(instanceId: route.instanceId)
+        case .tdarr:             TdarrDashboard(instanceId: route.instanceId)
         case .jellyseerr, .prowlarr, .bazarr, .gluetun, .flaresolverr:
                                  GenericMediaDashboard(serviceType: route.type, instanceId: route.instanceId)
         }
@@ -427,6 +434,23 @@ struct HomeView: View {
                 let libs = try await client.getLibraries()
                 let totalItems = libs.reduce(0) { $0 + $1.itemCount + $1.episodeCount }
                 return ServiceSummaryInfo(value: Formatters.formatNumber(totalItems), label: localizer.t.plexTotalItems)
+            case .immich:
+                guard let client = await servicesStore.immichClient(instanceId: instanceId) else { return nil }
+                let assets = try await client.getAssetStatistics()
+                return ServiceSummaryInfo(value: Formatters.formatNumber(assets.total), label: "Total assets")
+            case .grafana:
+                guard let client = await servicesStore.grafanaClient(instanceId: instanceId) else { return nil }
+                let dashboards = try await client.getDashboards()
+                return ServiceSummaryInfo(value: "\(dashboards.count)", label: "Dashboards")
+            case .proxmox:
+                guard let client = await servicesStore.proxmoxClient(instanceId: instanceId) else { return nil }
+                let vms = try await client.getVMs()
+                let running = vms.filter { $0.status == "running" }.count
+                return ServiceSummaryInfo(value: "\(running)", subValue: "/ \(vms.count)", label: "Running guests")
+            case .proxmoxBackupServer:
+                guard let client = await servicesStore.pbsClient(instanceId: instanceId) else { return nil }
+                let datastores = try await client.getDatastores()
+                return ServiceSummaryInfo(value: "\(datastores.count)", label: "Datastores")
             default:
                 return nil
             }

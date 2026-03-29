@@ -99,6 +99,55 @@ struct MediaDashboardView: View {
 
     private func loadCardPreview(for instance: ServiceInstance) async throws -> MediaCardPreviewData {
         switch instance.type {
+        case .jellyfin:
+            guard let client = await servicesStore.jellyfinClient(instanceId: instance.id) else {
+                throw APIError.notConfigured
+            }
+            async let infoTask = client.getSystemInfo()
+            async let sessionsTask = client.getSessions()
+            async let countsTask = client.getItemCounts()
+            let info = try await infoTask
+            let sessions = try await sessionsTask
+            let counts = try await countsTask
+            let activeSessions = sessions.filter { $0.nowPlayingItem != nil }.count
+            return MediaCardPreviewData(
+                headline: "v\(info.version)",
+                metrics: [
+                    MediaCardPreviewMetric(label: arr.statusLabel, value: activeSessions > 0 ? "\(activeSessions) streaming" : "Idle"),
+                    MediaCardPreviewMetric(label: "Movies", value: "\(counts.movieCount)"),
+                    MediaCardPreviewMetric(label: "Series", value: "\(counts.seriesCount)")
+                ]
+            )
+        case .sabnzbd:
+            guard let client = await servicesStore.sabnzbdClient(instanceId: instance.id) else {
+                throw APIError.notConfigured
+            }
+            let queue = try await client.getQueue()
+            return MediaCardPreviewData(
+                headline: queue.status,
+                metrics: [
+                    MediaCardPreviewMetric(label: arr.download, value: "\(Formatters.formatBytes(queue.speedBytes))/s"),
+                    MediaCardPreviewMetric(label: "Queue", value: "\(queue.totalSlots)"),
+                    MediaCardPreviewMetric(label: "Left", value: queue.sizeLeft)
+                ]
+            )
+        case .tdarr:
+            guard let client = await servicesStore.tdarrClient(instanceId: instance.id) else {
+                throw APIError.notConfigured
+            }
+            async let nodesTask = client.getNodes()
+            async let statsTask = client.getStats()
+            let nodes = try await nodesTask
+            let stats = try await statsTask
+            let onlineNodes = nodes.filter { $0.online }.count
+            return MediaCardPreviewData(
+                headline: "\(onlineNodes)/\(nodes.count) nodes",
+                metrics: [
+                    MediaCardPreviewMetric(label: "Files", value: Formatters.formatNumber(stats.totalFileCount)),
+                    MediaCardPreviewMetric(label: "Transcodes", value: Formatters.formatNumber(stats.totalTranscodeCount)),
+                    MediaCardPreviewMetric(label: "Health", value: Formatters.formatNumber(stats.totalHealthCheckCount))
+                ]
+            )
         case .qbittorrent:
             guard let client = await servicesStore.qbittorrentClient(instanceId: instance.id) else {
                 throw APIError.notConfigured
@@ -307,6 +356,8 @@ struct MediaDashboardView: View {
     @ViewBuilder
     private func mediaServiceDestination(for route: MediaServiceRoute) -> some View {
         switch route.type {
+        case .jellyfin:
+            JellyfinDashboard(instanceId: route.instanceId)
         case .qbittorrent:
             QbittorrentDashboard(instanceId: route.instanceId)
         case .radarr:
@@ -315,6 +366,10 @@ struct MediaDashboardView: View {
             SonarrDashboard(instanceId: route.instanceId)
         case .lidarr:
             LidarrDashboard(instanceId: route.instanceId)
+        case .sabnzbd:
+            SABnzbdDashboard(instanceId: route.instanceId)
+        case .tdarr:
+            TdarrDashboard(instanceId: route.instanceId)
         case .jellyseerr, .prowlarr, .bazarr, .gluetun, .flaresolverr:
             GenericMediaDashboard(serviceType: route.type, instanceId: route.instanceId)
         default:

@@ -240,4 +240,50 @@ object NetworkModule {
     fun providePlexApi(retrofit: Retrofit): com.homelab.app.data.remote.api.PlexApi {
         return retrofit.create(com.homelab.app.data.remote.api.PlexApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideJellyfinApi(retrofit: Retrofit): com.homelab.app.data.remote.api.JellyfinApi {
+        return retrofit.create(com.homelab.app.data.remote.api.JellyfinApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideImmichApi(retrofit: Retrofit): com.homelab.app.data.remote.api.ImmichApi {
+        return retrofit.create(com.homelab.app.data.remote.api.ImmichApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGrafanaApi(retrofit: Retrofit): com.homelab.app.data.remote.api.GrafanaApi {
+        return retrofit.create(com.homelab.app.data.remote.api.GrafanaApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSABnzbdApi(retrofit: Retrofit): com.homelab.app.data.remote.api.SABnzbdApi {
+        return retrofit.create(com.homelab.app.data.remote.api.SABnzbdApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideProxmoxApi(
+        @Named("insecure") retrofit: Retrofit
+    ): com.homelab.app.data.remote.api.ProxmoxApi {
+        return retrofit.create(com.homelab.app.data.remote.api.ProxmoxApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun providePBSApi(
+        @Named("insecure") retrofit: Retrofit
+    ): com.homelab.app.data.remote.api.PBSApi {
+        return retrofit.create(com.homelab.app.data.remote.api.PBSApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTdarrApi(retrofit: Retrofit): com.homelab.app.data.remote.api.TdarrApi {
+        return retrofit.create(com.homelab.app.data.remote.api.TdarrApi::class.java)
+    }
 }

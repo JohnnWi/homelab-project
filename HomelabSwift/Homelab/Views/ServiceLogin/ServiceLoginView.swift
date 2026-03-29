@@ -51,14 +51,20 @@ struct ServiceLoginView: View {
             || serviceType == .jellyseerr
             || serviceType == .prowlarr
             || serviceType == .bazarr
+            || serviceType == .jellyfin
+            || serviceType == .immich
+            || serviceType == .grafana
+            || serviceType == .sabnzbd
+            || serviceType == .proxmox
+            || serviceType == .proxmoxBackupServer
     }
 
     private var supportsCredentiallessAuth: Bool {
-        serviceType == .gluetun || serviceType == .flaresolverr
+        serviceType == .gluetun || serviceType == .flaresolverr || serviceType == .tdarr
     }
 
     private var supportsOptionalApiKey: Bool {
-        serviceType == .gluetun || serviceType == .flaresolverr
+        serviceType == .gluetun || serviceType == .flaresolverr || serviceType == .tdarr
     }
 
     var body: some View {
@@ -303,6 +309,20 @@ struct ServiceLoginView: View {
                                  return localizer.t.loginHintGluetun
         case .flaresolverr:
                                  return localizer.t.loginHintFlaresolverr
+        case .jellyfin:
+                                 return "Enter your Jellyfin server URL and API key. Find the API key in Dashboard > API Keys."
+        case .immich:
+                                 return "Enter your Immich server URL and API key. Generate an API key in Account Settings > API Keys."
+        case .grafana:
+                                 return "Enter your Grafana URL and a Service Account token. Create one in Administration > Service accounts."
+        case .sabnzbd:
+                                 return "Enter your SABnzbd URL and API key. Find the API key in Config > General > Security."
+        case .proxmox:
+                                 return "Enter your Proxmox VE URL and API token. Format: user@realm!tokenid=token-value"
+        case .proxmoxBackupServer:
+                                 return "Enter your PBS URL and API token. Format: user@realm!tokenid=token-value"
+        case .tdarr:
+                                 return "Enter your Tdarr server URL. API key is optional unless server authentication is enabled."
         case .qbittorrent, .radarr, .sonarr, .lidarr, .jellyseerr, .prowlarr, .bazarr:
                                  return nil
         default: return nil
@@ -849,6 +869,122 @@ struct ServiceLoginView: View {
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
                 type: genericType,
+                label: label,
+                url: url,
+                token: "",
+                apiKey: key,
+                fallbackUrl: fallbackUrl
+            )
+
+        case .jellyfin:
+            let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
+            guard let key, !key.isEmpty else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+            let client = JellyfinAPIClient(instanceId: existingInstanceId ?? UUID())
+            try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .jellyfin,
+                label: label,
+                url: url,
+                token: "",
+                apiKey: key,
+                fallbackUrl: fallbackUrl
+            )
+
+        case .immich:
+            let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
+            guard let key, !key.isEmpty else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+            let client = ImmichAPIClient(instanceId: existingInstanceId ?? UUID())
+            try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .immich,
+                label: label,
+                url: url,
+                token: "",
+                apiKey: key,
+                fallbackUrl: fallbackUrl
+            )
+
+        case .grafana:
+            let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
+            guard let key, !key.isEmpty else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+            let client = GrafanaAPIClient(instanceId: existingInstanceId ?? UUID())
+            try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .grafana,
+                label: label,
+                url: url,
+                token: "",
+                apiKey: key,
+                fallbackUrl: fallbackUrl
+            )
+
+        case .sabnzbd:
+            let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
+            guard let key, !key.isEmpty else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+            let client = SABnzbdAPIClient(instanceId: existingInstanceId ?? UUID())
+            try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .sabnzbd,
+                label: label,
+                url: url,
+                token: "",
+                apiKey: key,
+                fallbackUrl: fallbackUrl
+            )
+
+        case .proxmox:
+            let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
+            guard let key, !key.isEmpty else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+            let client = ProxmoxAPIClient(instanceId: existingInstanceId ?? UUID())
+            try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .proxmox,
+                label: label,
+                url: url,
+                token: "",
+                apiKey: key,
+                fallbackUrl: fallbackUrl
+            )
+
+        case .proxmoxBackupServer:
+            let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
+            guard let key, !key.isEmpty else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+            let client = PBSAPIClient(instanceId: existingInstanceId ?? UUID())
+            try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .proxmoxBackupServer,
+                label: label,
+                url: url,
+                token: "",
+                apiKey: key,
+                fallbackUrl: fallbackUrl
+            )
+
+        case .tdarr:
+            let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
+            let client = TdarrAPIClient(instanceId: existingInstanceId ?? UUID())
+            try await client.authenticate(url: url, fallbackUrl: fallbackUrl, apiKey: key)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .tdarr,
                 label: label,
                 url: url,
                 token: "",

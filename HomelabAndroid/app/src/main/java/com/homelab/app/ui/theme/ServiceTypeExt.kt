@@ -13,8 +13,14 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Source
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VpnLock
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +59,13 @@ val ServiceType.primaryColor: Color
         ServiceType.BAZARR -> Color(0xFF2563EB)
         ServiceType.GLUETUN -> Color(0xFF06B6D4)
         ServiceType.FLARESOLVERR -> Color(0xFFFF4500)
+        ServiceType.JELLYFIN -> Color(0xFF00A4DC)
+        ServiceType.IMMICH -> Color(0xFF4250AF)
+        ServiceType.GRAFANA -> Color(0xFFF46800)
+        ServiceType.SABNZBD -> Color(0xFFEAB12B)
+        ServiceType.PROXMOX -> Color(0xFFE57000)
+        ServiceType.PROXMOX_BACKUP_SERVER -> Color(0xFFE57000)
+        ServiceType.TDARR -> Color(0xFF6366F1)
         ServiceType.UNKNOWN -> if (isThemeDark()) Color.LightGray else Color.Gray
     }
 
@@ -82,6 +95,13 @@ val ServiceType.backgroundColor: Color
         ServiceType.BAZARR -> Color(0xFF2563EB).copy(alpha = 0.12f)
         ServiceType.GLUETUN -> Color(0xFF06B6D4).copy(alpha = 0.12f)
         ServiceType.FLARESOLVERR -> Color(0xFFFF4500).copy(alpha = 0.12f)
+        ServiceType.JELLYFIN -> Color(0xFF00A4DC).copy(alpha = 0.12f)
+        ServiceType.IMMICH -> Color(0xFF4250AF).copy(alpha = 0.12f)
+        ServiceType.GRAFANA -> Color(0xFFF46800).copy(alpha = 0.12f)
+        ServiceType.SABNZBD -> Color(0xFFEAB12B).copy(alpha = 0.12f)
+        ServiceType.PROXMOX -> Color(0xFFE57000).copy(alpha = 0.12f)
+        ServiceType.PROXMOX_BACKUP_SERVER -> Color(0xFFE57000).copy(alpha = 0.12f)
+        ServiceType.TDARR -> Color(0xFF6366F1).copy(alpha = 0.12f)
         ServiceType.UNKNOWN -> if (isThemeDark()) Color(0xFF334155) else Color(0xFFF1F5F9)
     }
 
@@ -110,6 +130,13 @@ val ServiceType.iconUrl: String
         ServiceType.BAZARR -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/bazarr.png"
         ServiceType.GLUETUN -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/gluetun.png"
         ServiceType.FLARESOLVERR -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/flaresolverr.png"
+        ServiceType.JELLYFIN -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/jellyfin.png"
+        ServiceType.IMMICH -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/immich.png"
+        ServiceType.GRAFANA -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/grafana.png"
+        ServiceType.SABNZBD -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/sabnzbd.png"
+        ServiceType.PROXMOX -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/proxmox.png"
+        ServiceType.PROXMOX_BACKUP_SERVER -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/proxmox-backup-server.png"
+        ServiceType.TDARR -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/tdarr.png"
         ServiceType.UNKNOWN -> ""
     }
 
@@ -171,5 +198,12 @@ val ServiceType.fallbackIcon: ImageVector
         ServiceType.BAZARR -> Icons.Default.Subtitles
         ServiceType.GLUETUN -> Icons.Default.VpnLock
         ServiceType.FLARESOLVERR -> Icons.Default.LocalFireDepartment
+        ServiceType.JELLYFIN -> Icons.Default.Videocam
+        ServiceType.IMMICH -> Icons.Default.CameraAlt
+        ServiceType.GRAFANA -> Icons.Default.Dashboard
+        ServiceType.SABNZBD -> Icons.Default.CloudDownload
+        ServiceType.PROXMOX -> Icons.Default.Memory
+        ServiceType.PROXMOX_BACKUP_SERVER -> Icons.Default.Backup
+        ServiceType.TDARR -> Icons.Default.Videocam
         ServiceType.UNKNOWN -> Icons.Default.Widgets
     }

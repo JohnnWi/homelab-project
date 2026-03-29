@@ -47,6 +47,18 @@ class AuthInterceptor @Inject constructor(
         if (instance != null) {
             val hasAuthorization = request.header("Authorization") != null
             addAuthHeaders(requestBuilder, instance, hasAuthorization)
+
+            // SABnzbd uses query param auth -- append apikey to URL
+            if (instance.type == com.homelab.app.util.ServiceType.SABNZBD && !instance.apiKey.isNullOrBlank()) {
+                requestBuilder.removeHeader("X-Homelab-SABnzbd-ApiKey")
+                val originalUrl = request.url
+                if (originalUrl.queryParameter("apikey") == null) {
+                    val newUrl = originalUrl.newBuilder()
+                        .addQueryParameter("apikey", instance.apiKey)
+                        .build()
+                    requestBuilder.url(newUrl)
+                }
+            }
         }
 
         request = requestBuilder.build()
@@ -277,6 +289,48 @@ class AuthInterceptor @Inject constructor(
             ServiceType.QBITTORRENT -> {
                 if (instance.token.isNotBlank()) {
                     builder.addHeader("Cookie", "SID=${instance.token}")
+                }
+            }
+            ServiceType.JELLYFIN -> {
+                if (!instance.apiKey.isNullOrBlank()) {
+                    builder.addHeader("X-Emby-Token", instance.apiKey)
+                }
+            }
+            ServiceType.IMMICH -> {
+                if (!instance.apiKey.isNullOrBlank()) {
+                    builder.addHeader("x-api-key", instance.apiKey)
+                }
+            }
+            ServiceType.GRAFANA -> {
+                if (!hasAuthorization && !instance.apiKey.isNullOrBlank()) {
+                    val token = instance.apiKey.trim().let { raw ->
+                        if (raw.startsWith("bearer ", ignoreCase = true)) raw.substring(7).trim() else raw
+                    }
+                    if (token.isNotBlank()) {
+                        builder.addHeader("Authorization", "Bearer $token")
+                    }
+                }
+            }
+            ServiceType.SABNZBD -> {
+                // SABnzbd uses query param auth -- handled at the API layer via interceptor/url rewriting.
+                // The apikey query param is appended by SmartFallbackInterceptor or the API call itself.
+                if (!instance.apiKey.isNullOrBlank()) {
+                    builder.addHeader("X-Homelab-SABnzbd-ApiKey", instance.apiKey)
+                }
+            }
+            ServiceType.PROXMOX -> {
+                if (!hasAuthorization && !instance.apiKey.isNullOrBlank()) {
+                    builder.addHeader("Authorization", "PVEAPIToken=${instance.apiKey}")
+                }
+            }
+            ServiceType.PROXMOX_BACKUP_SERVER -> {
+                if (!hasAuthorization && !instance.apiKey.isNullOrBlank()) {
+                    builder.addHeader("Authorization", "PBSAPIToken=${instance.apiKey}")
+                }
+            }
+            ServiceType.TDARR -> {
+                if (!instance.apiKey.isNullOrBlank()) {
+                    builder.addHeader("x-api-key", instance.apiKey)
                 }
             }
             else -> {}

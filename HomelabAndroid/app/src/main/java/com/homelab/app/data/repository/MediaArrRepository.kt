@@ -323,6 +323,18 @@ class MediaArrRepository @Inject constructor(
             ServiceType.BAZARR -> bazarrSnapshot(instance)
             ServiceType.GLUETUN -> gluetunSnapshot(instance)
             ServiceType.FLARESOLVERR -> flaresolverrSnapshot(instance)
+            ServiceType.JELLYFIN,
+            ServiceType.SABNZBD,
+            ServiceType.TDARR -> MediaArrSnapshot(
+                serviceType = instance.type,
+                serviceLabel = instance.label,
+                version = null,
+                status = null,
+                metrics = emptyList(),
+                highlights = emptyList(),
+                warnings = emptyList(),
+                actions = emptyList()
+            )
             else -> throw IllegalStateException("Unsupported media service: ${instance.type.displayName}")
         }
     }
@@ -340,6 +352,13 @@ class MediaArrRepository @Inject constructor(
             ServiceType.BAZARR -> bazarrCardPreview(instance)
             ServiceType.GLUETUN -> gluetunCardPreview(instance)
             ServiceType.FLARESOLVERR -> flaresolverrCardPreview(instance)
+            ServiceType.JELLYFIN,
+            ServiceType.SABNZBD,
+            ServiceType.TDARR -> MediaArrCardPreview(
+                serviceType = instance.type,
+                headline = null,
+                metrics = emptyList()
+            )
             else -> throw IllegalStateException("Unsupported media service: ${instance.type.displayName}")
         }
     }

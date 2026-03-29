@@ -91,6 +91,13 @@ private fun dashboardRoute(type: ServiceType, instanceId: String): String {
         ServiceType.HEALTHCHECKS -> "healthchecks/$instanceId/dashboard"
         ServiceType.PATCHMON -> "patchmon/$instanceId/dashboard"
         ServiceType.PLEX -> "plex/$instanceId/dashboard"
+        ServiceType.JELLYFIN -> "jellyfin/$instanceId/dashboard"
+        ServiceType.IMMICH -> "immich/$instanceId/dashboard"
+        ServiceType.GRAFANA -> "grafana/$instanceId/dashboard"
+        ServiceType.SABNZBD -> "sabnzbd/$instanceId/dashboard"
+        ServiceType.PROXMOX -> "proxmox/$instanceId/dashboard"
+        ServiceType.PROXMOX_BACKUP_SERVER -> "pbs/$instanceId/dashboard"
+        ServiceType.TDARR -> "tdarr/$instanceId/dashboard"
         ServiceType.RADARR,
         ServiceType.SONARR,
         ServiceType.LIDARR,
@@ -845,6 +852,125 @@ fun AppNavigation() {
                         if (newInstanceId != instanceId) {
                             navController.navigate(dashboardRoute(ServiceType.PLEX, newInstanceId)) {
                                 popUpTo("plex/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "jellyfin/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.jellyfin.JellyfinDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.JELLYFIN, newInstanceId)) {
+                                popUpTo("jellyfin/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "immich/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.immich.ImmichDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.IMMICH, newInstanceId)) {
+                                popUpTo("immich/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "grafana/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.grafana.GrafanaDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.GRAFANA, newInstanceId)) {
+                                popUpTo("grafana/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "sabnzbd/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.sabnzbd.SABnzbdDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.SABNZBD, newInstanceId)) {
+                                popUpTo("sabnzbd/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.proxmox.ProxmoxDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.PROXMOX, newInstanceId)) {
+                                popUpTo("proxmox/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "pbs/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.pbs.PBSDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.PROXMOX_BACKUP_SERVER, newInstanceId)) {
+                                popUpTo("pbs/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "tdarr/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.tdarr.TdarrDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.TDARR, newInstanceId)) {
+                                popUpTo("tdarr/$instanceId/dashboard") { inclusive = true }
                             }
                         }
                     }

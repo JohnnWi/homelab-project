@@ -21,6 +21,13 @@ private final class ServiceClientManager {
     private var radarrClients: [UUID: RadarrAPIClient] = [:]
     private var sonarrClients: [UUID: SonarrAPIClient] = [:]
     private var lidarrClients: [UUID: LidarrAPIClient] = [:]
+    private var jellyfinClients: [UUID: JellyfinAPIClient] = [:]
+    private var immichClients: [UUID: ImmichAPIClient] = [:]
+    private var grafanaClients: [UUID: GrafanaAPIClient] = [:]
+    private var sabnzbdClients: [UUID: SABnzbdAPIClient] = [:]
+    private var proxmoxClients: [UUID: ProxmoxAPIClient] = [:]
+    private var pbsClients: [UUID: PBSAPIClient] = [:]
+    private var tdarrClients: [UUID: TdarrAPIClient] = [:]
     private var genericClients: [UUID: GenericAPIClient] = [:]
 
     func portainerClient(id: UUID) -> PortainerAPIClient {
@@ -185,6 +192,69 @@ private final class ServiceClientManager {
         return client
     }
     
+    func jellyfinClient(id: UUID) -> JellyfinAPIClient {
+        if let client = jellyfinClients[id] {
+            return client
+        }
+        let client = JellyfinAPIClient(instanceId: id)
+        jellyfinClients[id] = client
+        return client
+    }
+
+    func immichClient(id: UUID) -> ImmichAPIClient {
+        if let client = immichClients[id] {
+            return client
+        }
+        let client = ImmichAPIClient(instanceId: id)
+        immichClients[id] = client
+        return client
+    }
+
+    func grafanaClient(id: UUID) -> GrafanaAPIClient {
+        if let client = grafanaClients[id] {
+            return client
+        }
+        let client = GrafanaAPIClient(instanceId: id)
+        grafanaClients[id] = client
+        return client
+    }
+
+    func sabnzbdClient(id: UUID) -> SABnzbdAPIClient {
+        if let client = sabnzbdClients[id] {
+            return client
+        }
+        let client = SABnzbdAPIClient(instanceId: id)
+        sabnzbdClients[id] = client
+        return client
+    }
+
+    func proxmoxClient(id: UUID) -> ProxmoxAPIClient {
+        if let client = proxmoxClients[id] {
+            return client
+        }
+        let client = ProxmoxAPIClient(instanceId: id)
+        proxmoxClients[id] = client
+        return client
+    }
+
+    func pbsClient(id: UUID) -> PBSAPIClient {
+        if let client = pbsClients[id] {
+            return client
+        }
+        let client = PBSAPIClient(instanceId: id)
+        pbsClients[id] = client
+        return client
+    }
+
+    func tdarrClient(id: UUID) -> TdarrAPIClient {
+        if let client = tdarrClients[id] {
+            return client
+        }
+        let client = TdarrAPIClient(instanceId: id)
+        tdarrClients[id] = client
+        return client
+    }
+
     func genericClient(id: UUID, type: ServiceType) -> GenericAPIClient {
         if let client = genericClients[id] {
             return client
@@ -232,6 +302,20 @@ private final class ServiceClientManager {
             sonarrClients.removeValue(forKey: id)
         case .lidarr:
             lidarrClients.removeValue(forKey: id)
+        case .jellyfin:
+            jellyfinClients.removeValue(forKey: id)
+        case .immich:
+            immichClients.removeValue(forKey: id)
+        case .grafana:
+            grafanaClients.removeValue(forKey: id)
+        case .sabnzbd:
+            sabnzbdClients.removeValue(forKey: id)
+        case .proxmox:
+            proxmoxClients.removeValue(forKey: id)
+        case .proxmoxBackupServer:
+            pbsClients.removeValue(forKey: id)
+        case .tdarr:
+            tdarrClients.removeValue(forKey: id)
         case .jellyseerr, .prowlarr, .bazarr, .gluetun, .flaresolverr:
             genericClients.removeValue(forKey: id)
         }
@@ -520,6 +604,41 @@ final class ServicesStore {
         return clientManager.lidarrClient(id: instance.id)
     }
 
+    func jellyfinClient(instanceId: UUID) async -> JellyfinAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .jellyfin else { return nil }
+        return clientManager.jellyfinClient(id: instance.id)
+    }
+
+    func immichClient(instanceId: UUID) async -> ImmichAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .immich else { return nil }
+        return clientManager.immichClient(id: instance.id)
+    }
+
+    func grafanaClient(instanceId: UUID) async -> GrafanaAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .grafana else { return nil }
+        return clientManager.grafanaClient(id: instance.id)
+    }
+
+    func sabnzbdClient(instanceId: UUID) async -> SABnzbdAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .sabnzbd else { return nil }
+        return clientManager.sabnzbdClient(id: instance.id)
+    }
+
+    func proxmoxClient(instanceId: UUID) async -> ProxmoxAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .proxmox else { return nil }
+        return clientManager.proxmoxClient(id: instance.id)
+    }
+
+    func pbsClient(instanceId: UUID) async -> PBSAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .proxmoxBackupServer else { return nil }
+        return clientManager.pbsClient(id: instance.id)
+    }
+
+    func tdarrClient(instanceId: UUID) async -> TdarrAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .tdarr else { return nil }
+        return clientManager.tdarrClient(id: instance.id)
+    }
+
     func genericMediaClient(instanceId: UUID) async -> GenericAPIClient? {
         guard let instance = instancesById[instanceId],
               [.jellyseerr, .prowlarr, .bazarr, .gluetun, .flaresolverr].contains(instance.type) else {
@@ -573,6 +692,20 @@ final class ServicesStore {
             ok = await clientManager.sonarrClient(id: instanceId).ping()
         case .lidarr:
             ok = await clientManager.lidarrClient(id: instanceId).ping()
+        case .jellyfin:
+            ok = await clientManager.jellyfinClient(id: instanceId).ping()
+        case .immich:
+            ok = await clientManager.immichClient(id: instanceId).ping()
+        case .grafana:
+            ok = await clientManager.grafanaClient(id: instanceId).ping()
+        case .sabnzbd:
+            ok = await clientManager.sabnzbdClient(id: instanceId).ping()
+        case .proxmox:
+            ok = await clientManager.proxmoxClient(id: instanceId).ping()
+        case .proxmoxBackupServer:
+            ok = await clientManager.pbsClient(id: instanceId).ping()
+        case .tdarr:
+            ok = await clientManager.tdarrClient(id: instanceId).ping()
         case .jellyseerr, .prowlarr, .bazarr, .gluetun, .flaresolverr:
             ok = await clientManager.genericClient(id: instanceId, type: instance.type).ping()
         }
@@ -898,6 +1031,27 @@ final class ServicesStore {
         case .lidarr:
             let client = clientManager.lidarrClient(id: instance.id)
             await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl)
+        case .jellyfin:
+            let client = clientManager.jellyfinClient(id: instance.id)
+            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl)
+        case .immich:
+            let client = clientManager.immichClient(id: instance.id)
+            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl)
+        case .grafana:
+            let client = clientManager.grafanaClient(id: instance.id)
+            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl)
+        case .sabnzbd:
+            let client = clientManager.sabnzbdClient(id: instance.id)
+            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl)
+        case .proxmox:
+            let client = clientManager.proxmoxClient(id: instance.id)
+            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl)
+        case .proxmoxBackupServer:
+            let client = clientManager.pbsClient(id: instance.id)
+            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl)
+        case .tdarr:
+            let client = clientManager.tdarrClient(id: instance.id)
+            await client.configure(url: instance.url, fallbackUrl: instance.fallbackUrl, apiKey: instance.apiKey)
         case .jellyseerr, .prowlarr, .bazarr, .gluetun, .flaresolverr:
             let client = clientManager.genericClient(id: instance.id, type: instance.type)
             await client.configure(url: instance.url, fallbackUrl: instance.fallbackUrl, apiKey: instance.apiKey)

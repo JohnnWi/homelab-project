@@ -13,14 +13,21 @@ import com.homelab.app.data.repository.HealthchecksRepository
 import com.homelab.app.data.repository.JellystatRepository
 import com.homelab.app.data.repository.MediaArrRepository
 import com.homelab.app.data.repository.AdGuardHomeRepository
+import com.homelab.app.data.repository.GrafanaRepository
+import com.homelab.app.data.repository.ImmichRepository
+import com.homelab.app.data.repository.JellyfinRepository
 import com.homelab.app.data.repository.NginxProxyManagerRepository
+import com.homelab.app.data.repository.PBSRepository
 import com.homelab.app.data.repository.PatchmonRepository
 import com.homelab.app.data.repository.PangolinRepository
 import com.homelab.app.data.repository.PiholeRepository
 import com.homelab.app.data.repository.PlexRepository
 import com.homelab.app.data.repository.PortainerRepository
+import com.homelab.app.data.repository.ProxmoxRepository
+import com.homelab.app.data.repository.SABnzbdRepository
 import com.homelab.app.data.repository.ServiceInstancesRepository
 import com.homelab.app.data.repository.ServicesRepository
+import com.homelab.app.data.repository.TdarrRepository
 import com.homelab.app.data.repository.TechnitiumRepository
 import com.homelab.app.domain.model.PiHoleAuthMode
 import com.homelab.app.domain.model.ServiceInstance
@@ -54,7 +61,14 @@ class ServiceLoginViewModel @Inject constructor(
     private val patchmonRepository: PatchmonRepository,
     private val pangolinRepository: PangolinRepository,
     private val plexRepository: PlexRepository,
-    private val mediaArrRepository: MediaArrRepository
+    private val mediaArrRepository: MediaArrRepository,
+    private val jellyfinRepository: JellyfinRepository,
+    private val immichRepository: ImmichRepository,
+    private val grafanaRepository: GrafanaRepository,
+    private val sabnzbdRepository: SABnzbdRepository,
+    private val proxmoxRepository: ProxmoxRepository,
+    private val pbsRepository: PBSRepository,
+    private val tdarrRepository: TdarrRepository
 ) : ViewModel() {
 
     private val existingInstanceId: String? = savedStateHandle["instanceId"]
@@ -420,6 +434,89 @@ class ServiceLoginViewModel @Inject constructor(
                                 apiKey = trimmedApiKey,
                                 fallbackUrl = cleanFallbackUrl
                             )
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey.ifBlank { null },
+                                fallbackUrl = cleanFallbackUrl
+                            )
+                        }
+                        ServiceType.JELLYFIN -> {
+                            require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
+                            jellyfinRepository.authenticate(cleanUrl, trimmedApiKey)
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl
+                            )
+                        }
+                        ServiceType.IMMICH -> {
+                            require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
+                            immichRepository.authenticate(cleanUrl, trimmedApiKey)
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl
+                            )
+                        }
+                        ServiceType.GRAFANA -> {
+                            require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
+                            grafanaRepository.authenticate(cleanUrl, trimmedApiKey)
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl
+                            )
+                        }
+                        ServiceType.SABNZBD -> {
+                            require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
+                            sabnzbdRepository.authenticate(cleanUrl, trimmedApiKey)
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl
+                            )
+                        }
+                        ServiceType.PROXMOX -> {
+                            require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
+                            proxmoxRepository.authenticate(cleanUrl, trimmedApiKey)
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl
+                            )
+                        }
+                        ServiceType.PROXMOX_BACKUP_SERVER -> {
+                            require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
+                            pbsRepository.authenticate(cleanUrl, trimmedApiKey)
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl
+                            )
+                        }
+                        ServiceType.TDARR -> {
+                            tdarrRepository.authenticate(cleanUrl, trimmedApiKey)
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,

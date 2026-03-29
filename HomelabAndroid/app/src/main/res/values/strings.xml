@@ -1131,6 +1131,13 @@
     <string name="login_hint_bazarr">Use your Bazarr API key from Settings → General.</string>
     <string name="login_hint_gluetun">Add URL only, API key is optional if your endpoint is protected.</string>
     <string name="login_hint_flaresolverr">Add URL only, API key is optional if your endpoint is protected.</string>
+    <string name="login_hint_jellyfin">Use the Jellyfin API key from Dashboard > API Keys.</string>
+    <string name="login_hint_immich">Use the Immich API key from Administration > API Keys.</string>
+    <string name="login_hint_grafana">Use a Grafana Service Account token or API key with Viewer role or higher.</string>
+    <string name="login_hint_sabnzbd">Use the SABnzbd API key from Config > General > Security.</string>
+    <string name="login_hint_proxmox">Use a PVE API token in the format user@realm!tokenid=secret.</string>
+    <string name="login_hint_pbs">Use a PBS API token in the format user@realm!tokenid=secret.</string>
+    <string name="login_hint_tdarr">Add URL only. API key is optional unless Tdarr authentication is enabled.</string>
     <string name="login_api_key_optional_label">API Key (optional)</string>
 
     <string name="settings_group_home_title">Home Services</string>
