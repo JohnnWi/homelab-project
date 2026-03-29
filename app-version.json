@@ -1,6 +1,6 @@
 {
-  "latest": "1.0.1",
-  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.0.1/Homelab.ipa",
-  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.0.1/Homelab.apk",
-  "changelog": "What's New in v1.0.1\n\nPatch release focused on bug fixes and stability improvements following the v1.0.0 launch.\n\nPlatforms\n- 📱 **iOS** (Swift / SwiftUI) — requires iOS 18.0+\n- 🤖 **Android** (Kotlin / Jetpack Compose) — requires Android 8.0+"
+  "latest": "1.0.2",
+  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.0.2/Homelab.ipa",
+  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.0.2/Homelab.apk",
+  "changelog": "What's New in v1.0.1\n\n- Various bug fixes and stability improvements\n\nPlatforms\n- iOS (Swift / SwiftUI) — requires iOS 18.0+\n- Android (Kotlin / Jetpack Compose) — requires Android 8.0+"
 }
