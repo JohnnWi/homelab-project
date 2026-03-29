@@ -131,7 +131,7 @@ Built with **Kotlin** and **Jetpack Compose**, following the **Material Expressi
   <tr>
     <td align="center"><img src="media-docs/foto-android/Dashboard.jpg" width="180" /></td>
     <td align="center"><img src="media-docs/foto-android/Servarr.jpg" width="180" /></td>
-    <td align="center"><img src="media-docs/foto-android/photo_18_2026-03-16_20-24-21.jpg" width="180" /></td>
+    <td align="center"><img src="media-docs/foto-android/photo_19_2026-03-16_20-24-21.jpg" width="180" /></td>
   </tr>
 </table>
 

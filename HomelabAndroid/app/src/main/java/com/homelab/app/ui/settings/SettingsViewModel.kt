@@ -55,7 +55,7 @@ class SettingsViewModel @Inject constructor(
 
     private val updateManifestUrl = "https://raw.githubusercontent.com/JohnnWi/homelab-project/main/app-version.json"
     private val defaultUpdateUrl = "https://github.com/JohnnWi/homelab-project/releases"
-    private val updateCheckIntervalMs = 6 * 60 * 60 * 1000L
+    private val updateCheckIntervalMs = 15 * 60 * 1000L
 
     val instancesByType: StateFlow<Map<ServiceType, List<ServiceInstance>>> = servicesRepository.instancesByType
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
