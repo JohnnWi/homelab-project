@@ -17,8 +17,10 @@ A premium, fully native dual-platform solution for monitoring and managing your 
 
 ## Highlights
 
-- **12 integrated services** — <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/portainer.png" width="18" style="vertical-align:middle"> Portainer, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/pi-hole.png" width="18" style="vertical-align:middle"> Pi-hole, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/beszel.png" width="18" style="vertical-align:middle"> Beszel, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/gitea.png" width="18" style="vertical-align:middle"> Gitea, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/nginx-proxy-manager.png" width="18" style="vertical-align:middle"> Nginx Proxy Manager (+ NPMplus), <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/adguard-home.png" width="18" style="vertical-align:middle"> AdGuard DNS, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/healthchecks.png" width="18" style="vertical-align:middle"> Healthcheck, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/patchman.png" width="18" style="vertical-align:middle"> Patchmon, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/jellystat.png" width="18" style="vertical-align:middle"> Jellystat, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/plex.png" width="18" style="vertical-align:middle"> Plex, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/tailscale.png" width="18" style="vertical-align:middle"> Tailscale, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/linkding.png" width="18" style="vertical-align:middle"> Bookmarks.
+- **21 integrated services** — <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/portainer.png" width="18" style="vertical-align:middle"> Portainer, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/pi-hole.png" width="18" style="vertical-align:middle"> Pi-hole, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/beszel.png" width="18" style="vertical-align:middle"> Beszel, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/gitea.png" width="18" style="vertical-align:middle"> Gitea, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/nginx-proxy-manager.png" width="18" style="vertical-align:middle"> Nginx Proxy Manager (+ NPMplus), <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/adguard-home.png" width="18" style="vertical-align:middle"> AdGuard DNS, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/healthchecks.png" width="18" style="vertical-align:middle"> Healthcheck, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/patchman.png" width="18" style="vertical-align:middle"> Patchmon, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/jellystat.png" width="18" style="vertical-align:middle"> Jellystat, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/plex.png" width="18" style="vertical-align:middle"> Plex, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/tailscale.png" width="18" style="vertical-align:middle"> Tailscale, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/linkding.png" width="18" style="vertical-align:middle"> Bookmarks, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/sonarr.png" width="18" style="vertical-align:middle"> Sonarr, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/radarr.png" width="18" style="vertical-align:middle"> Radarr, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/lidarr.png" width="18" style="vertical-align:middle"> Lidarr, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/prowlarr.png" width="18" style="vertical-align:middle"> Prowlarr, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/qbittorrent.png" width="18" style="vertical-align:middle"> qBittorrent, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/technitium.png" width="18" style="vertical-align:middle"> Technitium DNS, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/pangolin.png" width="18" style="vertical-align:middle"> Pangolin, <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/dockhand.png" width="18" style="vertical-align:middle"> Dockhand, Linux Update.
+- **Servarr stack** — Complete media automation dashboard: Sonarr + Radarr + Lidarr + Prowlarr + qBittorrent + Gluetun, unified in a single view.
 - **Multi-instance support** — Add multiple instances of the same service and switch between them seamlessly.
+- **Alternate app icons** — 6 variants to choose from: Default, Dark, Clear Light, Clear Dark, Tinted Light, Tinted Dark.
 - **Cyberpunk mode** — Toggle a unique cyberpunk visual theme for your service cards.
 - **Multilingual** — English, Italian, French, Spanish, German — auto-detected from your system language.
 - **2 native apps** — Swift 6 + SwiftUI (iOS) and Kotlin + Jetpack Compose (Android).
@@ -211,6 +213,8 @@ Built with **Kotlin** and **Jetpack Compose**, following the **Material Expressi
 ## 👨‍🎓 Project & Author
 This project is a solo endeavor developed by a single **University Student**. It was born from the need for a beautiful, unified way to manage home servers without sacrificing the performance and "feel" of native development.
 
+> **Note (v1.0.0):** I'm taking a short break from active development to focus on my studies. The project is stable and fully functional — development will resume when time allows. Thank you for all the support!
+
 ### ☕ Support the Project
 If you find this dashboard useful, consider supporting my studies with a donation. Every bit helps!
 
@@ -259,8 +263,22 @@ The app will update automatically when new versions are released.
 
 <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/beszel.png" width="20" style="vertical-align:middle"> **Beszel** — A lightweight, efficient system monitor. Track global CPU, Memory, and Disk usage across all your connected nodes with beautiful percentage-based visualizations.
 
+### 🎬 Servarr Stack
+
+The full media automation suite, unified in a single dashboard view. Monitor your entire *arr stack at a glance — downloads, health, upcoming releases, and torrent activity — alongside Gluetun VPN tunnel status.
+
+<img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/sonarr.png" width="20" style="vertical-align:middle"> **Sonarr** — Track your TV show library. Monitor active downloads, upcoming episodes, series health, and queue status in real time.
+
+<img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/radarr.png" width="20" style="vertical-align:middle"> **Radarr** — Keep tabs on your movie collection. View download queue, upcoming releases, health issues, and missing movies at a glance.
+
+<img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/lidarr.png" width="20" style="vertical-align:middle"> **Lidarr** — Monitor your music library. Track artist downloads, health status, and upcoming album releases.
+
+<img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/prowlarr.png" width="20" style="vertical-align:middle"> **Prowlarr** — Central indexer manager for the entire Servarr stack. View configured indexers, connected apps, and any reported issues.
+
+<img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/qbittorrent.png" width="20" style="vertical-align:middle"> **qBittorrent** — Monitor your torrent client. View active downloads, upload/download speeds, DHT node count, and firewall/NAT status (including Gluetun tunnel detection).
+
 <details>
-<summary><b>📋 View all 12 services...</b></summary>
+<summary><b>📋 View all 21 services...</b></summary>
 <br>
 
 <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/gitea.png" width="20" style="vertical-align:middle"> **Gitea / Forgejo** — Manage your code natively. Browse repositories, view contribution heatmaps, read code files with full syntax highlighting, and keep track of your latest commits. [Forgejo](https://forgejo.org/) (a community fork of Gitea) is fully supported — just use the Gitea integration with your Forgejo instance URL.
@@ -278,6 +296,14 @@ The app will update automatically when new versions are released.
 <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/jellystat.png" width="20" style="vertical-align:middle"> **Jellystat** — Monitor your Jellyfin media server usage. Track active streams, playback statistics, and library activity from a clean native interface.
 
 <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/plex.png" width="20" style="vertical-align:middle"> **Plex** — Monitor your Plex Media Server. View libraries, recently added media, active sessions, and server status from a native mobile interface.
+
+<img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/technitium.png" width="20" style="vertical-align:middle"> **Technitium DNS** — Monitor your Technitium DNS Server. View query statistics, top blocked/allowed domains, and server health from a clean native interface.
+
+<img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/pangolin.png" width="20" style="vertical-align:middle"> **Pangolin / Newt** — Monitor your Pangolin VPN tunnel. View tunnel status, connected peers, and network health directly from your phone.
+
+<img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/dockhand.png" width="20" style="vertical-align:middle"> **Dockhand** — Manage your containers with Dockhand. View running containers, resource usage, and perform quick actions from a native interface.
+
+🐧 **Linux Update** — Track pending system updates across your Linux hosts. Monitor available packages and keep your infrastructure patched from one unified view.
 
 <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/linkding.png" width="20" style="vertical-align:middle"> **Bookmarks** — Keep all your most-used homelab links in one place with a native bookmarks feature that supports organization, quick access, and a cleaner daily workflow.
 
