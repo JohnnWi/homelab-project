@@ -139,8 +139,11 @@ final class SettingsStore {
     // MARK: - Init
 
     init() {
-        let savedLang = UserDefaults.standard.string(forKey: Keys.language) ?? "en"
-        self.language = Language(rawValue: savedLang) ?? .en
+        let systemLang = Locale.preferredLanguages.first.flatMap { code -> Language? in
+            Language(rawValue: String(code.prefix(2)).lowercased())
+        } ?? .en
+        let savedLang = UserDefaults.standard.string(forKey: Keys.language) ?? systemLang.rawValue
+        self.language = Language(rawValue: savedLang) ?? systemLang
 
         let savedTheme = UserDefaults.standard.string(forKey: Keys.theme)
         self.theme = savedTheme.flatMap(ThemeMode.init) ?? .system

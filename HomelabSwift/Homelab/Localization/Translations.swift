@@ -1048,8 +1048,11 @@ extension Translations {
     }
 
     static func current() -> Translations {
-        let savedLang = UserDefaults.standard.string(forKey: "homelab_language") ?? "en"
-        let language = Language(rawValue: savedLang) ?? .en
+        let systemLang = Locale.preferredLanguages.first.flatMap { code -> Language? in
+            Language(rawValue: String(code.prefix(2)).lowercased())
+        } ?? .en
+        let savedLang = UserDefaults.standard.string(forKey: "homelab_language") ?? systemLang.rawValue
+        let language = Language(rawValue: savedLang) ?? systemLang
         return forLanguage(language)
     }
 }

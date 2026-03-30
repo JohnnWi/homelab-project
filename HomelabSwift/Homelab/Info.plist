@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>it</string>
+	<string>en</string>
 	<key>CFBundleDisplayName</key>
 	<string>Homelab</string>
 	<key>CFBundleExecutable</key>
@@ -53,9 +53,9 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.3</string>
+	<string>1.0.4</string>
 	<key>CFBundleVersion</key>
-	<string>19</string>
+	<string>20</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>tailscale</string>
