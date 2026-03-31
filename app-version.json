@@ -1,6 +1,6 @@
 {
-  "latest": "1.0.4",
-  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.0.4/Homelab.ipa",
-  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.0.4/Homelab.apk",
-  "changelog": "What's New in v1.0.4\n\n- Fix: iOS system context menu (Copy/Paste/Select) now appears in the correct device language instead of Italian\n- Fix: App language now auto-detects device locale on first install\n- Fix: HTTP error message now clearly explains LiveContainer limitation\n- Improved URL field placeholder to show both http:// and https:// examples\n\nPlatforms\n- 📱 **iOS** (Swift / SwiftUI) — requires iOS 18.0+\n- 🤖 **Android** (Kotlin / Jetpack Compose) — requires Android 8.0+"
+  "latest": "1.0.5",
+  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.0.5/Homelab.ipa",
+  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.0.5/Homelab.apk",
+  "changelog": "What's New in v1.0.5\n\nFix Pangolin org-scoped API key support\n\nPlatforms\n- 📱 **iOS** (Swift / SwiftUI) — requires iOS 18.0+\n- 🤖 **Android** (Kotlin / Jetpack Compose) — requires Android 8.0+"
 }
