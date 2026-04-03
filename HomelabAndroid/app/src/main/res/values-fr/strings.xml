@@ -418,6 +418,8 @@
     <string name="debug_logs_copy">Copier les logs</string>
     <string name="debug_logs_clip_label">Logs de débogage Homelab</string>
     <string name="debug_logs_copied">Logs copiés dans le presse-papiers</string>
+    <string name="debug_logs_search">Rechercher dans les logs…</string>
+    <string name="debug_logs_no_results">Aucun log ne correspond aux filtres</string>
     <string name="login_save_instance">Enregistrer l’instance</string>
     <string name="login_edit_title">Modifier %1$s</string>
     <string name="login_edit_subtitle">Mettre à jour cette instance configurée</string>

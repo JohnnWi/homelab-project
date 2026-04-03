@@ -487,6 +487,8 @@
     <string name="debug_logs_copy">Copia log</string>
     <string name="debug_logs_clip_label">Log di debug Homelab</string>
     <string name="debug_logs_copied">Log copiati negli appunti</string>
+    <string name="debug_logs_search">Cerca nei log…</string>
+    <string name="debug_logs_no_results">Nessun log corrisponde ai filtri</string>
     <string name="login_save_instance">Salva istanza</string>
     <string name="login_edit_title">Modifica %1$s</string>
     <string name="login_edit_subtitle">Aggiorna questa istanza configurata</string>

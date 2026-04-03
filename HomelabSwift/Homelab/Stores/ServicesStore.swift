@@ -704,7 +704,43 @@ final class ServicesStore {
                 await configureClient(for: refreshed, refreshPiHoleAuth: false)
                 return
             } catch {
-                // Fall through to deleting only the affected instance.
+                // Fall through to marking unreachable.
+            }
+        }
+
+        // Beszel: re-authenticate using stored email/password (PocketBase JWT refresh)
+        if current.type == .beszel,
+           let email = current.username, !email.isEmpty,
+           let password = current.password, !password.isEmpty {
+            do {
+                let client = clientManager.beszelClient(id: instanceId)
+                let newToken = try await client.authenticate(url: current.url, email: email, password: password)
+                var refreshed = current
+                refreshed.token = newToken
+                instancesById[instanceId] = refreshed
+                persistState()
+                await configureClient(for: refreshed, refreshPiHoleAuth: false)
+                return
+            } catch {
+                // Fall through to marking unreachable.
+            }
+        }
+
+        // Nginx Proxy Manager: re-authenticate using stored email/password
+        if current.type == .nginxProxyManager,
+           let email = current.username, !email.isEmpty,
+           let password = current.password, !password.isEmpty {
+            do {
+                let client = clientManager.npmClient(id: instanceId)
+                let newToken = try await client.authenticate(url: current.url, email: email, password: password, fallbackUrl: current.fallbackUrl)
+                var refreshed = current
+                refreshed.token = newToken
+                instancesById[instanceId] = refreshed
+                persistState()
+                await configureClient(for: refreshed, refreshPiHoleAuth: false)
+                return
+            } catch {
+                // Fall through to marking unreachable.
             }
         }
 
@@ -715,6 +751,7 @@ final class ServicesStore {
             persistState()
         }
     }
+
 
     private func configureClient(for instance: ServiceInstance, refreshPiHoleAuth: Bool) async {
         switch instance.type {

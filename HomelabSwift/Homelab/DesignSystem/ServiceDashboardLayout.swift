@@ -9,6 +9,7 @@ struct ServiceDashboardLayout<T, Content: View>: View {
     let instanceId: UUID
     let state: LoadableState<T>
     let onRefresh: () async -> Void
+    let showTailscaleQuickAccess: Bool
     @ViewBuilder let content: () -> Content
 
     @Environment(ServicesStore.self) private var servicesStore
@@ -17,6 +18,10 @@ struct ServiceDashboardLayout<T, Content: View>: View {
 
     var isUnreachable: Bool {
         servicesStore.reachability(for: instanceId) == false
+    }
+
+    private var suppressTailscaleQuickAccess: Bool {
+        !servicesStore.instances(for: .pangolin).isEmpty && servicesStore.isTailscaleConnected
     }
 
     private var stateChangeToken: String {
@@ -32,6 +37,22 @@ struct ServiceDashboardLayout<T, Content: View>: View {
         case .offline:
             return "offline"
         }
+    }
+
+    init(
+        serviceType: ServiceType,
+        instanceId: UUID,
+        state: LoadableState<T>,
+        showTailscaleQuickAccess: Bool = false,
+        onRefresh: @escaping () async -> Void,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.serviceType = serviceType
+        self.instanceId = instanceId
+        self.state = state
+        self.onRefresh = onRefresh
+        self.showTailscaleQuickAccess = showTailscaleQuickAccess
+        self.content = content
     }
 
     var body: some View {
@@ -60,7 +81,9 @@ struct ServiceDashboardLayout<T, Content: View>: View {
                     OfflineBanner(serviceName: serviceType.displayName) {
                         Task { await servicesStore.checkReachability(for: instanceId) }
                     }
-                    tailscaleQuickAccess
+                    if showTailscaleQuickAccess && !suppressTailscaleQuickAccess {
+                        tailscaleQuickAccess
+                    }
                 }
             }
         }

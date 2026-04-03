@@ -44,11 +44,8 @@ final class SettingsStore {
         }
     }
 
-    var homeCyberpunkCardsEnabled: Bool {
-        didSet {
-            UserDefaults.standard.set(homeCyberpunkCardsEnabled, forKey: Keys.homeCyberpunkCardsEnabled)
-        }
-    }
+
+
 
     private(set) var appIcon: AppIconOption {
         didSet {
@@ -120,7 +117,7 @@ final class SettingsStore {
         static let serviceOrder = "homelab_service_order"
         static let biometricEnabled = "homelab_biometric_enabled"
         static let hasCompletedOnboarding = "homelab_has_completed_onboarding"
-        static let homeCyberpunkCardsEnabled = "homelab_home_cyberpunk_cards_enabled"
+
         static let appIcon = "homelab_app_icon"
         static let dismissedUpdateVersion = "homelab_dismissed_update_version"
         static let lastUpdateCheckAt = "homelab_last_update_check_at"
@@ -156,7 +153,7 @@ final class SettingsStore {
 
         self.biometricEnabled = UserDefaults.standard.bool(forKey: Keys.biometricEnabled)
         self.hasCompletedOnboarding = UserDefaults.standard.bool(forKey: Keys.hasCompletedOnboarding)
-        self.homeCyberpunkCardsEnabled = UserDefaults.standard.object(forKey: Keys.homeCyberpunkCardsEnabled) as? Bool ?? false
+
         let savedAppIcon = UserDefaults.standard.string(forKey: Keys.appIcon)
         self.appIcon = AppIconOption(rawValue: savedAppIcon ?? "") ?? .default
         self.backupRememberSelectionEnabled = UserDefaults.standard.object(forKey: Keys.backupRememberSelectionEnabled) as? Bool ?? true

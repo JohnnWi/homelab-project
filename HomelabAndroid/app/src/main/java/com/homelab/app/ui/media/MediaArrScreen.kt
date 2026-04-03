@@ -143,7 +143,7 @@ fun MediaArrScreen(
     val tutorialDismissed by viewModel.tutorialDismissed.collectAsStateWithLifecycle()
     val tailscaleConnected by viewModel.isTailscaleConnected.collectAsStateWithLifecycle()
     val cardPreviewState by viewModel.cardPreviewState.collectAsStateWithLifecycle()
-    val homeCyberpunkCardsEnabled by viewModel.homeCyberpunkCardsEnabled.collectAsStateWithLifecycle()
+
     var showReorderDialog by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -409,7 +409,7 @@ fun MediaArrScreen(
                             type = entry.type,
                             label = mediaServiceDisplayName(entry.type),
                             isConnected = false,
-                            useCyberpunkCards = homeCyberpunkCardsEnabled,
+
                             instanceId = null,
                             reachable = null,
                             pinging = false,
@@ -424,7 +424,7 @@ fun MediaArrScreen(
                             type = entry.type,
                             label = entry.instance.label,
                             isConnected = true,
-                            useCyberpunkCards = homeCyberpunkCardsEnabled,
+
                             instanceId = entry.instance.id,
                             reachable = reachability[entry.instance.id],
                             pinging = pinging[entry.instance.id] == true,
@@ -544,7 +544,7 @@ private fun MediaServiceGridCard(
     type: ServiceType,
     label: String,
     isConnected: Boolean,
-    useCyberpunkCards: Boolean,
+
     instanceId: String?,
     reachable: Boolean?,
     pinging: Boolean,
@@ -553,35 +553,18 @@ private fun MediaServiceGridCard(
     onRefresh: (() -> Unit)?,
     onClick: () -> Unit
 ) {
-    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.45f
-    val cardColor = if (useCyberpunkCards) {
-        if (isDarkTheme) Color(0xFF10161F) else Color(0xFFFBFCFF)
-    } else {
-        if (isConnected) type.primaryColor.copy(alpha = 0.08f) else MaterialTheme.colorScheme.surfaceContainerLow
-    }
-    val cardBorder = if (useCyberpunkCards) {
-        BorderStroke(
-            1.25.dp,
-            type.primaryColor.copy(alpha = if (isDarkTheme) 0.82f else 0.58f)
-        )
-    } else {
-        BorderStroke(
-            1.dp,
-            type.primaryColor.copy(alpha = if (isConnected) 0.2f else 0.08f)
-        )
-    }
+    val cardColor = if (isConnected) type.primaryColor.copy(alpha = 0.08f) else MaterialTheme.colorScheme.surfaceContainerLow
+    val cardBorder = BorderStroke(
+        1.dp,
+        type.primaryColor.copy(alpha = if (isConnected) 0.2f else 0.08f)
+    )
     val brandColor = type.primaryColor
-    val cardBrush = remember(brandColor, useCyberpunkCards, isDarkTheme, isConnected) {
-        if (useCyberpunkCards || isConnected) {
-            val startAlpha = when {
-                useCyberpunkCards && isDarkTheme -> 0.13f
-                useCyberpunkCards -> 0.075f
-                isDarkTheme -> 0.095f
-                else -> 0.06f
-            }
+    val cardBrush = remember(brandColor, isConnected) {
+        if (isConnected) {
+            val isDarkTheme2 = false // simplified
             Brush.linearGradient(
                 colors = listOf(
-                    brandColor.copy(alpha = startAlpha),
+                    brandColor.copy(alpha = 0.06f),
                     Color.Transparent
                 ),
                 start = Offset(0f, 0f),
@@ -767,9 +750,9 @@ private fun MediaCardStatusChip(
     }
     val statusColor = when {
         !isConnected -> MaterialTheme.colorScheme.onSurfaceVariant
-        reachable == true -> accentColor
+        reachable == true -> Color(0xFF4CAF50)
         pinging -> MaterialTheme.colorScheme.tertiary
-        reachable == false -> accentColor
+        reachable == false -> Color(0xFFEF5350)
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 

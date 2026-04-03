@@ -68,12 +68,16 @@ struct HomeView: View {
         }.joined(separator: ",")
     }
 
+    private var suppressTailscaleSection: Bool {
+        !servicesStore.instances(for: .pangolin).isEmpty && servicesStore.isTailscaleConnected
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     headerSection
-                    if hasUnreachableService || servicesStore.isTailscaleConnected {
+                    if (hasUnreachableService || servicesStore.isTailscaleConnected) && !suppressTailscaleSection {
                         tailscaleSection
                     }
                     serviceGrid
@@ -259,7 +263,6 @@ struct HomeView: View {
                                 isPinging: false,
                                 summary: nil,
                                 isSummaryLoading: false,
-                                useCyberpunkCardStyle: settingsStore.homeCyberpunkCardsEnabled,
                                 t: localizer.t
                             )
                         }
@@ -276,7 +279,6 @@ struct HomeView: View {
                                 isPinging: servicesStore.isPinging(instanceId: instance.id),
                                 summary: summaryData[instance.id],
                                 isSummaryLoading: summaryData[instance.id] == nil && summaryLoading,
-                                useCyberpunkCardStyle: settingsStore.homeCyberpunkCardsEnabled,
                                 t: localizer.t
                             ) {
                                 Task { await servicesStore.checkReachability(for: instance.id) }
@@ -562,7 +564,6 @@ private struct ServiceCardContent: View {
     let isPinging: Bool
     let summary: ServiceSummaryInfo?
     let isSummaryLoading: Bool
-    let useCyberpunkCardStyle: Bool
     let t: Translations
     var onRefresh: (() -> Void)? = nil
     
@@ -678,40 +679,16 @@ private struct ServiceCardContent: View {
             HStack(spacing: 6) {
                 statusBadge
 
-                if isPreferred {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(type.colors.primary)
-                        .padding(5)
-                        .background(type.colors.primary.opacity(0.12), in: Circle())
-                        .accessibilityLabel(t.badgeDefault)
-                }
+
+
             }
         }
         .frame(maxWidth: .infinity, minHeight: 140, alignment: .leading)
         .padding(14)
         .contentShape(Rectangle())
 
-        Group {
-            if useCyberpunkCardStyle {
-                cardCore
-                    .background(cardGradient, in: cardShape)
-                    .glassCard(tint: cardGlassTint)
-                    .overlay {
-                        cardShape
-                            .stroke(cardBorderColor, lineWidth: 2.1)
-                            .shadow(color: type.colors.primary.opacity(colorScheme == .dark ? 0.4 : 0.26), radius: 10)
-                            .overlay {
-                                cardShape
-                                    .inset(by: 1.5)
-                                    .stroke(type.colors.primary.opacity(colorScheme == .dark ? 0.52 : 0.36), lineWidth: 1.1)
-                            }
-                    }
-            } else {
-                cardCore
-                    .glassCard(tint: defaultCardTint)
-            }
-        }
+        cardCore
+            .glassCard(tint: defaultCardTint)
         .task {
             if isConnected, reachable == nil, !isPinging {
                 onRefresh?()
@@ -736,24 +713,24 @@ private struct ServiceCardContent: View {
             .background(.gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         } else if reachable == false {
             HStack(spacing: 5) {
-                Circle().fill(type.colors.primary).frame(width: 6, height: 6)
+                Circle().fill(Color.red).frame(width: 6, height: 6)
                 Text(t.statusUnreachable)
                     .font(.caption2.bold())
-                    .foregroundStyle(type.colors.primary)
+                    .foregroundStyle(Color.red)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(type.colors.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(Color.red.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         } else if reachable == true {
             HStack(spacing: 5) {
-                Circle().fill(type.colors.primary).frame(width: 6, height: 6)
+                Circle().fill(Color.green).frame(width: 6, height: 6)
                 Text(t.statusOnline)
                     .font(.caption2.bold())
-                    .foregroundStyle(type.colors.primary)
+                    .foregroundStyle(Color.green)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(type.colors.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(Color.green.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         } else {
             HStack(spacing: 5) {
                 Circle().fill(AppTheme.info).frame(width: 6, height: 6)

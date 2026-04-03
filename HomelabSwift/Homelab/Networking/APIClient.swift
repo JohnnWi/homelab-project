@@ -287,7 +287,7 @@ final class BaseNetworkEngine: Sendable {
     private func logRequest(_ request: URLRequest) {
         let url = request.url?.absoluteString ?? "unknown"
         let method = request.httpMethod ?? "GET"
-        AppLogger.shared.network("--> \(method) \(url)")
+        AppLogger.shared.network("--> \(method) \(url)", source: serviceType.displayName)
     }
 
     private func logResponse(_ response: URLResponse, data: Data?) {
@@ -295,7 +295,12 @@ final class BaseNetworkEngine: Sendable {
         let url = response.url?.absoluteString ?? "unknown"
         let status = http.statusCode
         let size = data?.count ?? 0
-        AppLogger.shared.network("<-- \(status) \(url) (\(size) bytes)")
+        let msg = "<-- \(status) \(url) (\(size) bytes)"
+        if status >= 400 {
+            AppLogger.shared.warn(msg, source: serviceType.displayName)
+        } else {
+            AppLogger.shared.network(msg, source: serviceType.displayName)
+        }
     }
 
     private func interceptResponse(_ response: URLResponse, data: Data? = nil) throws {

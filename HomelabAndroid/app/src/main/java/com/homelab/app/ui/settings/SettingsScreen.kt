@@ -71,7 +71,8 @@ fun SettingsScreen(
     val hiddenServices by viewModel.hiddenServices.collectAsStateWithLifecycle()
     val serviceOrder by viewModel.serviceOrder.collectAsStateWithLifecycle()
     val isPinSet by viewModel.isPinSet.collectAsStateWithLifecycle()
-    val homeCyberpunkCardsEnabled by viewModel.homeCyberpunkCardsEnabled.collectAsStateWithLifecycle()
+
+
     val appIcon by viewModel.appIcon.collectAsStateWithLifecycle()
     val appIconApplying by viewModel.appIconApplying.collectAsStateWithLifecycle()
     val updateBannerState by viewModel.updateBannerState.collectAsStateWithLifecycle()
@@ -353,51 +354,8 @@ fun SettingsScreen(
                 }
             }
 
-            item {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainer,
-                    tonalElevation = 0.dp,
-                    shadowElevation = 0.dp,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .toggleable(
-                                value = homeCyberpunkCardsEnabled,
-                                role = Role.Switch,
-                                onValueChange = viewModel::setHomeCyberpunkCardsEnabled
-                            )
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AutoAwesome,
-                            contentDescription = stringResource(R.string.settings_home_cyberpunk_title),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.settings_home_cyberpunk_title),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = stringResource(R.string.settings_home_cyberpunk_desc),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Switch(
-                            checked = homeCyberpunkCardsEnabled,
-                            onCheckedChange = null
-                        )
-                    }
-                }
-            }
+
+
 
             item {
                 val iconRows = remember { AppIconOption.entries.chunked(3) }

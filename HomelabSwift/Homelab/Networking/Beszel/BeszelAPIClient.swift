@@ -30,10 +30,6 @@ actor BeszelAPIClient {
     }
 
     private func authHeaders() -> [String: String] {
-        ["Content-Type": "application/json", "Authorization": token]
-    }
-
-    private func bearerHeaders() -> [String: String] {
         ["Content-Type": "application/json", "Authorization": "Bearer \(token)"]
     }
 
@@ -60,8 +56,7 @@ actor BeszelAPIClient {
             return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: path, method: method, headers: h, body: body)
         } catch {
             if isAuthError(error), await refreshToken() {
-                let refreshedHeaders = headers != nil ? bearerHeaders() : authHeaders()
-                return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: path, method: method, headers: refreshedHeaders, body: body)
+                return try await engine.request(baseURL: baseURL, fallbackURL: fallbackURL, path: path, method: method, headers: authHeaders(), body: body)
             }
             throw error
         }
@@ -162,22 +157,51 @@ actor BeszelAPIClient {
         let system = systemId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? systemId
         let container = containerId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? containerId
         let path = "/api/beszel/containers/logs?system=\(system)&container=\(container)"
-        return try await engine.requestString(
-            baseURL: baseURL, fallbackURL: fallbackURL,
-            path: path,
-            headers: bearerHeaders()
-        )
+        do {
+            return try await engine.requestString(
+                baseURL: baseURL, fallbackURL: fallbackURL,
+                path: path,
+                headers: authHeaders()
+            )
+        } catch {
+            if isAuthError(error), await refreshToken() {
+                return try await engine.requestString(
+                    baseURL: baseURL, fallbackURL: fallbackURL,
+                    path: path,
+                    headers: authHeaders()
+                )
+            }
+            throw error
+        }
     }
 
     func getContainerInfo(systemId: String, containerId: String) async throws -> String {
         let system = systemId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? systemId
         let container = containerId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? containerId
         let path = "/api/beszel/containers/info?system=\(system)&container=\(container)"
-        let data = try await engine.requestData(
-            baseURL: baseURL, fallbackURL: fallbackURL,
-            path: path,
-            headers: bearerHeaders()
-        )
+        let data: Data
+        do {
+            data = try await engine.requestData(
+                baseURL: baseURL, fallbackURL: fallbackURL,
+                path: path,
+                headers: authHeaders()
+            )
+        } catch {
+            if isAuthError(error), await refreshToken() {
+                let retryData = try await engine.requestData(
+                    baseURL: baseURL, fallbackURL: fallbackURL,
+                    path: path,
+                    headers: authHeaders()
+                )
+                if let json = try? JSONSerialization.jsonObject(with: retryData),
+                   let pretty = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys]),
+                   let prettyString = String(data: pretty, encoding: .utf8) {
+                    return prettyString
+                }
+                return String(data: retryData, encoding: .utf8) ?? ""
+            }
+            throw error
+        }
 
         if let json = try? JSONSerialization.jsonObject(with: data),
            let pretty = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys]),

@@ -254,7 +254,7 @@ actor QbittorrentAPIClient {
         config.httpShouldSetCookies = false
         let session = URLSession(configuration: config, delegate: BaseNetworkEngine.insecureDelegateForPortainerAuth, delegateQueue: nil)
 
-        AppLogger.shared.network("--> POST \(fullUrl.absoluteString)")
+        AppLogger.shared.network("--> POST \(fullUrl.absoluteString)", source: "qBittorrent")
         let (data, response) = try await session.data(for: req)
 
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -337,6 +337,11 @@ actor QbittorrentAPIClient {
         let url = response.url?.absoluteString ?? "unknown"
         let status = http.statusCode
         let size = data?.count ?? 0
-        AppLogger.shared.network("<-- \(status) \(url) (\(size) bytes)")
+        let msg = "<-- \(status) \(url) (\(size) bytes)"
+        if status >= 400 {
+            AppLogger.shared.warn(msg, source: "qBittorrent")
+        } else {
+            AppLogger.shared.network(msg, source: "qBittorrent")
+        }
     }
 }

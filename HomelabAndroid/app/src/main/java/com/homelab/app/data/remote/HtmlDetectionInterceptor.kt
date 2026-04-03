@@ -27,7 +27,8 @@ class HtmlDetectionInterceptor @Inject constructor() : Interceptor {
         val isJsonContentType = contentType?.contains("application/json") == true
 
         if (isHtmlContentType || (looksLikeHtml && !isJsonContentType)) {
-            Logger.w("Network", "HTML response detected for ${request.method} ${request.url}")
+            val tag = extractServiceTag(request.url.host)
+            Logger.w(tag, "HTML response detected for ${request.method} ${request.url}")
             response.close()
             throw HtmlResponseException(
                 url = request.url.toString(),
@@ -38,5 +39,11 @@ class HtmlDetectionInterceptor @Inject constructor() : Interceptor {
         }
 
         return response
+    }
+
+    private fun extractServiceTag(host: String): String {
+        val parts = host.split(".")
+        if (parts.size <= 1 || parts[0].all { it.isDigit() || it == ':' }) return "Network"
+        return parts[0].replaceFirstChar { it.uppercase() }
     }
 }

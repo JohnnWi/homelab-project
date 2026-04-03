@@ -56,9 +56,6 @@ fun ServiceIcon(
                     )
                 }
 
-                // Keep a deterministic icon visible while remote image fetches/retries.
-                fallback()
-
                 if (currentSource != null) {
                     SubcomposeAsyncImage(
                         model = currentSource,

@@ -14,9 +14,10 @@ import java.time.format.DateTimeFormatter
 
 private const val MAX_LOG_ENTRIES = 500
 
-enum class LogLevel { DEBUG, INFO, WARN, ERROR }
+enum class LogLevel { DEBUG, INFO, WARN, NET }
 
 data class LogEntry(
+    val id: Long,
     val timestamp: Long,
     val level: LogLevel,
     val tag: String,
@@ -34,9 +35,11 @@ object LogStore {
 
     private val scope = CoroutineScope(Dispatchers.Default)
     private var updateJob: Job? = null
+    private var nextId = java.util.concurrent.atomic.AtomicLong(0)
 
     fun add(level: LogLevel, tag: String, message: String) {
         val entry = LogEntry(
+            id = nextId.getAndIncrement(),
             timestamp = System.currentTimeMillis(),
             level = level,
             tag = tag,

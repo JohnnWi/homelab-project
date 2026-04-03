@@ -418,6 +418,8 @@
     <string name="debug_logs_copy">Copiar logs</string>
     <string name="debug_logs_clip_label">Logs de depuración de Homelab</string>
     <string name="debug_logs_copied">Logs copiados al portapapeles</string>
+    <string name="debug_logs_search">Buscar en los registros…</string>
+    <string name="debug_logs_no_results">Ningún registro coincide con los filtros</string>
     <string name="login_save_instance">Guardar instancia</string>
     <string name="login_edit_title">Editar %1$s</string>
     <string name="login_edit_subtitle">Actualiza esta instancia configurada</string>

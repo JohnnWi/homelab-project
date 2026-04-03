@@ -184,6 +184,73 @@ struct PangolinClientsData: Decodable, Sendable {
     let clients: [PangolinClient]
 }
 
+struct PangolinUserDevice: Decodable, Identifiable, Hashable, Sendable {
+    let clientId: Int
+    let orgId: String
+    let name: String
+    let subnet: String?
+    let megabytesIn: Double?
+    let megabytesOut: Double?
+    let orgName: String?
+    let type: String?
+    let online: Bool
+    let olmVersion: String?
+    let userId: String?
+    let username: String?
+    let userEmail: String?
+    let niceId: String
+    let agent: String?
+    let approvalState: String?
+    let olmArchived: Bool
+    let archived: Bool
+    let blocked: Bool
+    let deviceModel: String?
+    let fingerprintPlatform: String?
+    let fingerprintOsVersion: String?
+    let fingerprintKernelVersion: String?
+    let fingerprintArch: String?
+    let fingerprintSerialNumber: String?
+    let fingerprintUsername: String?
+    let fingerprintHostname: String?
+    let olmUpdateAvailable: Bool?
+
+    var id: Int { clientId }
+}
+
+struct PangolinUserDevicesData: Decodable, Sendable {
+    let devices: [PangolinUserDevice]
+}
+
+struct PangolinSiteResourceUser: Decodable, Hashable, Sendable {
+    let userId: String
+}
+
+struct PangolinSiteResourceUsersData: Decodable, Sendable {
+    let users: [PangolinSiteResourceUser]
+}
+
+struct PangolinSiteResourceRole: Decodable, Hashable, Sendable {
+    let roleId: Int
+}
+
+struct PangolinSiteResourceRolesData: Decodable, Sendable {
+    let roles: [PangolinSiteResourceRole]
+}
+
+struct PangolinSiteResourceClient: Decodable, Hashable, Sendable {
+    let clientId: Int
+}
+
+struct PangolinSiteResourceClientsData: Decodable, Sendable {
+    let clients: [PangolinSiteResourceClient]
+}
+
+struct PangolinSiteResourceBindings: Sendable {
+    let userIds: [String]
+    let roleIds: [Int]
+    let clientIds: [Int]
+}
+
 struct PangolinDomain: Decodable, Identifiable, Hashable, Sendable {
     let domainId: String
     let baseDomain: String
@@ -211,10 +278,13 @@ struct PangolinSnapshot: Sendable {
     let resources: [PangolinResource]
     let targetsByResourceId: [Int: [PangolinTarget]]
     let clients: [PangolinClient]
+    let userDevices: [PangolinUserDevice]
     let domains: [PangolinDomain]
 }
 
 actor PangolinAPIClient {
+    private static let dashboardResourceLimit = 8
+
     private let engine: BaseNetworkEngine
     private var baseURL: String = ""
     private var fallbackURL: String = ""
@@ -355,6 +425,27 @@ actor PangolinAPIClient {
         }
     }
 
+    func listUserDevices(orgId: String) async throws -> [PangolinUserDevice] {
+        var collected: [PangolinUserDevice] = []
+        var page = 1
+
+        while true {
+            let response: PangolinEnvelope<PangolinUserDevicesData> = try await request("/v1/org/\(orgId)/user-devices?pageSize=100&page=\(page)&status=active,pending,denied,blocked,archived")
+            let batch = response.data.devices
+            if batch.isEmpty { break }
+            collected.append(contentsOf: batch)
+            let total = response.pagination?.total ?? 0
+            if total > 0, collected.count >= total { break }
+            page += 1
+        }
+
+        return collected.sorted { lhs, rhs in
+            if lhs.online != rhs.online { return lhs.online && !rhs.online }
+            if lhs.blocked != rhs.blocked { return !lhs.blocked && rhs.blocked }
+            return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+        }
+    }
+
     func listDomains(orgId: String) async throws -> [PangolinDomain] {
         var collected: [PangolinDomain] = []
         var offset = 0
@@ -397,11 +488,225 @@ actor PangolinAPIClient {
         }
     }
 
+    func getSiteResourceBindings(siteResourceId: Int) async throws -> PangolinSiteResourceBindings {
+        async let usersTask: PangolinEnvelope<PangolinSiteResourceUsersData> = request("/v1/site-resource/\(siteResourceId)/users")
+        async let rolesTask: PangolinEnvelope<PangolinSiteResourceRolesData> = request("/v1/site-resource/\(siteResourceId)/roles")
+        async let clientsTask: PangolinEnvelope<PangolinSiteResourceClientsData> = request("/v1/site-resource/\(siteResourceId)/clients")
+
+        let usersResponse = try await usersTask
+        let rolesResponse = try await rolesTask
+        let clientsResponse = try await clientsTask
+
+        let users = usersResponse.data.users.map(\.userId)
+        let roles = rolesResponse.data.roles.map(\.roleId)
+        let clients = clientsResponse.data.clients.map(\.clientId)
+        return PangolinSiteResourceBindings(userIds: users, roleIds: roles, clientIds: clients)
+    }
+
+    func updateResource(
+        resourceId: Int,
+        name: String,
+        enabled: Bool,
+        sso: Bool,
+        ssl: Bool
+    ) async throws -> PangolinResource {
+        let body = try jsonBody([
+            "name": name,
+            "enabled": enabled,
+            "sso": sso,
+            "ssl": ssl
+        ])
+        let response: PangolinEnvelope<PangolinResource> = try await request(
+            "/v1/resource/\(resourceId)",
+            method: "POST",
+            headers: ["Content-Type": "application/json"],
+            body: body
+        )
+        return response.data
+    }
+
+    func createResource(
+        orgId: String,
+        name: String,
+        resourceProtocol: String,
+        enabled: Bool,
+        domainId: String?,
+        subdomain: String?,
+        proxyPort: Int?
+    ) async throws -> PangolinResource {
+        let normalizedProtocol = resourceProtocol.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        var payload: [String: Any] = [
+            "name": name,
+            "enabled": enabled,
+            "http": normalizedProtocol == "http",
+            "protocol": normalizedProtocol
+        ]
+        switch normalizedProtocol {
+        case "http":
+            payload["domainId"] = domainId ?? ""
+            payload["subdomain"] = (subdomain?.isEmpty == false) ? subdomain! : NSNull()
+        case "tcp", "udp":
+            payload["proxyPort"] = proxyPort ?? 0
+        default:
+            break
+        }
+
+        let response: PangolinEnvelope<PangolinResource> = try await request(
+            "/v1/org/\(orgId)/resource",
+            method: "PUT",
+            headers: ["Content-Type": "application/json"],
+            body: try jsonBody(payload)
+        )
+        return response.data
+    }
+
+    func updateTarget(
+        targetId: Int,
+        siteId: Int,
+        ip: String,
+        port: Int,
+        enabled: Bool
+    ) async throws -> PangolinTarget {
+        let body = try jsonBody([
+            "siteId": siteId,
+            "ip": ip,
+            "port": port,
+            "enabled": enabled
+        ])
+        let response: PangolinEnvelope<PangolinTarget> = try await request(
+            "/v1/target/\(targetId)",
+            method: "POST",
+            headers: ["Content-Type": "application/json"],
+            body: body
+        )
+        return response.data
+    }
+
+    func createTarget(
+        resourceId: Int,
+        siteId: Int,
+        ip: String,
+        port: Int,
+        enabled: Bool,
+        method: String?
+    ) async throws -> PangolinTarget {
+        var payload: [String: Any] = [
+            "siteId": siteId,
+            "ip": ip,
+            "port": port,
+            "enabled": enabled
+        ]
+        if let method, !method.isEmpty {
+            payload["method"] = method
+        }
+
+        let response: PangolinEnvelope<PangolinTarget> = try await request(
+            "/v1/resource/\(resourceId)/target",
+            method: "PUT",
+            headers: ["Content-Type": "application/json"],
+            body: try jsonBody(payload)
+        )
+        return response.data
+    }
+
+    func updateSiteResource(
+        siteResourceId: Int,
+        bindings: PangolinSiteResourceBindings,
+        name: String,
+        siteId: Int,
+        mode: String,
+        destination: String,
+        enabled: Bool,
+        alias: String,
+        tcpPortRangeString: String,
+        udpPortRangeString: String,
+        disableIcmp: Bool,
+        authDaemonPort: Int?,
+        authDaemonMode: String?
+    ) async throws -> PangolinSiteResource {
+        var payload: [String: Any] = [
+            "name": name,
+            "siteId": siteId,
+            "mode": mode,
+            "destination": destination,
+            "enabled": enabled,
+            "userIds": bindings.userIds,
+            "roleIds": bindings.roleIds,
+            "clientIds": bindings.clientIds,
+            "tcpPortRangeString": tcpPortRangeString.isEmpty ? "*" : tcpPortRangeString,
+            "udpPortRangeString": udpPortRangeString.isEmpty ? "*" : udpPortRangeString,
+            "disableIcmp": disableIcmp
+        ]
+        payload["alias"] = alias.isEmpty ? NSNull() : alias
+        payload["authDaemonPort"] = authDaemonPort ?? NSNull()
+        if let authDaemonMode, !authDaemonMode.isEmpty {
+            payload["authDaemonMode"] = authDaemonMode
+        }
+
+        let response: PangolinEnvelope<PangolinSiteResource> = try await request(
+            "/v1/site-resource/\(siteResourceId)",
+            method: "POST",
+            headers: ["Content-Type": "application/json"],
+            body: try jsonBody(payload)
+        )
+        return response.data
+    }
+
+    func createSiteResource(
+        orgId: String,
+        name: String,
+        siteId: Int,
+        mode: String,
+        destination: String,
+        enabled: Bool,
+        alias: String,
+        tcpPortRangeString: String,
+        udpPortRangeString: String,
+        disableIcmp: Bool,
+        authDaemonPort: Int?,
+        authDaemonMode: String?
+    ) async throws -> PangolinSiteResource {
+        var payload: [String: Any] = [
+            "name": name,
+            "siteId": siteId,
+            "mode": mode,
+            "destination": destination,
+            "enabled": enabled,
+            "userIds": [],
+            "roleIds": [],
+            "clientIds": [],
+            "tcpPortRangeString": tcpPortRangeString.isEmpty ? "*" : tcpPortRangeString,
+            "udpPortRangeString": udpPortRangeString.isEmpty ? "*" : udpPortRangeString,
+            "disableIcmp": disableIcmp
+        ]
+        payload["alias"] = alias.isEmpty ? NSNull() : alias
+        payload["authDaemonPort"] = authDaemonPort ?? NSNull()
+        if let authDaemonMode, !authDaemonMode.isEmpty {
+            payload["authDaemonMode"] = authDaemonMode
+        }
+
+        let response: PangolinEnvelope<PangolinSiteResource> = try await request(
+            "/v1/org/\(orgId)/site-resources",
+            method: "POST",
+            headers: ["Content-Type": "application/json"],
+            body: try jsonBody(payload)
+        )
+        return response.data
+    }
+
+    func deleteResource(resourceId: Int) async throws {
+        let _: PangolinEnvelope<PangolinResource?> = try await request(
+            "/v1/resource/\(resourceId)",
+            method: "DELETE"
+        )
+    }
+
     func fetchSnapshot(orgId: String, orgs preloadedOrgs: [PangolinOrg]? = nil) async throws -> PangolinSnapshot {
         async let sitesTask = listSites(orgId: orgId)
         async let siteResourcesTask = listSiteResources(orgId: orgId)
         async let resourcesTask = listResources(orgId: orgId)
         async let clientsTask = listClients(orgId: orgId)
+        async let userDevicesTask = listUserDevices(orgId: orgId)
         async let domainsTask = listDomains(orgId: orgId)
 
         let orgs: [PangolinOrg]
@@ -411,7 +716,7 @@ actor PangolinAPIClient {
             orgs = try await listOrgs()
         }
         let resources = try await resourcesTask
-        let targetsByResourceId = try await fetchTargetsByResource(resources)
+        let targetsByResourceId = try await fetchTargetsByResource(Array(resources.prefix(Self.dashboardResourceLimit)))
 
         return try await PangolinSnapshot(
             orgs: orgs,
@@ -421,6 +726,7 @@ actor PangolinAPIClient {
             resources: resources,
             targetsByResourceId: targetsByResourceId,
             clients: clientsTask,
+            userDevices: userDevicesTask,
             domains: domainsTask
         )
     }
@@ -436,11 +742,13 @@ actor PangolinAPIClient {
             async let orgSiteResources = listSiteResources(orgId: org.orgId)
             async let orgResources = listResources(orgId: org.orgId)
             async let orgClients = listClients(orgId: org.orgId)
+            async let orgUserDevices = listUserDevices(orgId: org.orgId)
 
             sites += try await orgSites.count
             resources += try await orgResources.count
             resources += try await orgSiteResources.count
             clients += try await orgClients.count
+            clients += try await orgUserDevices.count
         }
 
         return (sites, resources, clients)
@@ -470,13 +778,28 @@ actor PangolinAPIClient {
         return resolved
     }
 
-    private func request<T: Decodable>(_ path: String) async throws -> T {
+    private func request<T: Decodable>(
+        _ path: String,
+        method: String = "GET",
+        headers: [String: String] = [:],
+        body: Data? = nil
+    ) async throws -> T {
         try await engine.request(
             baseURL: baseURL,
             fallbackURL: fallbackURL,
             path: path,
-            headers: authHeaders()
+            method: method,
+            headers: authHeaders().merging(headers) { _, new in new },
+            body: body
         )
+    }
+
+    private func jsonBody(_ object: [String: Any]) throws -> Data {
+        do {
+            return try JSONSerialization.data(withJSONObject: object, options: [])
+        } catch {
+            throw APIError.decodingError(error)
+        }
     }
 
     private func authHeaders() -> [String: String] {

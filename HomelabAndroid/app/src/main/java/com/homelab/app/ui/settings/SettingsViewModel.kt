@@ -72,8 +72,8 @@ class SettingsViewModel @Inject constructor(
     val hiddenServices: StateFlow<Set<String>> = localPreferencesRepository.hiddenServices
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
-    val homeCyberpunkCardsEnabled: StateFlow<Boolean> = localPreferencesRepository.homeCyberpunkCardsEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+
 
     val appIcon: StateFlow<AppIconOption> = localPreferencesRepository.appIcon
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppIconOption.DEFAULT)
@@ -116,11 +116,8 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun setHomeCyberpunkCardsEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            localPreferencesRepository.setHomeCyberpunkCardsEnabled(enabled)
-        }
-    }
+
+
 
     fun setAppIcon(icon: AppIconOption) {
         viewModelScope.launch {

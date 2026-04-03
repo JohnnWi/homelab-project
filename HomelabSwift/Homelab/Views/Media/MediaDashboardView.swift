@@ -57,6 +57,10 @@ struct MediaDashboardView: View {
             .contains { servicesStore.reachability(for: $0.id) == false }
     }
 
+    private var suppressTailscaleSection: Bool {
+        !servicesStore.instances(for: .pangolin).isEmpty && servicesStore.isTailscaleConnected
+    }
+
     private var arr: ArrStrings {
         localizer.arr
     }
@@ -264,7 +268,7 @@ struct MediaDashboardView: View {
                         tutorialSection
                     }
 
-                    if hasUnreachableMediaService || servicesStore.isTailscaleConnected {
+                    if (hasUnreachableMediaService || servicesStore.isTailscaleConnected) && !suppressTailscaleSection {
                         tailscaleSection
                     }
 
@@ -624,8 +628,8 @@ private struct MediaCardContent: View {
     }
     private var connectionStatusColor: Color {
         if !isConnected { return AppTheme.textMuted }
-        if reachable == true { return type.colors.primary }
-        if reachable == false { return type.colors.primary }
+        if reachable == true { return Color.green }
+        if reachable == false { return Color.red }
         return AppTheme.info
     }
     private var cardGradient: LinearGradient {

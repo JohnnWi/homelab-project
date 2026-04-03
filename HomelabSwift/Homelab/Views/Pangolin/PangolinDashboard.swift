@@ -1,5 +1,90 @@
 import SwiftUI
 
+private enum PangolinClientSource: String, Sendable {
+    case machine
+    case userDevice
+}
+
+private struct PangolinClientEntry: Identifiable, Hashable, Sendable {
+    let id: String
+    let name: String
+    let subtitle: String?
+    let online: Bool
+    let blocked: Bool
+    let archived: Bool
+    let approvalState: String?
+    let version: String?
+    let updateAvailable: Bool
+    let trafficIn: Double?
+    let trafficOut: Double?
+    let source: PangolinClientSource
+    let agent: String?
+    let linkedSites: [String]
+}
+
+private struct PangolinPublicEditorState: Identifiable, Hashable {
+    let resource: PangolinResource
+    let targets: [PangolinTarget]
+
+    var id: Int { resource.resourceId }
+}
+
+private struct PangolinPublicResourceUpdateInput: Sendable {
+    let resourceId: Int
+    let name: String
+    let enabled: Bool
+    let sso: Bool
+    let ssl: Bool
+    let targetId: Int?
+    let targetSiteId: Int?
+    let targetIp: String
+    let targetPort: String
+    let targetEnabled: Bool
+}
+
+private struct PangolinPublicResourceCreateInput: Sendable {
+    let name: String
+    let resourceProtocol: String
+    let enabled: Bool
+    let domainId: String?
+    let subdomain: String
+    let proxyPort: String
+    let targetSiteId: Int
+    let targetIp: String
+    let targetPort: String
+    let targetEnabled: Bool
+    let targetMethod: String?
+}
+
+private struct PangolinPrivateResourceUpdateInput: Sendable {
+    let siteResourceId: Int
+    let name: String
+    let siteId: Int
+    let mode: String
+    let destination: String
+    let enabled: Bool
+    let alias: String
+    let tcpPortRangeString: String
+    let udpPortRangeString: String
+    let disableIcmp: Bool
+    let authDaemonPort: String
+    let authDaemonMode: String?
+}
+
+private struct PangolinPrivateResourceCreateInput: Sendable {
+    let name: String
+    let siteId: Int
+    let mode: String
+    let destination: String
+    let enabled: Bool
+    let alias: String
+    let tcpPortRangeString: String
+    let udpPortRangeString: String
+    let disableIcmp: Bool
+    let authDaemonPort: String
+    let authDaemonMode: String?
+}
+
 struct PangolinDashboard: View {
     let instanceId: UUID
 
@@ -9,6 +94,14 @@ struct PangolinDashboard: View {
     @State private var selectedInstanceId: UUID
     @State private var selectedOrgId: String?
     @State private var state: LoadableState<PangolinSnapshot> = .idle
+    @State private var editingPublicResource: PangolinPublicEditorState?
+    @State private var editingPrivateResource: PangolinSiteResource?
+    @State private var isPresentingCreatePublicResource = false
+    @State private var isPresentingCreatePrivateResource = false
+    @State private var togglingResourceIds: Set<String> = []
+    @State private var actionErrorMessage: String?
+    @State private var isFetchingSnapshot = false
+    @State private var queuedSnapshotRefresh = false
 
     private let accent = ServiceType.pangolin.colors.primary
 
@@ -22,6 +115,7 @@ struct PangolinDashboard: View {
             serviceType: .pangolin,
             instanceId: selectedInstanceId,
             state: state,
+            showTailscaleQuickAccess: false,
             onRefresh: { await fetchSnapshot(forceLoading: false) }
         ) {
             instancePicker
@@ -37,6 +131,54 @@ struct PangolinDashboard: View {
             }
         }
         .navigationTitle(ServiceType.pangolin.displayName)
+        .sheet(item: $editingPublicResource) { editor in
+            PangolinPublicResourceEditorSheet(
+                resource: editor.resource,
+                targets: editor.targets,
+                sites: state.value?.sites ?? [],
+                strings: strings,
+                onSave: { input in
+                    try await savePublicResource(input)
+                }
+            )
+        }
+        .sheet(isPresented: $isPresentingCreatePublicResource) {
+            PangolinPublicResourceCreateSheet(
+                sites: state.value?.sites ?? [],
+                domains: state.value?.domains ?? [],
+                strings: strings,
+                onSave: { input in
+                    try await createPublicResource(input)
+                }
+            )
+        }
+        .sheet(item: $editingPrivateResource) { resource in
+            PangolinPrivateResourceEditorSheet(
+                resource: resource,
+                sites: state.value?.sites ?? [],
+                strings: strings,
+                onSave: { input in
+                    try await savePrivateResource(input)
+                }
+            )
+        }
+        .sheet(isPresented: $isPresentingCreatePrivateResource) {
+            PangolinPrivateResourceCreateSheet(
+                sites: state.value?.sites ?? [],
+                strings: strings,
+                onSave: { input in
+                    try await createPrivateResource(input)
+                }
+            )
+        }
+        .alert(localizer.t.error, isPresented: Binding(
+            get: { actionErrorMessage != nil },
+            set: { if !$0 { actionErrorMessage = nil } }
+        )) {
+            Button(localizer.t.confirm, role: .cancel) { actionErrorMessage = nil }
+        } message: {
+            Text(actionErrorMessage ?? localizer.t.error)
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -50,11 +192,17 @@ struct PangolinDashboard: View {
         .task(id: fetchTaskKey) {
             await fetchSnapshot(forceLoading: true)
         }
+        .task(id: autoRefreshTaskKey) {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(20))
+                guard !Task.isCancelled else { break }
+                await fetchSnapshot(forceLoading: false)
+            }
+        }
     }
 
-    private var fetchTaskKey: String {
-        "\(selectedInstanceId.uuidString)|\(selectedOrgId ?? "default")"
-    }
+    private var fetchTaskKey: String { selectedInstanceId.uuidString }
+    private var autoRefreshTaskKey: String { "\(selectedInstanceId.uuidString):\(selectedOrgId ?? "auto")" }
 
     private var selectedOrg: PangolinOrg? {
         guard let snapshot = state.value else { return nil }
@@ -123,6 +271,7 @@ struct PangolinDashboard: View {
                                     guard selectedOrgId != org.orgId else { return }
                                     HapticManager.light()
                                     selectedOrgId = org.orgId
+                                    Task { await fetchSnapshot(forceLoading: false) }
                                 } label: {
                                     HStack(spacing: 8) {
                                         Image(systemName: isSelected ? "checkmark.seal.fill" : "point.3.connected.trianglepath.dotted")
@@ -212,7 +361,8 @@ struct PangolinDashboard: View {
     }
 
     private func statsGrid(_ snapshot: PangolinSnapshot) -> some View {
-        LazyVGrid(columns: twoColumnGrid, spacing: AppTheme.gridSpacing) {
+        let clientEntries = mergedClients(snapshot)
+        return LazyVGrid(columns: twoColumnGrid, spacing: AppTheme.gridSpacing) {
             GlassStatCard(
                 title: strings.sites,
                 value: "\(snapshot.sites.count)",
@@ -236,10 +386,10 @@ struct PangolinDashboard: View {
             )
             GlassStatCard(
                 title: strings.clients,
-                value: "\(snapshot.clients.count)",
+                value: "\(clientEntries.count)",
                 icon: "person.2.fill",
                 iconColor: AppTheme.warning,
-                subtitle: strings.onlineCount(snapshot.clients.filter { $0.online }.count)
+                subtitle: strings.onlineCount(clientEntries.filter { $0.online }.count)
             )
             GlassStatCard(
                 title: strings.domains,
@@ -250,7 +400,7 @@ struct PangolinDashboard: View {
             )
             GlassStatCard(
                 title: strings.traffic,
-                value: trafficValue(snapshot.sites, snapshot.clients),
+                value: trafficValue(snapshot.sites, clientEntries),
                 icon: "arrow.left.and.right.circle.fill",
                 iconColor: accent,
                 subtitle: strings.ingressEgress
@@ -286,7 +436,15 @@ struct PangolinDashboard: View {
 
     private func privateResourcesSection(_ snapshot: PangolinSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(strings.privateResources, detail: strings.enabledCount(snapshot.siteResources.filter { $0.enabled }.count))
+            sectionHeader(
+                strings.privateResources,
+                detail: strings.enabledCount(snapshot.siteResources.filter { $0.enabled }.count),
+                actionLabel: snapshot.sites.isEmpty ? nil : strings.createPrivateResource,
+                action: {
+                    HapticManager.light()
+                    isPresentingCreatePrivateResource = true
+                }
+            )
 
             if snapshot.siteResources.isEmpty {
                 placeholderCard(strings.noPrivateResources)
@@ -309,7 +467,10 @@ struct PangolinDashboard: View {
                             resource.authDaemonMode?.uppercased(),
                             resource.disableIcmp == true ? strings.icmpOff : nil
                         ],
-                        tint: resource.enabled ? AppTheme.info : AppTheme.textMuted
+                        tint: resource.enabled ? AppTheme.info : AppTheme.textMuted,
+                        onEdit: {
+                            editingPrivateResource = resource
+                        }
                     )
                 }
             }
@@ -318,7 +479,15 @@ struct PangolinDashboard: View {
 
     private func publicResourcesSection(_ snapshot: PangolinSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(strings.publicResources, detail: strings.enabledCount(snapshot.resources.filter { $0.enabled }.count))
+            sectionHeader(
+                strings.publicResources,
+                detail: strings.enabledCount(snapshot.resources.filter { $0.enabled }.count),
+                actionLabel: snapshot.sites.isEmpty ? nil : strings.createPublicResource,
+                action: {
+                    HapticManager.light()
+                    isPresentingCreatePublicResource = true
+                }
+            )
 
             if snapshot.resources.isEmpty {
                 placeholderCard(strings.noPublicResources)
@@ -334,23 +503,27 @@ struct PangolinDashboard: View {
     }
 
     private func clientsSection(_ snapshot: PangolinSnapshot) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(strings.clients, detail: strings.onlineCount(snapshot.clients.filter { $0.online }.count))
+        let clientEntries = mergedClients(snapshot)
+        return VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(strings.clients, detail: strings.onlineCount(clientEntries.filter { $0.online }.count))
 
-            if snapshot.clients.isEmpty {
+            if clientEntries.isEmpty {
                 placeholderCard(strings.noClients)
             } else {
-                ForEach(snapshot.clients.prefix(8)) { client in
+                ForEach(clientEntries.prefix(8)) { client in
                     itemCard(
                         title: client.name,
-                        subtitle: joined(client.subnet, client.type?.capitalized),
+                        subtitle: client.subtitle,
                         details: [
+                            clientSourceLabel(client.source),
+                            client.agent.map(agentLabel),
                             client.blocked ? strings.blocked : nil,
                             client.archived ? strings.archived : nil,
                             client.online ? strings.online : strings.offline,
-                            client.olmVersion.map(strings.olmVersion),
+                            client.version.map(strings.olmVersion),
                             client.approvalState.map(strings.approvalState),
-                            client.sites.isEmpty ? nil : strings.linkedSites(client.sites.count),
+                            client.updateAvailable ? strings.agentUpdate : nil,
+                            client.linkedSites.isEmpty ? nil : strings.linkedSites(client.linkedSites.count),
                             clientTrafficLabel(client)
                         ],
                         tint: client.blocked ? AppTheme.danger : (client.online ? AppTheme.running : AppTheme.textMuted)
@@ -405,7 +578,16 @@ struct PangolinDashboard: View {
                 title: resource.name,
                 subtitle: joined(resource.fullDomain, resource.protocolName?.uppercased()),
                 details: detailItems,
-                tint: tint
+                tint: tint,
+                onToggle: {
+                    Task { await togglePublicResource(resource) }
+                },
+                toggleLabel: resource.enabled ? strings.disableAction : strings.enableAction,
+                toggleTint: resource.enabled ? AppTheme.danger : tint,
+                isToggling: togglingResourceIds.contains(toggleKey(for: resource)),
+                onEdit: {
+                    editingPublicResource = PangolinPublicEditorState(resource: resource, targets: targets)
+                }
             )
 
             if !targets.isEmpty {
@@ -422,7 +604,12 @@ struct PangolinDashboard: View {
         title: String,
         subtitle: String?,
         details: [String?],
-        tint: Color
+        tint: Color,
+        onToggle: (() -> Void)? = nil,
+        toggleLabel: String? = nil,
+        toggleTint: Color? = nil,
+        isToggling: Bool = false,
+        onEdit: (() -> Void)? = nil
     ) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top, spacing: 12) {
@@ -448,6 +635,48 @@ struct PangolinDashboard: View {
                 }
 
                 Spacer(minLength: 0)
+
+                HStack(spacing: 8) {
+                    if let onToggle {
+                        Button(action: onToggle) {
+                            Group {
+                                if isToggling {
+                                    ProgressView()
+                                        .progressViewStyle(.circular)
+                                        .tint(toggleTint ?? tint)
+                                } else {
+                                    Image(systemName: "power")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(toggleTint ?? tint)
+                                }
+                            }
+                            .frame(width: 18, height: 18)
+                            .padding(10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill((toggleTint ?? tint).opacity(0.10))
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isToggling)
+                        .accessibilityLabel(toggleLabel ?? "")
+                    }
+
+                    if let onEdit {
+                        Button(action: onEdit) {
+                            Image(systemName: "square.and.pencil")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(tint)
+                                .padding(10)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(tint.opacity(0.10))
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(localizer.t.actionEdit)
+                    }
+                }
             }
 
             let trimmedDetails = details.compactMap { detail -> String? in
@@ -504,11 +733,25 @@ struct PangolinDashboard: View {
         .glassCard(tint: tint.opacity(0.05))
     }
 
-    private func sectionHeader(_ title: String, detail: String?) -> some View {
+    private func sectionHeader(
+        _ title: String,
+        detail: String?,
+        actionLabel: String? = nil,
+        action: (() -> Void)? = nil
+    ) -> some View {
         HStack {
             Text(title)
                 .font(.headline.weight(.bold))
             Spacer()
+            if let actionLabel, let action {
+                Button(action: action) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(accent)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(actionLabel)
+            }
             if let detail {
                 Text(detail)
                     .font(.caption.weight(.semibold))
@@ -547,7 +790,60 @@ struct PangolinDashboard: View {
         )
     }
 
+    private func mergedClients(_ snapshot: PangolinSnapshot) -> [PangolinClientEntry] {
+        let machineClients = snapshot.clients.map { client in
+            PangolinClientEntry(
+                id: "machine-\(client.clientId)",
+                name: client.name,
+                subtitle: joined(client.subnet, client.type?.capitalized),
+                online: client.online,
+                blocked: client.blocked,
+                archived: client.archived,
+                approvalState: client.approvalState,
+                version: client.olmVersion,
+                updateAvailable: client.olmUpdateAvailable == true,
+                trafficIn: client.megabytesIn,
+                trafficOut: client.megabytesOut,
+                source: .machine,
+                agent: nil,
+                linkedSites: client.sites.compactMap { $0.siteName ?? $0.siteNiceId }
+            )
+        }
+
+        let userDevices = snapshot.userDevices.map { device in
+            PangolinClientEntry(
+                id: "device-\(device.clientId)",
+                name: device.name,
+                subtitle: joined(device.deviceModel, device.fingerprintPlatform, device.subnet),
+                online: device.online,
+                blocked: device.blocked,
+                archived: device.archived || device.olmArchived,
+                approvalState: device.approvalState,
+                version: device.olmVersion,
+                updateAvailable: device.olmUpdateAvailable == true,
+                trafficIn: device.megabytesIn,
+                trafficOut: device.megabytesOut,
+                source: .userDevice,
+                agent: device.agent ?? device.type,
+                linkedSites: []
+            )
+        }
+
+        return (machineClients + userDevices).sorted { lhs, rhs in
+            if lhs.online != rhs.online { return lhs.online && !rhs.online }
+            if lhs.blocked != rhs.blocked { return !lhs.blocked && rhs.blocked }
+            return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+        }
+    }
+
     private func fetchSnapshot(forceLoading: Bool) async {
+        if isFetchingSnapshot {
+            queuedSnapshotRefresh = true
+            return
+        }
+
+        isFetchingSnapshot = true
+        let previousSnapshot = state.value
         if forceLoading || state.value == nil {
             state = .loading
         }
@@ -555,34 +851,227 @@ struct PangolinDashboard: View {
         do {
             guard let client = await servicesStore.pangolinClient(instanceId: selectedInstanceId) else {
                 state = .error(.notConfigured)
+                isFetchingSnapshot = false
+                await flushQueuedSnapshotRefresh()
                 return
             }
 
             let orgs = try await client.listOrgs()
             guard let orgId = selectedOrgId ?? orgs.first?.orgId else {
                 state = .error(.custom(strings.noOrganizations))
+                isFetchingSnapshot = false
+                await flushQueuedSnapshotRefresh()
                 return
             }
 
-            if selectedOrgId != orgId {
-                selectedOrgId = orgId
-            }
+            if selectedOrgId != orgId { selectedOrgId = orgId }
 
             let snapshot = try await client.fetchSnapshot(orgId: orgId, orgs: orgs)
-            state = .loaded(snapshot)
+            state = .loaded(mergeMissingDisabledResources(from: snapshot, previous: previousSnapshot))
         } catch let error as APIError {
             state = .error(error)
         } catch {
             state = .error(.networkError(error))
         }
+
+        isFetchingSnapshot = false
+        await flushQueuedSnapshotRefresh()
     }
 
-    private func trafficValue(_ sites: [PangolinSite], _ clients: [PangolinClient]) -> String {
+    private func flushQueuedSnapshotRefresh() async {
+        guard queuedSnapshotRefresh else { return }
+        queuedSnapshotRefresh = false
+        await fetchSnapshot(forceLoading: false)
+    }
+
+    private func mergeMissingDisabledResources(from snapshot: PangolinSnapshot, previous: PangolinSnapshot?) -> PangolinSnapshot {
+        guard let previous else { return snapshot }
+        let missingDisabled = previous.resources
+            .filter { !$0.enabled }
+            .filter { previousResource in
+                !snapshot.resources.contains(where: { $0.resourceId == previousResource.resourceId })
+            }
+        guard !missingDisabled.isEmpty else { return snapshot }
+
+        let mergedResources = (snapshot.resources + missingDisabled).sorted { lhs, rhs in
+            if lhs.enabled != rhs.enabled { return lhs.enabled && !rhs.enabled }
+            return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+        }
+
+        let currentIds = Set(snapshot.resources.map(\.resourceId))
+        var mergedTargets = snapshot.targetsByResourceId
+        for resource in missingDisabled where !currentIds.contains(resource.resourceId) {
+            if let targets = previous.targetsByResourceId[resource.resourceId] {
+                mergedTargets[resource.resourceId] = targets
+            }
+        }
+
+        return PangolinSnapshot(
+            orgs: snapshot.orgs,
+            selectedOrgId: snapshot.selectedOrgId,
+            sites: snapshot.sites,
+            siteResources: snapshot.siteResources,
+            resources: mergedResources,
+            targetsByResourceId: mergedTargets,
+            clients: snapshot.clients,
+            userDevices: snapshot.userDevices,
+            domains: snapshot.domains
+        )
+    }
+
+    private func savePublicResource(_ input: PangolinPublicResourceUpdateInput) async throws {
+        guard let client = await servicesStore.pangolinClient(instanceId: selectedInstanceId) else {
+            throw APIError.notConfigured
+        }
+
+        _ = try await client.updateResource(
+            resourceId: input.resourceId,
+            name: input.name.trimmingCharacters(in: .whitespacesAndNewlines),
+            enabled: input.enabled,
+            sso: input.sso,
+            ssl: input.ssl
+        )
+
+        if let targetId = input.targetId,
+           let siteId = input.targetSiteId,
+           !input.targetIp.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+           let port = Int(input.targetPort.trimmingCharacters(in: .whitespacesAndNewlines)) {
+            _ = try await client.updateTarget(
+                targetId: targetId,
+                siteId: siteId,
+                ip: input.targetIp.trimmingCharacters(in: .whitespacesAndNewlines),
+                port: port,
+                enabled: input.targetEnabled
+            )
+        }
+
+        await fetchSnapshot(forceLoading: false)
+    }
+
+    private func createPublicResource(_ input: PangolinPublicResourceCreateInput) async throws {
+        guard let client = await servicesStore.pangolinClient(instanceId: selectedInstanceId) else {
+            throw APIError.notConfigured
+        }
+
+        let orgId = selectedOrgId ?? state.value?.selectedOrgId ?? ""
+        guard !orgId.isEmpty else {
+            throw APIError.custom(strings.noOrganizations)
+        }
+
+        let resource = try await client.createResource(
+            orgId: orgId,
+            name: input.name.trimmingCharacters(in: .whitespacesAndNewlines),
+            resourceProtocol: input.resourceProtocol,
+            enabled: input.enabled,
+            domainId: input.domainId?.trimmingCharacters(in: .whitespacesAndNewlines),
+            subdomain: input.subdomain.trimmingCharacters(in: .whitespacesAndNewlines),
+            proxyPort: Int(input.proxyPort.trimmingCharacters(in: .whitespacesAndNewlines))
+        )
+
+        do {
+            _ = try await client.createTarget(
+                resourceId: resource.resourceId,
+                siteId: input.targetSiteId,
+                ip: input.targetIp.trimmingCharacters(in: .whitespacesAndNewlines),
+                port: Int(input.targetPort.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0,
+                enabled: input.targetEnabled,
+                method: input.targetMethod
+            )
+        } catch {
+            try? await client.deleteResource(resourceId: resource.resourceId)
+            throw error
+        }
+
+        await fetchSnapshot(forceLoading: false)
+    }
+
+    private func savePrivateResource(_ input: PangolinPrivateResourceUpdateInput) async throws {
+        guard let client = await servicesStore.pangolinClient(instanceId: selectedInstanceId) else {
+            throw APIError.notConfigured
+        }
+
+        let bindings = try await client.getSiteResourceBindings(siteResourceId: input.siteResourceId)
+        _ = try await client.updateSiteResource(
+            siteResourceId: input.siteResourceId,
+            bindings: bindings,
+            name: input.name.trimmingCharacters(in: .whitespacesAndNewlines),
+            siteId: input.siteId,
+            mode: input.mode,
+            destination: input.destination.trimmingCharacters(in: .whitespacesAndNewlines),
+            enabled: input.enabled,
+            alias: input.alias.trimmingCharacters(in: .whitespacesAndNewlines),
+            tcpPortRangeString: input.tcpPortRangeString.trimmingCharacters(in: .whitespacesAndNewlines),
+            udpPortRangeString: input.udpPortRangeString.trimmingCharacters(in: .whitespacesAndNewlines),
+            disableIcmp: input.disableIcmp,
+            authDaemonPort: Int(input.authDaemonPort.trimmingCharacters(in: .whitespacesAndNewlines)),
+            authDaemonMode: input.authDaemonMode
+        )
+
+        await fetchSnapshot(forceLoading: false)
+    }
+
+    private func createPrivateResource(_ input: PangolinPrivateResourceCreateInput) async throws {
+        guard let client = await servicesStore.pangolinClient(instanceId: selectedInstanceId) else {
+            throw APIError.notConfigured
+        }
+
+        let orgId = selectedOrgId ?? state.value?.selectedOrgId ?? ""
+        guard !orgId.isEmpty else {
+            throw APIError.custom(strings.noOrganizations)
+        }
+
+        _ = try await client.createSiteResource(
+            orgId: orgId,
+            name: input.name.trimmingCharacters(in: .whitespacesAndNewlines),
+            siteId: input.siteId,
+            mode: input.mode,
+            destination: input.destination.trimmingCharacters(in: .whitespacesAndNewlines),
+            enabled: input.enabled,
+            alias: input.alias.trimmingCharacters(in: .whitespacesAndNewlines),
+            tcpPortRangeString: input.tcpPortRangeString.trimmingCharacters(in: .whitespacesAndNewlines),
+            udpPortRangeString: input.udpPortRangeString.trimmingCharacters(in: .whitespacesAndNewlines),
+            disableIcmp: input.disableIcmp,
+            authDaemonPort: Int(input.authDaemonPort.trimmingCharacters(in: .whitespacesAndNewlines)),
+            authDaemonMode: input.authDaemonMode
+        )
+
+        await fetchSnapshot(forceLoading: false)
+    }
+
+    @MainActor
+    private func togglePublicResource(_ resource: PangolinResource) async {
+        let actionKey = toggleKey(for: resource)
+        guard !togglingResourceIds.contains(actionKey) else { return }
+        togglingResourceIds.insert(actionKey)
+        defer { togglingResourceIds.remove(actionKey) }
+
+        do {
+            guard let client = await servicesStore.pangolinClient(instanceId: selectedInstanceId) else {
+                throw APIError.notConfigured
+            }
+
+            _ = try await client.updateResource(
+                resourceId: resource.resourceId,
+                name: resource.name.trimmingCharacters(in: .whitespacesAndNewlines),
+                enabled: !resource.enabled,
+                sso: resource.sso,
+                ssl: resource.ssl
+            )
+
+            HapticManager.success()
+            await fetchSnapshot(forceLoading: false)
+        } catch {
+            actionErrorMessage = error.localizedDescription
+            HapticManager.error()
+        }
+    }
+
+    private func trafficValue(_ sites: [PangolinSite], _ clients: [PangolinClientEntry]) -> String {
         let siteMegabytes = sites.reduce(0.0) { partial, site in
             partial + (site.megabytesIn ?? 0) + (site.megabytesOut ?? 0)
         }
         let clientMegabytes = clients.reduce(0.0) { partial, client in
-            partial + (client.megabytesIn ?? 0) + (client.megabytesOut ?? 0)
+            partial + (client.trafficIn ?? 0) + (client.trafficOut ?? 0)
         }
         return Formatters.formatBytes((siteMegabytes + clientMegabytes) * 1_048_576)
     }
@@ -594,9 +1083,9 @@ struct PangolinDashboard: View {
         return strings.trafficAmount(Formatters.formatBytes((incoming + outgoing) * 1_048_576))
     }
 
-    private func clientTrafficLabel(_ client: PangolinClient) -> String? {
-        let incoming = client.megabytesIn ?? 0
-        let outgoing = client.megabytesOut ?? 0
+    private func clientTrafficLabel(_ client: PangolinClientEntry) -> String? {
+        let incoming = client.trafficIn ?? 0
+        let outgoing = client.trafficOut ?? 0
         guard incoming > 0 || outgoing > 0 else { return nil }
         return strings.trafficAmount(Formatters.formatBytes((incoming + outgoing) * 1_048_576))
     }
@@ -644,6 +1133,837 @@ struct PangolinDashboard: View {
         }
         return filtered.isEmpty ? nil : filtered.joined(separator: " • ")
     }
+
+    private func clientSourceLabel(_ source: PangolinClientSource) -> String {
+        PangolinEditorCopy.clientSource(source, language: localizer.language)
+    }
+
+    private func agentLabel(_ value: String) -> String {
+        PangolinEditorCopy.agent(value, language: localizer.language)
+    }
+
+    private func toggleKey(for resource: PangolinResource) -> String {
+        "public-\(resource.resourceId)"
+    }
+
+    private func toggleKey(for resource: PangolinSiteResource) -> String {
+        "private-\(resource.siteResourceId)"
+    }
+}
+
+private struct PangolinPublicResourceEditorSheet: View {
+    let resource: PangolinResource
+    let targets: [PangolinTarget]
+    let sites: [PangolinSite]
+    let strings: PangolinStrings
+    let onSave: (PangolinPublicResourceUpdateInput) async throws -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @Environment(Localizer.self) private var localizer
+
+    @State private var name: String
+    @State private var enabled: Bool
+    @State private var sso: Bool
+    @State private var ssl: Bool
+    @State private var selectedTargetId: Int
+    @State private var selectedSiteId: Int
+    @State private var targetIp: String
+    @State private var targetPort: String
+    @State private var targetEnabled: Bool
+    @State private var isSaving = false
+    @State private var errorMessage: String?
+
+    init(
+        resource: PangolinResource,
+        targets: [PangolinTarget],
+        sites: [PangolinSite],
+        strings: PangolinStrings,
+        onSave: @escaping (PangolinPublicResourceUpdateInput) async throws -> Void
+    ) {
+        self.resource = resource
+        self.targets = targets
+        self.sites = sites
+        self.strings = strings
+        self.onSave = onSave
+
+        let initialTarget = targets.first(where: \.enabled) ?? targets.first
+        _name = State(initialValue: resource.name)
+        _enabled = State(initialValue: resource.enabled)
+        _sso = State(initialValue: resource.sso)
+        _ssl = State(initialValue: resource.ssl)
+        _selectedTargetId = State(initialValue: initialTarget?.targetId ?? 0)
+        _selectedSiteId = State(initialValue: initialTarget?.siteId ?? sites.first?.siteId ?? 0)
+        _targetIp = State(initialValue: initialTarget?.ip ?? "")
+        _targetPort = State(initialValue: initialTarget.map { String($0.port) } ?? "")
+        _targetEnabled = State(initialValue: initialTarget?.enabled ?? true)
+    }
+
+    private var canSave: Bool {
+        let hasValidTarget = selectedTargetId == 0 || (!targetIp.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && Int(targetPort) != nil && selectedSiteId > 0)
+        return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && hasValidTarget && !isSaving
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                if let errorMessage, !errorMessage.isEmpty {
+                    Section {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(AppTheme.danger)
+                    }
+                }
+
+                Section(PangolinEditorCopy.editPublicResource(localizer.language)) {
+                    TextField(PangolinEditorCopy.name(localizer.language), text: $name)
+                    Toggle(strings.enabled, isOn: $enabled)
+                    Toggle(PangolinEditorCopy.pangolinSso(localizer.language), isOn: $sso)
+                    Toggle(PangolinEditorCopy.tls(localizer.language), isOn: $ssl)
+                }
+
+                if !targets.isEmpty {
+                    Section(PangolinEditorCopy.target(localizer.language)) {
+                        if targets.count > 1 {
+                            Picker(PangolinEditorCopy.target(localizer.language), selection: $selectedTargetId) {
+                                ForEach(targets) { target in
+                                    Text("\(target.ip):\(target.port)").tag(target.targetId)
+                                }
+                            }
+                        }
+
+                        Picker(strings.site, selection: $selectedSiteId) {
+                            ForEach(sites) { site in
+                                Text(site.name).tag(site.siteId)
+                            }
+                        }
+
+                        TextField(PangolinEditorCopy.targetIp(localizer.language), text: $targetIp)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.numbersAndPunctuation)
+
+                        TextField(PangolinEditorCopy.targetPort(localizer.language), text: $targetPort)
+                            .keyboardType(.numberPad)
+
+                        Toggle(PangolinEditorCopy.targetEnabled(localizer.language), isOn: $targetEnabled)
+                    }
+                }
+            }
+            .navigationTitle(PangolinEditorCopy.editPublicResource(localizer.language))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(localizer.t.cancel) { dismiss() }
+                        .disabled(isSaving)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(localizer.t.save) { Task { await save() } }
+                        .disabled(!canSave)
+                        .fontWeight(.semibold)
+                }
+            }
+            .onChange(of: selectedTargetId) { _, newValue in
+                guard let target = targets.first(where: { $0.targetId == newValue }) else { return }
+                selectedSiteId = target.siteId ?? selectedSiteId
+                targetIp = target.ip
+                targetPort = String(target.port)
+                targetEnabled = target.enabled
+            }
+        }
+    }
+
+    private func save() async {
+        isSaving = true
+        errorMessage = nil
+        defer { isSaving = false }
+
+        do {
+            try await onSave(
+                PangolinPublicResourceUpdateInput(
+                    resourceId: resource.resourceId,
+                    name: name,
+                    enabled: enabled,
+                    sso: sso,
+                    ssl: ssl,
+                    targetId: selectedTargetId == 0 ? nil : selectedTargetId,
+                    targetSiteId: selectedTargetId == 0 ? nil : selectedSiteId,
+                    targetIp: targetIp,
+                    targetPort: targetPort,
+                    targetEnabled: targetEnabled
+                )
+            )
+            HapticManager.success()
+            dismiss()
+        } catch let error as APIError {
+            errorMessage = error.localizedDescription
+            HapticManager.error()
+        } catch {
+            errorMessage = error.localizedDescription
+            HapticManager.error()
+        }
+    }
+}
+
+private struct PangolinPrivateResourceEditorSheet: View {
+    let resource: PangolinSiteResource
+    let sites: [PangolinSite]
+    let strings: PangolinStrings
+    let onSave: (PangolinPrivateResourceUpdateInput) async throws -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @Environment(Localizer.self) private var localizer
+
+    @State private var name: String
+    @State private var siteId: Int
+    @State private var mode: String
+    @State private var destination: String
+    @State private var enabled: Bool
+    @State private var alias: String
+    @State private var tcpPorts: String
+    @State private var udpPorts: String
+    @State private var disableIcmp: Bool
+    @State private var authDaemonPort: String
+    @State private var authDaemonMode: String
+    @State private var isSaving = false
+    @State private var errorMessage: String?
+
+    init(
+        resource: PangolinSiteResource,
+        sites: [PangolinSite],
+        strings: PangolinStrings,
+        onSave: @escaping (PangolinPrivateResourceUpdateInput) async throws -> Void
+    ) {
+        self.resource = resource
+        self.sites = sites
+        self.strings = strings
+        self.onSave = onSave
+
+        _name = State(initialValue: resource.name)
+        _siteId = State(initialValue: resource.siteId)
+        _mode = State(initialValue: resource.mode ?? "host")
+        _destination = State(initialValue: resource.destination ?? "")
+        _enabled = State(initialValue: resource.enabled)
+        _alias = State(initialValue: resource.alias ?? "")
+        _tcpPorts = State(initialValue: resource.tcpPortRangeString ?? "")
+        _udpPorts = State(initialValue: resource.udpPortRangeString ?? "")
+        _disableIcmp = State(initialValue: resource.disableIcmp ?? false)
+        _authDaemonPort = State(initialValue: resource.authDaemonPort.map(String.init) ?? "")
+        _authDaemonMode = State(initialValue: resource.authDaemonMode ?? "")
+    }
+
+    private var canSave: Bool {
+        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !destination.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            siteId > 0 &&
+            ["host", "cidr"].contains(mode) &&
+            (authDaemonPort.isEmpty || Int(authDaemonPort) != nil) &&
+            !isSaving
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                if let errorMessage, !errorMessage.isEmpty {
+                    Section {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(AppTheme.danger)
+                    }
+                }
+
+                Section(PangolinEditorCopy.editPrivateResource(localizer.language)) {
+                    TextField(PangolinEditorCopy.name(localizer.language), text: $name)
+                    Picker(strings.site, selection: $siteId) {
+                        ForEach(sites) { site in
+                            Text(site.name).tag(site.siteId)
+                        }
+                    }
+                    Picker(PangolinEditorCopy.mode(localizer.language), selection: $mode) {
+                        Text(PangolinEditorCopy.hostMode(localizer.language)).tag("host")
+                        Text(PangolinEditorCopy.cidrMode(localizer.language)).tag("cidr")
+                    }
+                    TextField(PangolinEditorCopy.destination(localizer.language), text: $destination)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField(PangolinEditorCopy.alias(localizer.language), text: $alias)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField(PangolinEditorCopy.tcpPorts(localizer.language), text: $tcpPorts)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField(PangolinEditorCopy.udpPorts(localizer.language), text: $udpPorts)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField(PangolinEditorCopy.authDaemonPort(localizer.language), text: $authDaemonPort)
+                        .keyboardType(.numberPad)
+                    Picker(PangolinEditorCopy.authDaemonMode(localizer.language), selection: $authDaemonMode) {
+                        Text(PangolinEditorCopy.none(localizer.language)).tag("")
+                        Text(PangolinEditorCopy.siteMode(localizer.language)).tag("site")
+                        Text(PangolinEditorCopy.remoteMode(localizer.language)).tag("remote")
+                    }
+                    Toggle(PangolinEditorCopy.disableIcmp(localizer.language), isOn: $disableIcmp)
+                }
+            }
+            .navigationTitle(PangolinEditorCopy.editPrivateResource(localizer.language))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(localizer.t.cancel) { dismiss() }
+                        .disabled(isSaving)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(localizer.t.save) { Task { await save() } }
+                        .disabled(!canSave)
+                        .fontWeight(.semibold)
+                }
+            }
+        }
+    }
+
+    private func save() async {
+        isSaving = true
+        errorMessage = nil
+        defer { isSaving = false }
+
+        do {
+            try await onSave(
+                PangolinPrivateResourceUpdateInput(
+                    siteResourceId: resource.siteResourceId,
+                    name: name,
+                    siteId: siteId,
+                    mode: mode,
+                    destination: destination,
+                    enabled: enabled,
+                    alias: alias,
+                    tcpPortRangeString: tcpPorts,
+                    udpPortRangeString: udpPorts,
+                    disableIcmp: disableIcmp,
+                    authDaemonPort: authDaemonPort,
+                    authDaemonMode: authDaemonMode.isEmpty ? nil : authDaemonMode
+                )
+            )
+            HapticManager.success()
+            dismiss()
+        } catch let error as APIError {
+            errorMessage = error.localizedDescription
+            HapticManager.error()
+        } catch {
+            errorMessage = error.localizedDescription
+            HapticManager.error()
+        }
+    }
+}
+
+private struct PangolinPrivateResourceCreateSheet: View {
+    let sites: [PangolinSite]
+    let strings: PangolinStrings
+    let onSave: (PangolinPrivateResourceCreateInput) async throws -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @Environment(Localizer.self) private var localizer
+
+    @State private var name = ""
+    @State private var siteId: Int
+    @State private var mode = "host"
+    @State private var destination = ""
+    @State private var enabled = true
+    @State private var alias = ""
+    @State private var tcpPorts = "*"
+    @State private var udpPorts = "*"
+    @State private var disableIcmp = false
+    @State private var authDaemonPort = ""
+    @State private var authDaemonMode = ""
+    @State private var isSaving = false
+    @State private var errorMessage: String?
+
+    init(
+        sites: [PangolinSite],
+        strings: PangolinStrings,
+        onSave: @escaping (PangolinPrivateResourceCreateInput) async throws -> Void
+    ) {
+        self.sites = sites
+        self.strings = strings
+        self.onSave = onSave
+        _siteId = State(initialValue: sites.first?.siteId ?? 0)
+    }
+
+    private var canSave: Bool {
+        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !destination.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            siteId > 0 &&
+            ["host", "cidr"].contains(mode) &&
+            (authDaemonPort.isEmpty || Int(authDaemonPort) != nil) &&
+            !isSaving
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                if let errorMessage, !errorMessage.isEmpty {
+                    Section {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(AppTheme.danger)
+                    }
+                }
+
+                Section(strings.createPrivateResource) {
+                    TextField(PangolinEditorCopy.name(localizer.language), text: $name)
+                    Picker(strings.site, selection: $siteId) {
+                        ForEach(sites) { site in
+                            Text(site.name).tag(site.siteId)
+                        }
+                    }
+                    Picker(PangolinEditorCopy.mode(localizer.language), selection: $mode) {
+                        Text(PangolinEditorCopy.hostMode(localizer.language)).tag("host")
+                        Text(PangolinEditorCopy.cidrMode(localizer.language)).tag("cidr")
+                    }
+                    TextField(PangolinEditorCopy.destination(localizer.language), text: $destination)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField(PangolinEditorCopy.alias(localizer.language), text: $alias)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField(PangolinEditorCopy.tcpPorts(localizer.language), text: $tcpPorts)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField(PangolinEditorCopy.udpPorts(localizer.language), text: $udpPorts)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField(PangolinEditorCopy.authDaemonPort(localizer.language), text: $authDaemonPort)
+                        .keyboardType(.numberPad)
+                    Picker(PangolinEditorCopy.authDaemonMode(localizer.language), selection: $authDaemonMode) {
+                        Text(PangolinEditorCopy.none(localizer.language)).tag("")
+                        Text(PangolinEditorCopy.siteMode(localizer.language)).tag("site")
+                        Text(PangolinEditorCopy.remoteMode(localizer.language)).tag("remote")
+                    }
+                    Toggle(PangolinEditorCopy.disableIcmp(localizer.language), isOn: $disableIcmp)
+                }
+            }
+            .navigationTitle(strings.createPrivateResource)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(localizer.t.cancel) { dismiss() }
+                        .disabled(isSaving)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(localizer.t.save) { Task { await save() } }
+                        .disabled(!canSave)
+                        .fontWeight(.semibold)
+                }
+            }
+        }
+    }
+
+    private func save() async {
+        isSaving = true
+        errorMessage = nil
+        defer { isSaving = false }
+
+        do {
+            try await onSave(
+                PangolinPrivateResourceCreateInput(
+                    name: name,
+                    siteId: siteId,
+                    mode: mode,
+                    destination: destination,
+                    enabled: enabled,
+                    alias: alias,
+                    tcpPortRangeString: tcpPorts,
+                    udpPortRangeString: udpPorts,
+                    disableIcmp: disableIcmp,
+                    authDaemonPort: authDaemonPort,
+                    authDaemonMode: authDaemonMode.isEmpty ? nil : authDaemonMode
+                )
+            )
+            HapticManager.success()
+            dismiss()
+        } catch let error as APIError {
+            errorMessage = error.localizedDescription
+            HapticManager.error()
+        } catch {
+            errorMessage = error.localizedDescription
+            HapticManager.error()
+        }
+    }
+}
+
+private struct PangolinPublicResourceCreateSheet: View {
+    let sites: [PangolinSite]
+    let domains: [PangolinDomain]
+    let strings: PangolinStrings
+    let onSave: (PangolinPublicResourceCreateInput) async throws -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @Environment(Localizer.self) private var localizer
+
+    @State private var name = ""
+    @State private var protocolName = "http"
+    @State private var enabled = true
+    @State private var domainId: String
+    @State private var subdomain = ""
+    @State private var proxyPort = ""
+    @State private var siteId: Int
+    @State private var targetIp = ""
+    @State private var targetPort = ""
+    @State private var targetEnabled = true
+    @State private var targetMethod = "http"
+    @State private var isSaving = false
+    @State private var errorMessage: String?
+
+    init(
+        sites: [PangolinSite],
+        domains: [PangolinDomain],
+        strings: PangolinStrings,
+        onSave: @escaping (PangolinPublicResourceCreateInput) async throws -> Void
+    ) {
+        self.sites = sites
+        self.domains = domains
+        self.strings = strings
+        self.onSave = onSave
+        _domainId = State(initialValue: domains.first?.domainId ?? "")
+        _siteId = State(initialValue: sites.first?.siteId ?? 0)
+    }
+
+    private var isHttp: Bool { protocolName == "http" }
+
+    private var canSave: Bool {
+        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            siteId > 0 &&
+            !targetIp.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            Int(targetPort) != nil &&
+            (!isHttp || !domainId.isEmpty) &&
+            (isHttp || Int(proxyPort) != nil) &&
+            !isSaving
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                if let errorMessage, !errorMessage.isEmpty {
+                    Section {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(AppTheme.danger)
+                    }
+                }
+
+                Section(strings.createPublicResource) {
+                    TextField(PangolinEditorCopy.name(localizer.language), text: $name)
+                    Picker(strings.protocolLabel, selection: $protocolName) {
+                        Text(strings.httpResource).tag("http")
+                        Text(strings.tcpResource).tag("tcp")
+                        Text(strings.udpResource).tag("udp")
+                    }
+                    if isHttp {
+                        Picker(strings.domainLabel, selection: $domainId) {
+                            ForEach(domains) { domain in
+                                Text(domain.baseDomain).tag(domain.domainId)
+                            }
+                        }
+                        TextField(strings.subdomainLabel, text: $subdomain)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                    } else {
+                        TextField(strings.proxyPortLabel, text: $proxyPort)
+                            .keyboardType(.numberPad)
+                    }
+                    Toggle(strings.enabled, isOn: $enabled)
+                }
+
+                Section(PangolinEditorCopy.target(localizer.language)) {
+                    Picker(strings.site, selection: $siteId) {
+                        ForEach(sites) { site in
+                            Text(site.name).tag(site.siteId)
+                        }
+                    }
+                    TextField(PangolinEditorCopy.targetIp(localizer.language), text: $targetIp)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.numbersAndPunctuation)
+                    TextField(PangolinEditorCopy.targetPort(localizer.language), text: $targetPort)
+                        .keyboardType(.numberPad)
+                    if isHttp {
+                        Picker(strings.backendMethodLabel, selection: $targetMethod) {
+                            Text(strings.httpMethod).tag("http")
+                            Text(strings.httpsMethod).tag("https")
+                            Text(strings.h2cMethod).tag("h2c")
+                        }
+                    }
+                    Toggle(PangolinEditorCopy.targetEnabled(localizer.language), isOn: $targetEnabled)
+                }
+            }
+            .navigationTitle(strings.createPublicResource)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(localizer.t.cancel) { dismiss() }
+                        .disabled(isSaving)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(localizer.t.save) { Task { await save() } }
+                        .disabled(!canSave)
+                        .fontWeight(.semibold)
+                }
+            }
+        }
+    }
+
+    private func save() async {
+        isSaving = true
+        errorMessage = nil
+        defer { isSaving = false }
+
+        do {
+            try await onSave(
+                PangolinPublicResourceCreateInput(
+                    name: name,
+                    resourceProtocol: protocolName,
+                    enabled: enabled,
+                    domainId: isHttp ? domainId : nil,
+                    subdomain: subdomain,
+                    proxyPort: proxyPort,
+                    targetSiteId: siteId,
+                    targetIp: targetIp,
+                    targetPort: targetPort,
+                    targetEnabled: targetEnabled,
+                    targetMethod: isHttp ? targetMethod : nil
+                )
+            )
+            HapticManager.success()
+            dismiss()
+        } catch let error as APIError {
+            errorMessage = error.localizedDescription
+            HapticManager.error()
+        } catch {
+            errorMessage = error.localizedDescription
+            HapticManager.error()
+        }
+    }
+}
+
+private enum PangolinEditorCopy {
+    static func editPublicResource(_ language: Language) -> String {
+        switch language {
+        case .it: return "Modifica risorsa pubblica"
+        case .fr: return "Modifier la ressource publique"
+        case .es: return "Editar recurso publico"
+        case .de: return "Offentliche Ressource bearbeiten"
+        case .en: return "Edit Public Resource"
+        }
+    }
+
+    static func editPrivateResource(_ language: Language) -> String {
+        switch language {
+        case .it: return "Modifica risorsa privata"
+        case .fr: return "Modifier la ressource privee"
+        case .es: return "Editar recurso privado"
+        case .de: return "Private Ressource bearbeiten"
+        case .en: return "Edit Private Resource"
+        }
+    }
+
+    static func name(_ language: Language) -> String {
+        switch language {
+        case .it: return "Nome"
+        case .fr: return "Nom"
+        case .es: return "Nombre"
+        case .de: return "Name"
+        case .en: return "Name"
+        }
+    }
+
+    static func target(_ language: Language) -> String {
+        switch language {
+        case .it: return "Target"
+        case .fr: return "Cible"
+        case .es: return "Destino"
+        case .de: return "Ziel"
+        case .en: return "Target"
+        }
+    }
+
+    static func targetIp(_ language: Language) -> String {
+        switch language {
+        case .it: return "IP target"
+        case .fr: return "IP cible"
+        case .es: return "IP del destino"
+        case .de: return "Ziel-IP"
+        case .en: return "Target IP"
+        }
+    }
+
+    static func targetPort(_ language: Language) -> String {
+        switch language {
+        case .it: return "Porta target"
+        case .fr: return "Port cible"
+        case .es: return "Puerto del destino"
+        case .de: return "Ziel-Port"
+        case .en: return "Target Port"
+        }
+    }
+
+    static func targetEnabled(_ language: Language) -> String {
+        switch language {
+        case .it: return "Target attivo"
+        case .fr: return "Cible active"
+        case .es: return "Destino activo"
+        case .de: return "Ziel aktiv"
+        case .en: return "Target Enabled"
+        }
+    }
+
+    static func tls(_ language: Language) -> String {
+        "TLS"
+    }
+
+    static func pangolinSso(_ language: Language) -> String {
+        switch language {
+        case .it: return "Pangolin SSO"
+        case .fr: return "SSO Pangolin"
+        case .es: return "SSO de Pangolin"
+        case .de: return "Pangolin SSO"
+        case .en: return "Pangolin SSO"
+        }
+    }
+
+    static func mode(_ language: Language) -> String {
+        switch language {
+        case .it: return "Modalita"
+        case .fr: return "Mode"
+        case .es: return "Modo"
+        case .de: return "Modus"
+        case .en: return "Mode"
+        }
+    }
+
+    static func destination(_ language: Language) -> String {
+        switch language {
+        case .it: return "Destinazione"
+        case .fr: return "Destination"
+        case .es: return "Destino"
+        case .de: return "Ziel"
+        case .en: return "Destination"
+        }
+    }
+
+    static func alias(_ language: Language) -> String {
+        "Alias"
+    }
+
+    static func tcpPorts(_ language: Language) -> String {
+        switch language {
+        case .it: return "Porte TCP"
+        case .fr: return "Ports TCP"
+        case .es: return "Puertos TCP"
+        case .de: return "TCP-Ports"
+        case .en: return "TCP Ports"
+        }
+    }
+
+    static func udpPorts(_ language: Language) -> String {
+        switch language {
+        case .it: return "Porte UDP"
+        case .fr: return "Ports UDP"
+        case .es: return "Puertos UDP"
+        case .de: return "UDP-Ports"
+        case .en: return "UDP Ports"
+        }
+    }
+
+    static func authDaemonPort(_ language: Language) -> String {
+        switch language {
+        case .it: return "Porta auth daemon"
+        case .fr: return "Port auth daemon"
+        case .es: return "Puerto auth daemon"
+        case .de: return "Auth-Daemon-Port"
+        case .en: return "Auth Daemon Port"
+        }
+    }
+
+    static func authDaemonMode(_ language: Language) -> String {
+        switch language {
+        case .it: return "Modalita auth daemon"
+        case .fr: return "Mode auth daemon"
+        case .es: return "Modo auth daemon"
+        case .de: return "Auth-Daemon-Modus"
+        case .en: return "Auth Daemon Mode"
+        }
+    }
+
+    static func disableIcmp(_ language: Language) -> String {
+        switch language {
+        case .it: return "Disabilita ICMP"
+        case .fr: return "Desactiver ICMP"
+        case .es: return "Desactivar ICMP"
+        case .de: return "ICMP deaktivieren"
+        case .en: return "Disable ICMP"
+        }
+    }
+
+    static func hostMode(_ language: Language) -> String {
+        "Host"
+    }
+
+    static func cidrMode(_ language: Language) -> String {
+        "CIDR"
+    }
+
+    static func siteMode(_ language: Language) -> String {
+        switch language {
+        case .it: return "Sito"
+        case .fr: return "Site"
+        case .es: return "Sitio"
+        case .de: return "Site"
+        case .en: return "Site"
+        }
+    }
+
+    static func remoteMode(_ language: Language) -> String {
+        switch language {
+        case .it: return "Remoto"
+        case .fr: return "Distant"
+        case .es: return "Remoto"
+        case .de: return "Remote"
+        case .en: return "Remote"
+        }
+    }
+
+    static func none(_ language: Language) -> String {
+        switch language {
+        case .it: return "Nessuno"
+        case .fr: return "Aucun"
+        case .es: return "Ninguno"
+        case .de: return "Keine"
+        case .en: return "None"
+        }
+    }
+
+    static func clientSource(_ source: PangolinClientSource, language: Language) -> String {
+        switch (source, language) {
+        case (.machine, .it): return "Client macchina"
+        case (.machine, .fr): return "Client machine"
+        case (.machine, .es): return "Cliente de maquina"
+        case (.machine, .de): return "Maschinen-Client"
+        case (.machine, .en): return "Machine Client"
+        case (.userDevice, .it): return "Dispositivo utente"
+        case (.userDevice, .fr): return "Appareil utilisateur"
+        case (.userDevice, .es): return "Dispositivo de usuario"
+        case (.userDevice, .de): return "Benutzergerat"
+        case (.userDevice, .en): return "User Device"
+        }
+    }
+
+    static func agent(_ value: String, language: Language) -> String {
+        switch language {
+        case .it: return "Agent \(value)"
+        case .fr: return "Agent \(value)"
+        case .es: return "Agente \(value)"
+        case .de: return "Agent \(value)"
+        case .en: return "Agent \(value)"
+        }
+    }
 }
 
 private struct FlexiblePillRow: View {
@@ -678,7 +1998,9 @@ struct PangolinStrings {
     let organizations: String
     let sites: String
     let privateResources: String
+    let createPrivateResource: String
     let publicResources: String
+    let createPublicResource: String
     let clients: String
     let domains: String
     let traffic: String
@@ -688,6 +2010,8 @@ struct PangolinStrings {
     let billing: String
     let enabled: String
     let disabled: String
+    let enableAction: String
+    let disableAction: String
     let online: String
     let offline: String
     let blocked: String
@@ -710,6 +2034,17 @@ struct PangolinStrings {
     let noClients: String
     let noDomains: String
     let site: String
+    let protocolLabel: String
+    let domainLabel: String
+    let subdomainLabel: String
+    let backendMethodLabel: String
+    let proxyPortLabel: String
+    let httpResource: String
+    let tcpResource: String
+    let udpResource: String
+    let httpMethod: String
+    let httpsMethod: String
+    let h2cMethod: String
     let healthy: String
     let unhealthy: String
     let allSitesOnline: String
@@ -795,7 +2130,9 @@ extension PangolinStrings {
                 organizations: "Organizzazioni",
                 sites: "Siti",
                 privateResources: "Risorse private",
+                createPrivateResource: "Crea risorsa privata",
                 publicResources: "Risorse pubbliche",
+                createPublicResource: "Crea risorsa pubblica",
                 clients: "Client",
                 domains: "Domini",
                 traffic: "Traffico",
@@ -805,6 +2142,8 @@ extension PangolinStrings {
                 billing: "Billing",
                 enabled: "Attivo",
                 disabled: "Disattivato",
+                enableAction: "Attiva risorsa",
+                disableAction: "Disattiva risorsa",
                 online: "Online",
                 offline: "Offline",
                 blocked: "Bloccato",
@@ -827,6 +2166,17 @@ extension PangolinStrings {
                 noClients: "Nessun client registrato",
                 noDomains: "Nessun dominio gestito",
                 site: "Sito",
+                protocolLabel: "Protocollo",
+                domainLabel: "Dominio",
+                subdomainLabel: "Sottodominio",
+                backendMethodLabel: "Metodo backend",
+                proxyPortLabel: "Porta proxy",
+                httpResource: "HTTP",
+                tcpResource: "TCP",
+                udpResource: "UDP",
+                httpMethod: "HTTP",
+                httpsMethod: "HTTPS",
+                h2cMethod: "H2C",
                 healthy: "Sano",
                 unhealthy: "Non sano",
                 allSitesOnline: "Tutti i siti online",
@@ -866,7 +2216,9 @@ extension PangolinStrings {
                 organizations: "Organisations",
                 sites: "Sites",
                 privateResources: "Ressources privées",
+                createPrivateResource: "Créer une ressource privée",
                 publicResources: "Ressources publiques",
+                createPublicResource: "Créer une ressource publique",
                 clients: "Clients",
                 domains: "Domaines",
                 traffic: "Trafic",
@@ -876,6 +2228,8 @@ extension PangolinStrings {
                 billing: "Facturation",
                 enabled: "Activé",
                 disabled: "Désactivé",
+                enableAction: "Activer la ressource",
+                disableAction: "Désactiver la ressource",
                 online: "En ligne",
                 offline: "Hors ligne",
                 blocked: "Bloqué",
@@ -898,6 +2252,17 @@ extension PangolinStrings {
                 noClients: "Aucun client inscrit",
                 noDomains: "Aucun domaine géré",
                 site: "Site",
+                protocolLabel: "Protocole",
+                domainLabel: "Domaine",
+                subdomainLabel: "Sous-domaine",
+                backendMethodLabel: "Méthode backend",
+                proxyPortLabel: "Port proxy",
+                httpResource: "HTTP",
+                tcpResource: "TCP",
+                udpResource: "UDP",
+                httpMethod: "HTTP",
+                httpsMethod: "HTTPS",
+                h2cMethod: "H2C",
                 healthy: "Sain",
                 unhealthy: "Dégradé",
                 allSitesOnline: "Tous les sites sont en ligne",
@@ -937,7 +2302,9 @@ extension PangolinStrings {
                 organizations: "Organizaciones",
                 sites: "Sitios",
                 privateResources: "Recursos privados",
+                createPrivateResource: "Crear recurso privado",
                 publicResources: "Recursos públicos",
+                createPublicResource: "Crear recurso público",
                 clients: "Clientes",
                 domains: "Dominios",
                 traffic: "Tráfico",
@@ -947,6 +2314,8 @@ extension PangolinStrings {
                 billing: "Facturación",
                 enabled: "Activo",
                 disabled: "Desactivado",
+                enableAction: "Activar recurso",
+                disableAction: "Desactivar recurso",
                 online: "En línea",
                 offline: "Sin conexión",
                 blocked: "Bloqueado",
@@ -969,6 +2338,17 @@ extension PangolinStrings {
                 noClients: "No hay clientes registrados",
                 noDomains: "No hay dominios gestionados",
                 site: "Sitio",
+                protocolLabel: "Protocolo",
+                domainLabel: "Dominio",
+                subdomainLabel: "Subdominio",
+                backendMethodLabel: "Método backend",
+                proxyPortLabel: "Puerto proxy",
+                httpResource: "HTTP",
+                tcpResource: "TCP",
+                udpResource: "UDP",
+                httpMethod: "HTTP",
+                httpsMethod: "HTTPS",
+                h2cMethod: "H2C",
                 healthy: "Saludable",
                 unhealthy: "No saludable",
                 allSitesOnline: "Todos los sitios en línea",
@@ -1008,7 +2388,9 @@ extension PangolinStrings {
                 organizations: "Organisationen",
                 sites: "Sites",
                 privateResources: "Private Ressourcen",
+                createPrivateResource: "Private Ressource erstellen",
                 publicResources: "Öffentliche Ressourcen",
+                createPublicResource: "Öffentliche Ressource erstellen",
                 clients: "Clients",
                 domains: "Domains",
                 traffic: "Traffic",
@@ -1018,6 +2400,8 @@ extension PangolinStrings {
                 billing: "Abrechnung",
                 enabled: "Aktiviert",
                 disabled: "Deaktiviert",
+                enableAction: "Ressource aktivieren",
+                disableAction: "Ressource deaktivieren",
                 online: "Online",
                 offline: "Offline",
                 blocked: "Blockiert",
@@ -1040,6 +2424,17 @@ extension PangolinStrings {
                 noClients: "Keine Clients registriert",
                 noDomains: "Keine verwalteten Domains",
                 site: "Site",
+                protocolLabel: "Protokoll",
+                domainLabel: "Domain",
+                subdomainLabel: "Subdomain",
+                backendMethodLabel: "Backend-Methode",
+                proxyPortLabel: "Proxy-Port",
+                httpResource: "HTTP",
+                tcpResource: "TCP",
+                udpResource: "UDP",
+                httpMethod: "HTTP",
+                httpsMethod: "HTTPS",
+                h2cMethod: "H2C",
                 healthy: "Gesund",
                 unhealthy: "Ungesund",
                 allSitesOnline: "Alle Sites online",
@@ -1079,7 +2474,9 @@ extension PangolinStrings {
                 organizations: "Organizations",
                 sites: "Sites",
                 privateResources: "Private Resources",
+                createPrivateResource: "Create private resource",
                 publicResources: "Public Resources",
+                createPublicResource: "Create public resource",
                 clients: "Clients",
                 domains: "Domains",
                 traffic: "Traffic",
@@ -1089,6 +2486,8 @@ extension PangolinStrings {
                 billing: "Billing",
                 enabled: "Enabled",
                 disabled: "Disabled",
+                enableAction: "Enable resource",
+                disableAction: "Disable resource",
                 online: "Online",
                 offline: "Offline",
                 blocked: "Blocked",
@@ -1111,6 +2510,17 @@ extension PangolinStrings {
                 noClients: "No clients enrolled",
                 noDomains: "No managed domains",
                 site: "Site",
+                protocolLabel: "Protocol",
+                domainLabel: "Domain",
+                subdomainLabel: "Subdomain",
+                backendMethodLabel: "Backend method",
+                proxyPortLabel: "Proxy port",
+                httpResource: "HTTP",
+                tcpResource: "TCP",
+                udpResource: "UDP",
+                httpMethod: "HTTP",
+                httpsMethod: "HTTPS",
+                h2cMethod: "H2C",
                 healthy: "Healthy",
                 unhealthy: "Unhealthy",
                 allSitesOnline: "All sites online",

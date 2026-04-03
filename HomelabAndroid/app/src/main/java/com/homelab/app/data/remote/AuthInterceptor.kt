@@ -120,6 +120,8 @@ class AuthInterceptor @Inject constructor(
             bypassHeader != "true" &&
             instance != null &&
             instance.type != ServiceType.PIHOLE &&
+            instance.type != ServiceType.BESZEL &&
+            instance.type != ServiceType.NGINX_PROXY_MANAGER &&
             !instanceIdHeader.isNullOrBlank()
         ) {
             globalEventBus.emitAuthError(instanceIdHeader)

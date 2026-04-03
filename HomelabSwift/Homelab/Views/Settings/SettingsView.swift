@@ -41,7 +41,8 @@ struct SettingsView: View {
                             servicesSection
                             themeSection
                             appIconSection
-                            homeStyleSection
+
+
                             languageSection
                             securitySection
                             backupSection
@@ -207,41 +208,6 @@ struct SettingsView: View {
         }
     }
 
-    private var homeStyleSection: some View {
-        HStack(spacing: 12) {
-            Image(systemName: settingsStore.homeCyberpunkCardsEnabled ? "sparkles.rectangle.stack.fill" : "rectangle.stack")
-                .font(.title3)
-                .foregroundStyle(settingsStore.homeCyberpunkCardsEnabled ? AppTheme.accent : AppTheme.textMuted)
-                .frame(width: 34, height: 34)
-                .background(Color.secondary.opacity(0.14), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(localizer.t.settingsHomeCyberpunkCards)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
-                Text(localizer.t.settingsHomeCyberpunkCardsDesc)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.86)
-            }
-
-            Spacer()
-
-            Toggle("", isOn: Binding(
-                get: { settingsStore.homeCyberpunkCardsEnabled },
-                set: {
-                    settingsStore.homeCyberpunkCardsEnabled = $0
-                    HapticManager.light()
-                }
-            ))
-            .labelsHidden()
-            .tint(AppTheme.accent)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .glassCard(cornerRadius: 14)
-    }
 
     @ViewBuilder
     private var appIconSection: some View {
@@ -948,41 +914,113 @@ struct DebugLogsView: View {
     @Environment(Localizer.self) private var localizer
     @State private var logStore = LogStore.shared
     @State private var showCopiedBanner = false
-    
+    @State private var scrollProxy: ScrollViewProxy?
+
+    // Filter state
+    @State private var selectedLevels: Set<LogStore.LogLevel> = Set(LogStore.LogLevel.allCases)
+    @State private var selectedSources: Set<String> = []
+    @State private var searchText = ""
+    @State private var showFilters = true
+
+    // All unique sources currently in the log
+    private var availableSources: [String] {
+        Array(Set(logStore.entries.map { $0.source })).sorted()
+    }
+
+    private var filteredEntries: [LogStore.LogEntry] {
+        let reversed = Array(logStore.entries.reversed())
+        return reversed.filter { entry in
+            // Level filter
+            guard selectedLevels.contains(entry.level) else { return false }
+            // Source filter (empty = show all)
+            if !selectedSources.isEmpty && !selectedSources.contains(entry.source) {
+                return false
+            }
+            // Text search
+            if !searchText.isEmpty {
+                let query = searchText.lowercased()
+                return entry.message.lowercased().contains(query)
+                    || entry.source.lowercased().contains(query)
+                    || entry.level.rawValue.lowercased().contains(query)
+            }
+            return true
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
                 AppTheme.premiumGradient().ignoresSafeArea()
-                
+
                 VStack(spacing: 0) {
-                    let entries = Array(logStore.entries.reversed())
-                    if let latestError = entries.first(where: { $0.level == .error }) {
-                        errorBanner(latestError)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
+                    // Filter section (animated)
+                    if showFilters {
+                        filterSection
+                            .transition(.move(edge: .top).combined(with: .opacity))
                     }
 
-                    ScrollViewReader { proxy in
-                        List {
-                            ForEach(entries) { entry in
-                                logRow(entry)
-                                    .listRowBackground(Color.clear)
-                                    .listRowSeparator(.hidden)
-                                    .id(entry.id)
-                            }
+                    // Count badge — always visible when there are logs
+                    if !logStore.entries.isEmpty {
+                        let filtered = filteredEntries
+                        HStack {
+                            Text("\(filtered.count) / \(logStore.entries.count)")
+                                .font(.system(.caption2, design: .monospaced, weight: .semibold))
+                                .foregroundStyle(AppTheme.textMuted)
+                            Spacer()
                         }
-                        .listStyle(.plain)
-                        .background(Color.clear)
-                        .onChange(of: logStore.entries.count) { _, _ in
-                            if let first = entries.first {
-                                withAnimation {
-                                    proxy.scrollTo(first.id, anchor: .top)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 4)
+                    }
+
+                    // Empty state — no logs at all
+                    if logStore.entries.isEmpty {
+                        Spacer()
+                        VStack(spacing: 12) {
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .font(.system(size: 40, weight: .light))
+                                .foregroundStyle(AppTheme.textMuted)
+                            Text("No logs yet")
+                                .font(.subheadline)
+                                .foregroundStyle(AppTheme.textSecondary)
+                        }
+                        .padding(32)
+                        Spacer()
+                    }
+                    // Empty state — filters too strict
+                    else if filteredEntries.isEmpty {
+                        Spacer()
+                        VStack(spacing: 12) {
+                            Image(systemName: "line.3.horizontal.decrease.circle")
+                                .font(.system(size: 40, weight: .light))
+                                .foregroundStyle(AppTheme.textMuted)
+                            Text(localizer.t.debugLogsNoResults)
+                                .font(.subheadline)
+                                .foregroundStyle(AppTheme.textSecondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(32)
+                        Spacer()
+                    }
+                    // Log list
+                    else {
+                        ScrollViewReader { proxy in
+                            List {
+                                ForEach(filteredEntries) { entry in
+                                    logRow(entry)
+                                        .listRowBackground(Color.clear)
+                                        .listRowSeparator(.hidden)
+                                        .listRowInsets(EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
+                                        .id(entry.id)
                                 }
                             }
+                            .listStyle(.plain)
+                            .background(Color.clear)
+                            .onAppear { scrollProxy = proxy }
                         }
                     }
                 }
-                
+
+                // Copied banner
                 if showCopiedBanner {
                     VStack {
                         Spacer()
@@ -1006,20 +1044,45 @@ struct DebugLogsView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(localizer.t.close) { dismiss() }
                 }
-                
+
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack {
+                    HStack(spacing: 4) {
+                        // Scroll to newest
+                        Button {
+                            if let first = filteredEntries.first {
+                                withAnimation(.snappy(duration: 0.3)) {
+                                    scrollProxy?.scrollTo(first.id, anchor: .top)
+                                }
+                            }
+                            HapticManager.light()
+                        } label: {
+                            Image(systemName: "arrow.up.to.line")
+                        }
+
+                        // Toggle filters
+                        Button {
+                            withAnimation(.snappy(duration: 0.25)) {
+                                showFilters.toggle()
+                            }
+                            HapticManager.light()
+                        } label: {
+                            Image(systemName: showFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                        }
+
+                        // Copy logs
+                        Button {
+                            copyLogs()
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                        }
+
+                        // Clear logs
                         Button {
                             logStore.clear()
                             HapticManager.light()
                         } label: {
                             Image(systemName: "trash")
-                        }
-                        
-                        Button {
-                            copyLogs()
-                        } label: {
-                            Image(systemName: "doc.on.doc")
+                                .foregroundStyle(.red)
                         }
                     }
                 }
@@ -1027,62 +1090,176 @@ struct DebugLogsView: View {
         }
     }
 
-    private func errorBanner(_ entry: LogStore.LogEntry) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(localizer.t.debugLogsErrorTitle)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppTheme.textMuted)
-            Text(entry.message)
-                .font(.caption)
-                .foregroundStyle(.primary)
-                .lineLimit(3)
-            Button(localizer.t.debugLogsOpenSettings) {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(url)
+    // MARK: - Filter Section
+
+    private var filterSection: some View {
+        VStack(spacing: 10) {
+            // Search bar
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.textMuted)
+                TextField(localizer.t.debugLogsSearchPlaceholder, text: $searchText)
+                    .font(.subheadline)
+                    .textFieldStyle(.plain)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                if !searchText.isEmpty {
+                    Button {
+                        withAnimation(.snappy(duration: 0.2)) {
+                            searchText = ""
+                        }
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.textMuted)
+                    }
                 }
             }
-            .buttonStyle(.borderedProminent)
-        }
-        .padding(12)
-        .glassCard()
-    }
-    
-    private func logRow(_ entry: LogStore.LogEntry) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Image(systemName: entry.level.icon)
-                    .font(.caption2)
-                    .foregroundStyle(colorForLevel(entry.level))
-                
-                Text(entry.formattedTime)
-                    .font(.system(.caption2, design: .monospaced))
-                    .foregroundStyle(.secondary)
-                
-                Text(entry.level.rawValue)
-                    .font(.system(.caption2, design: .monospaced, weight: .bold))
-                    .foregroundStyle(colorForLevel(entry.level))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .glassCard(cornerRadius: AppTheme.smallRadius)
+
+            // Level chips
+            GlassEffectContainer(spacing: 6) {
+                HStack(spacing: 6) {
+                    ForEach(LogStore.LogLevel.allCases, id: \.rawValue) { level in
+                        levelChip(level)
+                    }
+                }
             }
-            
-            Text(entry.message)
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(.primary)
-                .textSelection(.enabled)
+
+            // Source chips (only show if there are multiple sources)
+            if availableSources.count > 1 {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    GlassEffectContainer(spacing: 6) {
+                        HStack(spacing: 6) {
+                            ForEach(availableSources, id: \.self) { source in
+                                sourceChip(source)
+                            }
+                        }
+                    }
+                }
+            }
         }
+        .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
-        .padding(.horizontal, 8)
     }
-    
+
+    // MARK: - Level chip
+
+    private func levelChip(_ level: LogStore.LogLevel) -> some View {
+        let isSelected = selectedLevels.contains(level)
+        let tint = colorForLevel(level)
+
+        return Button {
+            withAnimation(.snappy(duration: 0.2)) {
+                if isSelected {
+                    selectedLevels.remove(level)
+                } else {
+                    selectedLevels.insert(level)
+                }
+            }
+            HapticManager.light()
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: level.icon)
+                    .font(.system(size: 10, weight: .semibold))
+                Text(level.rawValue)
+                    .font(.system(.caption2, design: .monospaced, weight: .bold))
+            }
+            .foregroundStyle(isSelected ? tint : AppTheme.textMuted)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .glassCard(cornerRadius: AppTheme.pillRadius, tint: isSelected ? tint.opacity(0.15) : nil)
+            .opacity(isSelected ? 1.0 : 0.5)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Source chip
+
+    private func sourceChip(_ source: String) -> some View {
+        let isSelected = selectedSources.contains(source)
+        let showAll = selectedSources.isEmpty
+
+        return Button {
+            withAnimation(.snappy(duration: 0.2)) {
+                if isSelected {
+                    selectedSources.remove(source)
+                } else {
+                    selectedSources.insert(source)
+                }
+            }
+            HapticManager.light()
+        } label: {
+            Text(source)
+                .font(.system(.caption2, design: .rounded, weight: .semibold))
+                .foregroundStyle(isSelected ? AppTheme.accent : (showAll ? .primary : AppTheme.textMuted))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .glassCard(cornerRadius: AppTheme.pillRadius, tint: isSelected ? AppTheme.accent.opacity(0.15) : nil)
+                .opacity(isSelected || showAll ? 1.0 : 0.5)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Log Row
+
+    private func logRow(_ entry: LogStore.LogEntry) -> some View {
+        HStack(spacing: 0) {
+            // Color accent strip
+            RoundedRectangle(cornerRadius: 2)
+                .fill(colorForLevel(entry.level))
+                .frame(width: 3)
+                .padding(.vertical, 4)
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Image(systemName: entry.level.icon)
+                        .font(.caption2)
+                        .foregroundStyle(colorForLevel(entry.level))
+
+                    Text(entry.formattedTime)
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundStyle(.secondary)
+
+                    Text(entry.level.rawValue)
+                        .font(.system(.caption2, design: .monospaced, weight: .bold))
+                        .foregroundStyle(colorForLevel(entry.level))
+
+                    Spacer()
+
+                    Text(entry.source)
+                        .font(.system(.caption2, design: .rounded, weight: .medium))
+                        .foregroundStyle(AppTheme.accent.opacity(0.8))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(AppTheme.accent.opacity(0.08), in: Capsule())
+                }
+
+                Text(entry.message)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(.primary)
+                    .textSelection(.enabled)
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 10)
+        }
+        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    // MARK: - Helpers
+
     private func colorForLevel(_ level: LogStore.LogLevel) -> Color {
         switch level {
         case .debug: return .secondary
         case .info: return .blue
-        case .error: return .red
+        case .warn: return .orange
         case .network: return .purple
         }
     }
-    
+
     private func copyLogs() {
         UIPasteboard.general.string = logStore.export()
         HapticManager.success()
@@ -1096,3 +1273,4 @@ struct DebugLogsView: View {
         }
     }
 }
+

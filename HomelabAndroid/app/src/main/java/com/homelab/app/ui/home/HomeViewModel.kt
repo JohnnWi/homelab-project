@@ -100,8 +100,8 @@ class HomeViewModel @Inject constructor(
     val hiddenServices: StateFlow<Set<String>> = localPreferencesRepository.hiddenServices
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
-    val homeCyberpunkCardsEnabled: StateFlow<Boolean> = localPreferencesRepository.homeCyberpunkCardsEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+
 
     val serviceOrder: StateFlow<List<ServiceType>> = localPreferencesRepository.serviceOrder
         .stateIn(

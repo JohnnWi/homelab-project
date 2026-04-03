@@ -21,9 +21,14 @@ object Logger {
         Log.w(tag, message)
     }
 
+    fun net(tag: String, message: String) {
+        LogStore.add(LogLevel.NET, tag, message)
+        Log.i(tag, message)
+    }
+
     fun e(tag: String, message: String, throwable: Throwable? = null) {
         val formatted = if (throwable?.message.isNullOrBlank()) message else "$message (${throwable?.message})"
-        LogStore.add(LogLevel.ERROR, tag, formatted)
+        LogStore.add(LogLevel.WARN, tag, formatted)
         Log.e(tag, message, throwable)
     }
 

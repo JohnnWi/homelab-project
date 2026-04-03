@@ -199,6 +199,81 @@ data class PangolinClientsData(
 typealias PangolinClientsResponse = PangolinEnvelope<PangolinClientsData>
 
 @Serializable
+data class PangolinUserDevice(
+    val clientId: Int,
+    val orgId: String,
+    val name: String,
+    val subnet: String? = null,
+    val megabytesIn: Double? = null,
+    val megabytesOut: Double? = null,
+    val orgName: String? = null,
+    val type: String? = null,
+    val online: Boolean = false,
+    val olmVersion: String? = null,
+    val userId: String? = null,
+    val username: String? = null,
+    val userEmail: String? = null,
+    val niceId: String,
+    val agent: String? = null,
+    val approvalState: String? = null,
+    val olmArchived: Boolean = false,
+    val archived: Boolean = false,
+    val blocked: Boolean = false,
+    val deviceModel: String? = null,
+    val fingerprintPlatform: String? = null,
+    val fingerprintOsVersion: String? = null,
+    val fingerprintKernelVersion: String? = null,
+    val fingerprintArch: String? = null,
+    val fingerprintSerialNumber: String? = null,
+    val fingerprintUsername: String? = null,
+    val fingerprintHostname: String? = null,
+    val olmUpdateAvailable: Boolean? = null
+)
+
+@Serializable
+data class PangolinUserDevicesData(
+    val devices: List<PangolinUserDevice> = emptyList()
+)
+
+typealias PangolinUserDevicesResponse = PangolinEnvelope<PangolinUserDevicesData>
+
+@Serializable
+data class PangolinSiteResourceUser(
+    val userId: String
+)
+
+@Serializable
+data class PangolinSiteResourceUsersData(
+    val users: List<PangolinSiteResourceUser> = emptyList()
+)
+
+typealias PangolinSiteResourceUsersResponse = PangolinEnvelope<PangolinSiteResourceUsersData>
+
+@Serializable
+data class PangolinSiteResourceRole(
+    val roleId: Int
+)
+
+@Serializable
+data class PangolinSiteResourceRolesData(
+    val roles: List<PangolinSiteResourceRole> = emptyList()
+)
+
+typealias PangolinSiteResourceRolesResponse = PangolinEnvelope<PangolinSiteResourceRolesData>
+
+@Serializable
+data class PangolinSiteResourceClient(
+    val clientId: Int
+)
+
+@Serializable
+data class PangolinSiteResourceClientsData(
+    val clients: List<PangolinSiteResourceClient> = emptyList()
+)
+
+typealias PangolinSiteResourceClientsResponse = PangolinEnvelope<PangolinSiteResourceClientsData>
+
+@Serializable
 data class PangolinDomain(
     val domainId: String,
     val baseDomain: String,

@@ -847,6 +847,9 @@ struct Translations {
     let debugLogsCopied: String
     let debugLogsErrorTitle: String
     let debugLogsOpenSettings: String
+    let debugLogsSearchPlaceholder: String
+    let debugLogsFilterSource: String
+    let debugLogsNoResults: String
     let actionEdit: String
 
     // Security

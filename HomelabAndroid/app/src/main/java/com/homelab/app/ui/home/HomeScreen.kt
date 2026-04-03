@@ -127,7 +127,7 @@ fun HomeScreen(
     val preferredInstanceIds by viewModel.preferredInstanceIdByType.collectAsStateWithLifecycle()
     val instanceSummaries by viewModel.instanceSummaries.collectAsStateWithLifecycle()
     val summaryLoading by viewModel.summaryLoading.collectAsStateWithLifecycle()
-    val homeCyberpunkCardsEnabled by viewModel.homeCyberpunkCardsEnabled.collectAsStateWithLifecycle()
+
     var showReorderDialog by rememberSaveable { mutableStateOf(false) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -158,6 +158,7 @@ fun HomeScreen(
     }
 
     val visibleTypes = serviceOrder.filter { it.isHomeService && !hiddenServices.contains(it.name) }
+    val hasConfiguredPangolin = instancesByType[ServiceType.PANGOLIN].orEmpty().isNotEmpty()
     val hasUnreachableInstance = visibleTypes
         .flatMap { instancesByType[it].orEmpty() }
         .any { instance ->
@@ -174,6 +175,8 @@ fun HomeScreen(
             }
             resolvedReachable == false
         }
+    val showVpnShortcut = (isTailscaleConnected || hasUnreachableInstance) &&
+        !(hasConfiguredPangolin && isTailscaleConnected)
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -231,7 +234,7 @@ fun HomeScreen(
                 }
             }
 
-            if (isTailscaleConnected || hasUnreachableInstance) {
+            if (showVpnShortcut) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     TailscaleCard(isConnected = isTailscaleConnected)
                 }
@@ -244,7 +247,7 @@ fun HomeScreen(
                     item {
                         ConnectInstanceCard(
                             type = type,
-                            useCyberpunkCards = homeCyberpunkCardsEnabled,
+    
                             onClick = { onNavigateToLogin(type, null) }
                         )
                     }
@@ -252,7 +255,7 @@ fun HomeScreen(
                     items(instances, key = { it.id }) { instance ->
                         InstanceCard(
                             type = type,
-                            useCyberpunkCards = homeCyberpunkCardsEnabled,
+    
                             instance = instance,
                             isPreferred = instance.id == preferredInstanceIds[type],
                             isReachable = reachability[instance.id],
@@ -295,7 +298,6 @@ fun HomeScreen(
 @Composable
 private fun InstanceCard(
     type: ServiceType,
-    useCyberpunkCards: Boolean,
     instance: ServiceInstance,
     isPreferred: Boolean,
     isReachable: Boolean?,
@@ -305,8 +307,6 @@ private fun InstanceCard(
     onOpen: () -> Unit,
     onRefresh: () -> Unit
 ) {
-    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.45f
-    val useEnhancedBrandCard = useCyberpunkCards && (type == ServiceType.JELLYSTAT || type == ServiceType.PLEX)
     val resolvedReachable = when {
         summary != null -> true
         isReachable == false && (isSummaryLoading || isPinging) -> null
@@ -315,12 +315,14 @@ private fun InstanceCard(
         else -> null
     }
     val statusAccent = when (resolvedReachable) {
+        true -> StatusGreen
+        false -> Color(0xFFEF5350)
         null -> MaterialTheme.colorScheme.onSurfaceVariant
-        else -> type.primaryColor
     }
     val statusBackground = when (resolvedReachable) {
+        true -> StatusGreen.copy(alpha = 0.15f)
+        false -> Color(0xFFEF5350).copy(alpha = 0.15f)
         null -> MaterialTheme.colorScheme.surfaceVariant
-        else -> type.primaryColor.copy(alpha = 0.15f)
     }
     val statusLabel = when (resolvedReachable) {
         true -> stringResource(R.string.home_status_online)
@@ -328,34 +330,6 @@ private fun InstanceCard(
         null -> stringResource(R.string.home_verifying)
     }
     val cardShape = RoundedCornerShape(18.dp)
-    val cardColor = if (useEnhancedBrandCard) {
-        if (isDarkTheme) Color(0xFF10161F) else Color(0xFFFBFCFF)
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerLow
-    }
-    val cardBorder = if (useEnhancedBrandCard) {
-        BorderStroke(
-            1.25.dp,
-            type.primaryColor.copy(alpha = if (isDarkTheme) 0.82f else 0.58f)
-        )
-    } else {
-        null
-    }
-    val brandColor = type.primaryColor
-    val cardBrush = remember(brandColor, useEnhancedBrandCard, isDarkTheme) {
-        if (useEnhancedBrandCard) {
-            Brush.linearGradient(
-                colors = listOf(
-                    brandColor.copy(alpha = if (isDarkTheme) 0.13f else 0.075f),
-                    Color.Transparent
-                ),
-                start = Offset(0f, 0f),
-                end = Offset(580f, 520f)
-            )
-        } else {
-            null
-        }
-    }
 
     // Resolve label key to localized string
     val summaryLabel = summary?.let { s ->
@@ -381,18 +355,9 @@ private fun InstanceCard(
 
     Surface(
         shape = cardShape,
-        color = cardColor,
-        border = cardBorder
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Box {
-            if (cardBrush != null) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(cardBrush)
-                )
-            }
-
             Column(
                 modifier = Modifier
                     .clickable(onClick = onOpen)
@@ -525,22 +490,8 @@ private fun InstanceCard(
                             )
                         }
                     }
-                    if (isPreferred) {
-                        Surface(
-                            shape = CircleShape,
-                            color = type.primaryColor.copy(alpha = 0.12f),
-                            modifier = Modifier.size(22.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = stringResource(R.string.home_default_badge),
-                                    tint = type.primaryColor,
-                                    modifier = Modifier.size(12.dp)
-                                )
-                            }
-                        }
-                    }
+
+
                 }
             }
         }
@@ -552,92 +503,49 @@ private const val TAILSCALE_ICON_URL = "https://cdn.jsdelivr.net/gh/selfhst/icon
 @Composable
 private fun ConnectInstanceCard(
     type: ServiceType,
-    useCyberpunkCards: Boolean,
     onClick: () -> Unit
 ) {
-    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.45f
-    val useEnhancedBrandCard = useCyberpunkCards && (type == ServiceType.JELLYSTAT || type == ServiceType.PLEX)
-    val cardColor = if (useEnhancedBrandCard) {
-        if (isDarkTheme) Color(0xFF10161F) else Color(0xFFFBFCFF)
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerLow
-    }
-    val cardBorder = if (useEnhancedBrandCard) {
-        BorderStroke(
-            1.25.dp,
-            type.primaryColor.copy(alpha = if (isDarkTheme) 0.82f else 0.58f)
-        )
-    } else {
-        null
-    }
-    val brandColor = type.primaryColor
-    val cardBrush = remember(brandColor, useEnhancedBrandCard, isDarkTheme) {
-        if (useEnhancedBrandCard) {
-            Brush.linearGradient(
-                colors = listOf(
-                    brandColor.copy(alpha = if (isDarkTheme) 0.13f else 0.075f),
-                    Color.Transparent
-                ),
-                start = Offset(0f, 0f),
-                end = Offset(580f, 520f)
-            )
-        } else {
-            null
-        }
-    }
-
     Surface(
         shape = RoundedCornerShape(18.dp),
-        color = cardColor,
-        border = cardBorder
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
-        Box {
-            if (cardBrush != null) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(cardBrush)
-                )
-            }
-
-            Column(
-                modifier = Modifier
-                    .clickable(onClick = onClick)
-                    .padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+        Column(
+            modifier = Modifier
+                .clickable(onClick = onClick)
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ServiceIcon(
-                        type = type,
-                        size = 52.dp,
-                        cornerRadius = 13.dp,
-                        modifier = Modifier.size(52.dp)
-                    )
+                ServiceIcon(
+                    type = type,
+                    size = 52.dp,
+                    cornerRadius = 13.dp,
+                    modifier = Modifier.size(52.dp)
+                )
 
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-
-                Column {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.home_connect_service, type.displayName),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.weight(1f))
             }
+
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.home_connect_service, type.displayName),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
         }
     }
 }

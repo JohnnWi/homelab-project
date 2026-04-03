@@ -418,6 +418,8 @@
     <string name="debug_logs_copy">Logs kopieren</string>
     <string name="debug_logs_clip_label">Homelab-Debug-Logs</string>
     <string name="debug_logs_copied">Logs in die Zwischenablage kopiert</string>
+    <string name="debug_logs_search">Logs durchsuchen…</string>
+    <string name="debug_logs_no_results">Keine Logs entsprechen den Filtern</string>
     <string name="login_save_instance">Instanz speichern</string>
     <string name="login_edit_title">%1$s bearbeiten</string>
     <string name="login_edit_subtitle">Diese konfigurierte Instanz aktualisieren</string>

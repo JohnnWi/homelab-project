@@ -242,7 +242,7 @@ actor PatchmonAPIClient {
                 }
 
                 let seconds = rateLimitDelaySeconds(for: error, attempt: attempt)
-                AppLogger.shared.network("PatchMon rate limit hit (attempt \(attempt)). Retrying in \(seconds)s.")
+                AppLogger.shared.warn("PatchMon rate limit hit (attempt \(attempt)). Retrying in \(seconds)s.", source: "PatchMon")
                 try await Task.sleep(nanoseconds: UInt64(seconds) * 1_000_000_000)
             }
         }

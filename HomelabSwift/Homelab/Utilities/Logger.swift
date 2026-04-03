@@ -8,39 +8,46 @@ public struct AppLogger: Sendable {
     
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.homelab.app", category: "General")
     
-    public func debug(_ message: String) {
+    public func debug(_ message: String, source: String = "App") {
         logger.debug("\(message, privacy: .public)")
         Task { @MainActor in
-            LogStore.shared.add(message, level: .debug)
+            LogStore.shared.add(message, level: .debug, source: source)
         }
     }
     
-    public func info(_ message: String) {
+    public func info(_ message: String, source: String = "App") {
         logger.info("\(message, privacy: .public)")
         Task { @MainActor in
-            LogStore.shared.add(message, level: .info)
+            LogStore.shared.add(message, level: .info, source: source)
         }
     }
     
-    public func error(_ message: String) {
+    public func warn(_ message: String, source: String = "App") {
+        logger.warning("\(message, privacy: .public)")
+        Task { @MainActor in
+            LogStore.shared.add(message, level: .warn, source: source)
+        }
+    }
+    
+    public func error(_ message: String, source: String = "App") {
         logger.error("\(message, privacy: .public)")
         Task { @MainActor in
-            LogStore.shared.add(message, level: .error)
+            LogStore.shared.add(message, level: .warn, source: source)
         }
     }
     
-    public func error(_ error: Error) {
+    public func error(_ error: Error, source: String = "App") {
         let msg = "Error: \(error.localizedDescription)"
         logger.error("\(msg, privacy: .public)")
         Task { @MainActor in
-            LogStore.shared.add(msg, level: .error)
+            LogStore.shared.add(msg, level: .warn, source: source)
         }
     }
 
-    public func network(_ message: String) {
+    public func network(_ message: String, source: String = "Network") {
         logger.info("[Network] \(message, privacy: .public)")
         Task { @MainActor in
-            LogStore.shared.add(message, level: .network)
+            LogStore.shared.add(message, level: .network, source: source)
         }
     }
 
@@ -57,7 +64,7 @@ public struct AppLogger: Sendable {
         let msg = "[\(service)] State Transition -> \(stateString)"
         logger.debug("\(msg, privacy: .public)")
         Task { @MainActor in
-            LogStore.shared.add(msg, level: .debug)
+            LogStore.shared.add(msg, level: .debug, source: service)
         }
     }
 }
@@ -73,33 +80,39 @@ public final class LogStore {
         public let id: UUID
         public let timestamp: Date
         public let level: LogLevel
+        public let source: String
         public let message: String
 
-        public init(level: LogLevel, message: String, timestamp: Date = Date(), id: UUID = UUID()) {
+        public init(level: LogLevel, message: String, source: String = "App", timestamp: Date = Date(), id: UUID = UUID()) {
             self.id = id
             self.timestamp = timestamp
             self.level = level
+            self.source = source
             self.message = message
         }
         
+        private static let timeFormatter: DateFormatter = {
+            let f = DateFormatter()
+            f.dateFormat = "HH:mm:ss.SSS"
+            return f
+        }()
+
         public var formattedTime: String {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "HH:mm:ss.SSS"
-            return formatter.string(from: timestamp)
+            Self.timeFormatter.string(from: timestamp)
         }
     }
     
-    public enum LogLevel: String {
+    public enum LogLevel: String, CaseIterable {
         case debug = "DEBUG"
         case info = "INFO"
-        case error = "ERROR"
+        case warn = "WARN"
         case network = "NET"
         
         public var icon: String {
             switch self {
             case .debug: return "ladybug.fill"
             case .info: return "info.circle.fill"
-            case .error: return "exclamationmark.triangle.fill"
+            case .warn: return "exclamationmark.circle.fill"
             case .network: return "network"
             }
         }
@@ -111,11 +124,11 @@ public final class LogStore {
     
     private init() {}
     
-    public func add(_ message: String, level: LogLevel = .info) {
+    public func add(_ message: String, level: LogLevel = .info, source: String = "App") {
         let now = Date()
         guard !shouldDrop(level: level, message: message, now: now) else { return }
 
-        let entry = LogEntry(level: level, message: message, timestamp: now)
+        let entry = LogEntry(level: level, message: message, source: source, timestamp: now)
         entries.append(entry)
         
         if entries.count > maxEntries {
@@ -128,7 +141,7 @@ public final class LogStore {
     }
     
     public func export() -> String {
-        entries.map { "[\($0.formattedTime)] [\($0.level.rawValue)] \($0.message)" }
+        entries.map { "[\($0.formattedTime)] [\($0.level.rawValue)] [\($0.source)] \($0.message)" }
             .joined(separator: "\n")
     }
 
@@ -139,7 +152,7 @@ public final class LogStore {
             minInterval = 2.0
         case .debug:
             minInterval = 0.8
-        case .info, .error:
+        case .info, .warn:
             return false
         }
 
