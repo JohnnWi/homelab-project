@@ -27,6 +27,14 @@
       ],
       "versions": [
         {
+          "version": "1.0.6",
+          "date": "2026-04-03",
+          "localizedDescription": "## What's New in v1.0.6\n\n- Fix for Pangolin\n- Fix for Beszel\n- Removed cyberpunk mode\n- Fixed the Debug Logs card\n\n### Platforms\n- iOS (Swift / SwiftUI)\n- Android (Kotlin / Jetpack Compose)",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v1.0.6/Homelab.ipa",
+          "size": 27733867,
+          "minOSVersion": "18.0"
+        },
+        {
           "version": "1.0.5",
           "date": "2026-03-31",
           "localizedDescription": "## What's New in v1.0.5\n\nFix Pangolin org-scoped API key support\n\n### Platforms\n- 📱 **iOS** (Swift / SwiftUI) — requires iOS 18.0+\n- 🤖 **Android** (Kotlin / Jetpack Compose) — requires Android 8.0+",
@@ -181,6 +189,16 @@
     }
   ],
   "news": [
+    {
+      "title": "v1.0.6 — - Fix for Pangolin",
+      "identifier": "release-1.0.6",
+      "caption": "- Fix for Pangolin - Fix for Beszel - Removed cyberpunk mode",
+      "date": "2026-04-03",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v1.0.6",
+      "appID": "homelab.foreverhomelab"
+    },
     {
       "title": "v1.0.5 — Fix Pangolin org-scoped API key support",
       "identifier": "release-1.0.5",
