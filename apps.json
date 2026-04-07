@@ -27,6 +27,14 @@
       ],
       "versions": [
         {
+          "version": "1.1.0",
+          "date": "2026-04-07",
+          "localizedDescription": "## What's New in v1.1.0\n\n- New service: Wakapi\n- New service: Crafty Controller\n- Dozens of fixes and improvements\n\n### Platforms\n- iOS (Swift / SwiftUI)\n- Android (Kotlin / Jetpack Compose)",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v1.1.0/Homelab.ipa",
+          "size": 27921120,
+          "minOSVersion": "18.0"
+        },
+        {
           "version": "1.0.6",
           "date": "2026-04-03",
           "localizedDescription": "## What's New in v1.0.6\n\n- Fix for Pangolin\n- Fix for Beszel\n- Removed cyberpunk mode\n- Fixed the Debug Logs card\n\n### Platforms\n- iOS (Swift / SwiftUI)\n- Android (Kotlin / Jetpack Compose)",
@@ -189,6 +197,16 @@
     }
   ],
   "news": [
+    {
+      "title": "v1.1.0 — - New service: Wakapi",
+      "identifier": "release-1.1.0",
+      "caption": "- New service: Wakapi - New service: Crafty Controller - Dozens of fixes and improvements",
+      "date": "2026-04-07",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v1.1.0",
+      "appID": "homelab.foreverhomelab"
+    },
     {
       "title": "v1.0.6 — - Fix for Pangolin",
       "identifier": "release-1.0.6",

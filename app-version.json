@@ -1,6 +1,6 @@
 {
-  "latest": "1.0.6",
-  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.0.6/Homelab.ipa",
-  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.0.6/Homelab.apk",
-  "changelog": "What's New in v1.0.6\n\n- Fix for Pangolin\n- Fix for Beszel\n- Removed cyberpunk mode\n- Fixed the Debug Logs card\n\nPlatforms\n- iOS (Swift / SwiftUI)\n- Android (Kotlin / Jetpack Compose)"
+  "latest": "1.1.0",
+  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.1.0/Homelab.ipa",
+  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.1.0/Homelab.apk",
+  "changelog": "What's New in v1.1.0\n\n- New service: Wakapi\n- New service: Crafty Controller\n- Dozens of fixes and improvements\n\nPlatforms\n- iOS (Swift / SwiftUI)\n- Android (Kotlin / Jetpack Compose)"
 }
