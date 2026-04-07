@@ -1,6 +1,6 @@
 {
-  "latest": "1.1.1",
-  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.1.1/Homelab.ipa",
-  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.1.1/Homelab.apk",
-  "changelog": "What's New in v1.1.1\n\n- Fixed 2FA authentication for Dockhand\n- Stability improvements\n\nPlatforms\n- iOS (Swift / SwiftUI)\n- Android (Kotlin / Jetpack Compose)"
+  "latest": "1.1.2",
+  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.1.2/Homelab.ipa",
+  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.1.2/Homelab.apk",
+  "changelog": "- Important fixes for iOS\\n- Important fixes for Dockhand\\n- Improved service reachability handling\\n- Stability improvements"
 }
