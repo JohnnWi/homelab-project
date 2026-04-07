@@ -27,6 +27,15 @@
       ],
       "versions": [
         {
+          "version": "1.1.1",
+          "buildVersion": "24",
+          "date": "2026-04-07",
+          "localizedDescription": "## What's New in v1.1.1\n\n- Fixed 2FA authentication for Dockhand\n- Stability improvements\n\n### Platforms\n- iOS (Swift / SwiftUI)\n- Android (Kotlin / Jetpack Compose)",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v1.1.1/Homelab.ipa",
+          "size": 27921041,
+          "minOSVersion": "26.0"
+        },
+        {
           "version": "1.1.0",
           "buildVersion": "23",
           "date": "2026-04-07",
@@ -198,6 +207,16 @@
     }
   ],
   "news": [
+    {
+      "title": "v1.1.1 — - Fixed 2FA authentication for Dockhand",
+      "identifier": "release-1.1.1",
+      "caption": "- Fixed 2FA authentication for Dockhand - Stability improvements - iOS (Swift / SwiftUI)",
+      "date": "2026-04-07",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v1.1.1",
+      "appID": "homelab.foreverhomelab"
+    },
     {
       "title": "v1.1.0 — - New service: Wakapi",
       "identifier": "release-1.1.0",
