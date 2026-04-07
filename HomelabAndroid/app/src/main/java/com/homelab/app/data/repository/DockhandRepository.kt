@@ -652,7 +652,12 @@ class DockhandRepository @Inject constructor(
 
     private fun buildLoginPayloads(username: String, password: String, mfaCode: String): List<String> {
         val codeFragment = if (mfaCode.isNotBlank()) {
-            listOf("\"code\":\"${escapeJson(mfaCode)}\"", "\"totp\":\"${escapeJson(mfaCode)}\"", "\"otp\":\"${escapeJson(mfaCode)}\"")
+            listOf(
+                "\"mfaToken\":\"${escapeJson(mfaCode)}\"",
+                "\"code\":\"${escapeJson(mfaCode)}\"",
+                "\"totp\":\"${escapeJson(mfaCode)}\"",
+                "\"otp\":\"${escapeJson(mfaCode)}\""
+            )
         } else {
             emptyList()
         }

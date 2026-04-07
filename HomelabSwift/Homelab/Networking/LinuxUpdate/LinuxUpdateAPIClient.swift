@@ -1743,6 +1743,7 @@ actor DockhandAPIClient {
 
         if !cleanCode.isEmpty {
             payloads += [
+                ["username": username, "password": password, "mfaToken": cleanCode],
                 ["username": username, "password": password, "code": cleanCode],
                 ["username": username, "password": password, "totp": cleanCode],
                 ["username": username, "password": password, "otp": cleanCode]
