@@ -29,40 +29,40 @@ Homelab Dashboard is a fully native mobile app for monitoring and managing a sel
 
 ### Core Infrastructure
 
-- **Portainer**: container overview, quick actions, resource usage.
-- **Dockhand**: native container management dashboard.
-- **Beszel**: server monitoring across nodes.
-- **Linux Update**: pending package updates across hosts.
-- **Crafty Controller**: game server management dashboard.
-- **Gitea / Forgejo**: repositories, activity, and source browsing.
-- **Pangolin / Newt**: tunnel and peer visibility.
-- **Healthchecks**: uptime checks and health status.
-- **PatchMon**: software update visibility across your stack.
-- **Wakapi**: coding activity and time tracking stats.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/portainer.png" width="18" style="vertical-align:middle"> **Portainer**: container overview, quick actions, resource usage.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/dockhand.png" width="18" style="vertical-align:middle"> **Dockhand**: native container management dashboard.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/beszel.png" width="18" style="vertical-align:middle"> **Beszel**: server monitoring across nodes.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/linux-update-dashboard.png" width="18" style="vertical-align:middle"> **Linux Update**: pending package updates across hosts.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/crafty-controller.png" width="18" style="vertical-align:middle"> **Crafty Controller**: game server management dashboard.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/gitea.png" width="18" style="vertical-align:middle"> **Gitea / Forgejo**: repositories, activity, and source browsing.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/pangolin.png" width="18" style="vertical-align:middle"> **Pangolin / Newt**: tunnel and peer visibility.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/healthchecks.png" width="18" style="vertical-align:middle"> **Healthchecks**: uptime checks and health status.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/patchmon.png" width="18" style="vertical-align:middle"> **PatchMon**: software update visibility across your stack.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/wakapi.png" width="18" style="vertical-align:middle"> **Wakapi**: coding activity and time tracking stats.
 
 ### Networking & DNS
 
-- **Pi-hole**: queries, blocked domains, toggles, timers.
-- **AdGuard Home**: filters, rewrites, blocked services, query activity.
-- **Technitium DNS**: DNS metrics and health.
-- **Nginx Proxy Manager / NPMplus**: proxy hosts, streams, redirects, certificates, access lists.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/pi-hole.png" width="18" style="vertical-align:middle"> **Pi-hole**: queries, blocked domains, toggles, timers.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/adguard-home.png" width="18" style="vertical-align:middle"> **AdGuard Home**: filters, rewrites, blocked services, query activity.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/technitium.png" width="18" style="vertical-align:middle"> **Technitium DNS**: DNS metrics and health.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/nginx-proxy-manager.png" width="18" style="vertical-align:middle"> **Nginx Proxy Manager / NPMplus**: proxy hosts, streams, redirects, certificates, access lists.
 
 ### Media & Observability
 
-- **Plex**: libraries, sessions, recently added media.
-- **Jellystat**: Jellyfin activity, streams, usage insights.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/plex.png" width="18" style="vertical-align:middle"> **Plex**: libraries, sessions, recently added media.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/jellystat.png" width="18" style="vertical-align:middle"> **Jellystat**: Jellyfin activity, streams, usage insights.
 
 ### Servarr Stack
 
-- **Sonarr**
-- **Radarr**
-- **Lidarr**
-- **Prowlarr**
-- **qBittorrent**
-- **Jellyseerr**
-- **Bazarr**
-- **Gluetun**
-- **FlareSolverr**
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/sonarr.png" width="18" style="vertical-align:middle"> **Sonarr**
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/radarr.png" width="18" style="vertical-align:middle"> **Radarr**
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/lidarr.png" width="18" style="vertical-align:middle"> **Lidarr**
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/prowlarr.png" width="18" style="vertical-align:middle"> **Prowlarr**
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/qbittorrent.png" width="18" style="vertical-align:middle"> **qBittorrent**
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/jellyseerr.png" width="18" style="vertical-align:middle"> **Jellyseerr**
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/bazarr.png" width="18" style="vertical-align:middle"> **Bazarr**
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/gluetun.png" width="18" style="vertical-align:middle"> **Gluetun**
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/flaresolverr.png" width="18" style="vertical-align:middle"> **FlareSolverr**
 
 The full Servarr stack is available as a unified media automation dashboard, so downloads, health, requests, VPN status, and indexer state can be checked from one place.
 
