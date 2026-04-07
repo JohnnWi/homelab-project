@@ -44,20 +44,49 @@ jobs:
             exit 0
           fi
 
+          # Extract buildVersion + minOSVersion from the IPA itself so the source
+          # always matches the exact metadata SideStore/AltStore reads from the app.
+          curl -L "$IPA_URL" -o release.ipa
+          APP_METADATA=$(python3 - <<'PY'
+          import fnmatch
+          import json
+          import plistlib
+          import zipfile
+
+          with zipfile.ZipFile("release.ipa") as ipa:
+              info_name = next(
+                  name for name in ipa.namelist()
+                  if fnmatch.fnmatch(name, "Payload/*.app/Info.plist")
+              )
+              with ipa.open(info_name) as fp:
+                  info = plistlib.load(fp)
+
+          print(json.dumps({
+              "buildVersion": str(info["CFBundleVersion"]),
+              "minOSVersion": str(info.get("MinimumOSVersion", "18.0")),
+          }))
+          PY
+          )
+          BUILD_VERSION=$(echo "$APP_METADATA" | jq -r '.buildVersion')
+          MIN_OS_VERSION=$(echo "$APP_METADATA" | jq -r '.minOSVersion')
+
           # Create new version entry
           NEW_VERSION=$(jq -n \
             --arg ver "$VERSION" \
+            --arg build "$BUILD_VERSION" \
             --arg date "$DATE" \
             --arg desc "$RELEASE_BODY" \
             --arg url "$IPA_URL" \
+            --arg min_os "$MIN_OS_VERSION" \
             --argjson size "$IPA_SIZE" \
             '{
               version: $ver,
+              buildVersion: $build,
               date: $date,
               localizedDescription: $desc,
               downloadURL: $url,
               size: $size,
-              minOSVersion: "18.0"
+              minOSVersion: $min_os
             }')
 
           # Remove any existing entry with the same version, then prepend the new one

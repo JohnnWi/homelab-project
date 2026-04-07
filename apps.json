@@ -28,11 +28,12 @@
       "versions": [
         {
           "version": "1.1.0",
+          "buildVersion": "23",
           "date": "2026-04-07",
           "localizedDescription": "## What's New in v1.1.0\n\n- New service: Wakapi\n- New service: Crafty Controller\n- Dozens of fixes and improvements\n\n### Platforms\n- iOS (Swift / SwiftUI)\n- Android (Kotlin / Jetpack Compose)",
           "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v1.1.0/Homelab.ipa",
           "size": 27921120,
-          "minOSVersion": "18.0"
+          "minOSVersion": "26.0"
         },
         {
           "version": "1.0.6",
