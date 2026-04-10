@@ -631,4 +631,121 @@ final class ModelDecodingTests: XCTestCase {
         let data = try JSONEncoder().encode(ServiceType.linuxUpdate)
         XCTAssertEqual(String(decoding: data, as: UTF8.self), "\"linux_update\"")
     }
+
+    func testWakapiSummaryDecodingSupportsNativeSummaryPayload() throws {
+        let json = """
+        {
+            "user_id": "writeuser",
+            "from": "2026-04-07T00:00:00Z",
+            "to": "2026-04-07T23:59:59Z",
+            "projects": [
+                { "key": "Homelab", "total": 5400 }
+            ],
+            "languages": [
+                { "key": "Swift", "total": 3600 },
+                { "key": "Kotlin", "total": 1800 }
+            ],
+            "editors": [
+                { "key": "Xcode", "total": 5400 }
+            ],
+            "operating_systems": [
+                { "key": "macOS", "total": 5400 }
+            ],
+            "machines": [
+                { "key": "mbp", "total": 5400 }
+            ]
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(WakapiSummary.self, from: json)
+
+        XCTAssertEqual(decoded.userId, "writeuser")
+        XCTAssertEqual(decoded.projects?.first?.displayName, "Homelab")
+        XCTAssertEqual(decoded.projects?.first?.effectiveTotalSeconds ?? 0, 5400, accuracy: 0.001)
+        XCTAssertEqual(decoded.languages?.first?.displayName, "Swift")
+        XCTAssertEqual(decoded.effectiveGrandTotal.hours, 1)
+        XCTAssertEqual(decoded.effectiveGrandTotal.minutes, 30)
+    }
+
+    func testWakapiSummaryDecodingKeepsLegacyCompatiblePayload() throws {
+        let json = """
+        {
+            "grand_total": {
+                "hours": 2,
+                "minutes": 15,
+                "text": "2 hrs 15 mins",
+                "total_seconds": 8100
+            },
+            "projects": [
+                {
+                    "name": "Homelab",
+                    "hours": 2,
+                    "minutes": 15,
+                    "text": "2 hrs 15 mins",
+                    "total_seconds": 8100,
+                    "percent": 100
+                }
+            ]
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(WakapiSummary.self, from: json)
+
+        XCTAssertEqual(decoded.effectiveGrandTotal.hours, 2)
+        XCTAssertEqual(decoded.effectiveGrandTotal.minutes, 15)
+        XCTAssertEqual(decoded.projects?.first?.displayName, "Homelab")
+        XCTAssertEqual(decoded.projects?.first?.resolvedPercent(sectionTotalSeconds: 8100) ?? 0, 100, accuracy: 0.001)
+    }
+
+    func testWakapiDailySummariesDecodingSupportsCompatPayload() throws {
+        let json = """
+        {
+            "start": "2026-03-01T00:00:00Z",
+            "end": "2026-04-07T23:59:59Z",
+            "cumulative_total": {
+                "decimal": "11.50",
+                "digital": "11:30",
+                "seconds": 41400,
+                "text": "11 hrs 30 mins"
+            },
+            "daily_average": {
+                "days_including_holidays": 30,
+                "days_minus_holidays": 30,
+                "holidays": 0,
+                "seconds": 1380,
+                "seconds_including_other_language": 1380,
+                "text": "23 mins",
+                "text_including_other_language": "23 mins"
+            },
+            "data": [
+                {
+                    "grand_total": {
+                        "hours": 1,
+                        "minutes": 30,
+                        "text": "1 hr 30 mins",
+                        "total_seconds": 5400
+                    },
+                    "languages": [
+                        { "name": "Swift", "percent": 100, "total_seconds": 5400, "text": "1 hr 30 mins" }
+                    ],
+                    "range": {
+                        "date": "2026-04-06T00:00:00Z",
+                        "start": "2026-04-06T00:00:00Z",
+                        "end": "2026-04-06T23:59:59Z",
+                        "timezone": "UTC"
+                    }
+                }
+            ]
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(WakapiDailySummariesResponse.self, from: json)
+
+        XCTAssertEqual(decoded.data.count, 1)
+        XCTAssertEqual(decoded.cumulativeTotal?.seconds ?? 0, 41400, accuracy: 0.001)
+        XCTAssertEqual(decoded.dailyAverage?.seconds, 1380)
+        XCTAssertEqual(decoded.data.first?.grandTotal?.totalSeconds ?? 0, 5400, accuracy: 0.001)
+        XCTAssertEqual(decoded.data.first?.languages?.first?.displayName, "Swift")
+        XCTAssertEqual(decoded.data.first?.range?.timezone, "UTC")
+    }
 }

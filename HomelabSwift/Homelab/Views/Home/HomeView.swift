@@ -451,8 +451,9 @@ struct HomeView: View {
             case .wakapi:
                 guard let client = await servicesStore.wakapiClient(instanceId: instanceId) else { return nil }
                 let summary = try await client.getSummary(interval: "today")
-                let hours = summary.grandTotal?.hours ?? 0
-                let mins = summary.grandTotal?.minutes ?? 0
+                let total = summary.effectiveGrandTotal
+                let hours = total.hours ?? 0
+                let mins = total.minutes ?? 0
                 let timeStr = hours > 0
                     ? "\(hours)\(localizer.t.unitHours) \(mins)\(localizer.t.unitMinutes)"
                     : "\(mins)\(localizer.t.unitMinutes)"

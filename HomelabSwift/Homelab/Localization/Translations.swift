@@ -925,6 +925,14 @@ struct Translations {
     let wakapiIntervalLast6Months: String
     let wakapiIntervalLastYear: String
     let wakapiIntervalAllTime: String
+    let wakapiIntervalLabel: String
+    let wakapiRecentActivity: String
+    let wakapiActivityHeatmapTitle: String
+    let wakapiLast30DaysWindow: String
+    let wakapiLast20WeeksWindow: String
+    let wakapiAveragePerDay: String
+    let wakapiBestDay: String
+    let wakapiNoRecentActivity: String
     let jellystatWatchTimeHome: String
     let jellystatOverviewSubtitle: String
     let jellystatWatchTime: String

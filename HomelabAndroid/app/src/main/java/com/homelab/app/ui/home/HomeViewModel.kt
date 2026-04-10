@@ -396,8 +396,12 @@ class HomeViewModel @Inject constructor(
                 } catch (e: Exception) {
                     null
                 } ?: return null
-                val grandTotal = summary.grandTotal
-                val time = grandTotal?.text ?: "${grandTotal?.hours ?: 0}h ${grandTotal?.minutes ?: 0}m"
+                val grandTotal = summary.effectiveGrandTotal()
+                val time = if (grandTotal.resolvedHours > 0) {
+                    "${grandTotal.resolvedHours}h ${grandTotal.resolvedMinutes}m"
+                } else {
+                    "${grandTotal.resolvedMinutes}m"
+                }
                 _wakapiSummary.value = WakapiSummary(time)
                 InstanceSummary(time, null, "coded_today")
             }
