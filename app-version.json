@@ -1,6 +1,6 @@
 {
-  "latest": "1.1.3",
-  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.1.3/Homelab.ipa",
-  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.1.3/Homelab.apk",
-  "changelog": "- Fixed Wakapi integration issues across iOS and Android\\n- Improved Wakapi dashboard compatibility and data handling\\n- Added more stability improvements and quality fixes\\n- Next improvements will focus on Proxmox and Ubiquiti UniFi"
+  "latest": "1.2.0",
+  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.2.0/Homelab.ipa",
+  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.2.0/Homelab.apk",
+  "changelog": "- Added Proxmox support across iOS and Android\\n- Fixed more than 50 bugs across the app\\n- Improved reliability, compatibility, and service integrations"
 }
