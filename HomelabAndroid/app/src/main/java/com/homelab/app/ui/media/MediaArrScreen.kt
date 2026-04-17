@@ -102,6 +102,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.core.net.toUri
 import com.homelab.app.R
 import com.homelab.app.data.repository.MediaArrAction
@@ -127,7 +130,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 private const val MEDIA_TAILSCALE_ICON_URL = "https://cdn.jsdelivr.net/gh/selfhst/icons/png/tailscale.png"
-private const val QBITTORRENT_REFRESH_INTERVAL_MS = 10_000L
+private const val QBITTORRENT_REFRESH_INTERVAL_MS = 30_000L
 
 @Composable
 fun MediaArrScreen(
@@ -561,7 +564,6 @@ private fun MediaServiceGridCard(
     val brandColor = type.primaryColor
     val cardBrush = remember(brandColor, isConnected) {
         if (isConnected) {
-            val isDarkTheme2 = false // simplified
             Brush.linearGradient(
                 colors = listOf(
                     brandColor.copy(alpha = 0.06f),
@@ -599,7 +601,7 @@ private fun MediaServiceGridCard(
             Column(
                 modifier = Modifier
                     .padding(14.dp)
-                    .height(194.dp),
+                    .heightIn(min = 140.dp, max = 200.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Row(
@@ -719,11 +721,30 @@ private fun MediaServiceGridCard(
                         }
 
                         previewState?.hasError == true && reachable == true -> {
-                            Text(
-                                text = stringResource(R.string.no_data),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.no_data),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                if (onRefresh != null) {
+                                    IconButton(
+                                        onClick = onRefresh,
+                                        modifier = Modifier.size(22.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Refresh,
+                                            contentDescription = stringResource(R.string.refresh),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -1068,15 +1089,18 @@ fun MediaServiceDashboardScreen(
     val pendingRequestConfiguration by viewModel.pendingRequestConfiguration.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val actionMessageText = actionMessage?.let { actionResultLabel(it) }
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
         viewModel.load()
     }
 
     LaunchedEffect(serviceType) {
         if (serviceType == ServiceType.QBITTORRENT) {
-            while (isActive) {
-                delay(QBITTORRENT_REFRESH_INTERVAL_MS)
-                viewModel.load()
+            lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (isActive) {
+                    delay(QBITTORRENT_REFRESH_INTERVAL_MS)
+                    viewModel.load()
+                }
             }
         }
     }

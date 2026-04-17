@@ -10,17 +10,25 @@ class PortainerRepository @Inject constructor(
     private val api: PortainerApi
 ) {
 
-    suspend fun authenticate(url: String, username: String, password: String): String {
+    suspend fun authenticate(url: String, username: String, password: String, allowSelfSigned: Boolean = false): String {
         val fullUrl = url.trimEnd('/') + "/api/auth"
         val credentials = mapOf("username" to username, "password" to password)
-        val response = api.authenticate(url = fullUrl, credentials = credentials)
+        val response = api.authenticate(
+            url = fullUrl,
+            allowSelfSigned = allowSelfSigned.toString(),
+            credentials = credentials
+        )
         return response.jwt
     }
 
-    suspend fun authenticateWithApiKey(url: String, apiKey: String) {
+    suspend fun authenticateWithApiKey(url: String, apiKey: String, allowSelfSigned: Boolean = false) {
         val cleanUrl = url.trimEnd('/') + "/api/endpoints"
         try {
-            api.testApiKey(url = cleanUrl, apiKey = apiKey)
+            api.testApiKey(
+                url = cleanUrl,
+                allowSelfSigned = allowSelfSigned.toString(),
+                apiKey = apiKey
+            )
         } catch (e: Exception) {
             // Throw custom error mapped to iOS functionality if it's an HTTP exception
             if (e is retrofit2.HttpException) {

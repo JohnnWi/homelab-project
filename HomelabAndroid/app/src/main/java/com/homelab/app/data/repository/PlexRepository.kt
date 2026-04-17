@@ -1,6 +1,7 @@
 package com.homelab.app.data.repository
 
 import com.homelab.app.data.remote.api.PlexApi
+import com.homelab.app.data.remote.TlsClientSelector
 import com.homelab.app.data.remote.dto.plex.PlexDashboardData
 import com.homelab.app.data.remote.dto.plex.PlexHistoryItem
 import com.homelab.app.data.remote.dto.plex.PlexLibrary
@@ -18,16 +19,15 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import okhttp3.OkHttpClient
 import okhttp3.Request
 
 @Singleton
 class PlexRepository @Inject constructor(
     private val api: PlexApi,
-    private val okHttpClient: OkHttpClient
+    private val tlsClientSelector: TlsClientSelector
 ) {
 
-    suspend fun authenticate(url: String, apiKey: String) {
+    suspend fun authenticate(url: String, apiKey: String, allowSelfSigned: Boolean = false) {
         withContext(Dispatchers.IO) {
             val clean = cleanUrl(url)
             val key = apiKey.trim()
@@ -37,7 +37,7 @@ class PlexRepository @Inject constructor(
                 .addHeader("Accept", "application/json")
                 .build()
 
-            okHttpClient.newCall(request).execute().use { response ->
+            tlsClientSelector.forAllowSelfSigned(allowSelfSigned).newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     throw IllegalStateException("Plex authentication failed")
                 }

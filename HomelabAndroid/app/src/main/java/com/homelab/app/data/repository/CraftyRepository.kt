@@ -1,6 +1,7 @@
 package com.homelab.app.data.repository
 
 import com.homelab.app.data.remote.api.CraftyApi
+import com.homelab.app.data.remote.TlsClientSelector
 import com.homelab.app.data.remote.dto.crafty.CraftyLoginData
 import com.homelab.app.data.remote.dto.crafty.CraftyLoginRequest
 import com.homelab.app.data.remote.dto.crafty.CraftyResponse
@@ -16,7 +17,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
@@ -48,14 +48,15 @@ class CraftyApiException(
 @Singleton
 class CraftyRepository @Inject constructor(
     private val api: CraftyApi,
-    private val okHttpClient: OkHttpClient,
+    private val tlsClientSelector: TlsClientSelector,
     private val json: Json
 ) {
     suspend fun authenticate(
         url: String,
         username: String,
         password: String,
-        fallbackUrl: String? = null
+        fallbackUrl: String? = null,
+        allowSelfSigned: Boolean = false
     ): String {
         return withContext(Dispatchers.IO) {
             val baseCandidates = listOf(url.trim().trimEnd('/'), fallbackUrl?.trim()?.trimEnd('/'))
@@ -66,11 +67,7 @@ class CraftyRepository @Inject constructor(
             var lastError: CraftyApiException? = null
             for (baseUrl in baseCandidates) {
                 try {
-                    return@withContext authenticateAgainst(
-                        baseUrl = baseUrl,
-                        username = username,
-                        password = password
-                    )
+                    return@withContext authenticateAgainst(baseUrl, username, password, allowSelfSigned)
                 } catch (error: CraftyApiException) {
                     lastError = error
                     if (error.kind == CraftyApiException.Kind.INVALID_CREDENTIALS) {
@@ -159,7 +156,7 @@ class CraftyRepository @Inject constructor(
         }
     }
 
-    private fun authenticateAgainst(baseUrl: String, username: String, password: String): String {
+    private fun authenticateAgainst(baseUrl: String, username: String, password: String, allowSelfSigned: Boolean): String {
         val requestBody = json.encodeToString(
             CraftyLoginRequest.serializer(),
             CraftyLoginRequest(username = username.trim(), password = password)
@@ -172,7 +169,7 @@ class CraftyRepository @Inject constructor(
             .build()
 
         try {
-            okHttpClient.newCall(request).execute().use { response ->
+            tlsClientSelector.forAllowSelfSigned(allowSelfSigned).newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     if (response.code == 401 || response.code == 403) {
                         throw CraftyApiException(CraftyApiException.Kind.INVALID_CREDENTIALS)

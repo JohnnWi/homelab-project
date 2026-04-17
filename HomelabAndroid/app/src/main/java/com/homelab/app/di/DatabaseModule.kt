@@ -61,6 +61,28 @@ object DatabaseModule {
             }
         }
 
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    ALTER TABLE `service_instances`
+                    ADD COLUMN `proxmoxCsrfToken` TEXT DEFAULT NULL
+                    """.trimIndent()
+                )
+            }
+        }
+
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    ALTER TABLE `service_instances`
+                    ADD COLUMN `proxmoxOtp` TEXT DEFAULT NULL
+                    """.trimIndent()
+                )
+            }
+        }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -69,7 +91,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "homelab_database"
         )
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
         .build()
     }
 

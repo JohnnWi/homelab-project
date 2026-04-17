@@ -1,7 +1,9 @@
 import Foundation
 
 actor CraftyAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var username: String = ""
@@ -9,6 +11,7 @@ actor CraftyAPIClient {
     private var token: String = ""
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .craftyController, instanceId: instanceId)
     }
 
@@ -18,12 +21,17 @@ actor CraftyAPIClient {
         password: String,
         token: String,
         fallbackUrl: String? = nil
-    ) {
+    , allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.username = username
         self.password = password
         self.token = token
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .craftyController, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     func ping() async -> Bool {

@@ -55,14 +55,14 @@ struct HomeView: View {
     }
 
     private var reachabilityHash: String {
-        ServiceType.homeServices.map { type in
-            let r = servicesStore.isReachable(type)
-            return "\(type.rawValue):\(r.map { $0 ? "1" : "0" } ?? "?")"
+        visibleTypes.flatMap { servicesStore.instances(for: $0) }.map { instance in
+            let r = servicesStore.reachability(for: instance.id)
+            return "\(instance.id.uuidString):\(r.map { $0 ? "1" : "0" } ?? "?")"
         }.joined(separator: ",")
     }
 
     private var preferredSelectionHash: String {
-        ServiceType.homeServices.map { type in
+        visibleTypes.map { type in
             let instanceId = servicesStore.preferredInstance(for: type)?.id.uuidString ?? "none"
             return "\(type.rawValue):\(instanceId)"
         }.joined(separator: ",")
@@ -109,7 +109,7 @@ struct HomeView: View {
                 if isViewVisible {
                     summaryRefreshID = UUID()
                 }
-                for type in ServiceType.homeServices {
+                for type in visibleTypes {
                     for instance in servicesStore.instances(for: type) {
                         if servicesStore.reachability(for: instance.id) == false {
                             summaryData.removeValue(forKey: instance.id)
@@ -263,7 +263,7 @@ struct HomeView: View {
                                 isPinging: false,
                                 summary: nil,
                                 isSummaryLoading: false,
-                                t: localizer.t
+                                t: localizer.translations
                             )
                         }
                         .buttonStyle(.plain)
@@ -279,7 +279,7 @@ struct HomeView: View {
                                 isPinging: servicesStore.isPinging(instanceId: instance.id),
                                 summary: summaryData[instance.id],
                                 isSummaryLoading: summaryData[instance.id] == nil && summaryLoading,
-                                t: localizer.t
+                                t: localizer.translations
                             ) {
                                 Task { await servicesStore.checkReachability(for: instance.id) }
                             }
@@ -323,6 +323,7 @@ struct HomeView: View {
         case .sonarr:            SonarrDashboard(instanceId: route.instanceId)
         case .lidarr:            LidarrDashboard(instanceId: route.instanceId)
         case .wakapi:            WakapiDashboard(instanceId: route.instanceId)
+        case .proxmox:           ProxmoxDashboard(instanceId: route.instanceId)
         case .jellyseerr, .prowlarr, .bazarr, .gluetun, .flaresolverr:
                                  GenericMediaDashboard(serviceType: route.type, instanceId: route.instanceId)
         }
@@ -334,15 +335,28 @@ struct HomeView: View {
         summaryLoading = true
         defer { summaryLoading = false }
 
+        let visibleInstances = visibleTypes.flatMap { type in
+            servicesStore.instances(for: type).map { (type, $0) }
+        }
+
         await withTaskGroup(of: (UUID, ServiceSummaryInfo?).self) { group in
-            for type in ServiceType.homeServices {
-                for instance in servicesStore.instances(for: type) {
-                    guard servicesStore.reachability(for: instance.id) != false else { continue }
-                    group.addTask { await (instance.id, self.fetchSummary(instanceId: instance.id, type: type)) }
-                }
+            var index = 0
+            let instances = visibleInstances.filter { servicesStore.reachability(for: $1.id) == true }
+            
+            // Fill initial 3
+            while index < min(instances.count, 3) {
+                let (type, instance) = instances[index]
+                group.addTask { await (instance.id, self.fetchSummary(instanceId: instance.id, type: type)) }
+                index += 1
             }
-            for await (id, info) in group {
+            
+            while let (id, info) = await group.next() {
                 if let info { summaryData[id] = info }
+                if index < instances.count {
+                    let (type, instance) = instances[index]
+                    group.addTask { await (instance.id, self.fetchSummary(instanceId: instance.id, type: type)) }
+                    index += 1
+                }
             }
         }
     }
@@ -354,10 +368,15 @@ struct HomeView: View {
             case .portainer:
                 guard let client = await servicesStore.portainerClient(instanceId: instanceId) else { return nil }
                 let endpoints = try await client.getEndpoints()
-                guard let first = endpoints.first else { return nil }
-                let containers = try await client.getContainers(endpointId: first.Id)
-                let running = containers.filter { $0.State == "running" }.count
-                return ServiceSummaryInfo(value: "\(running)", subValue: "/ \(containers.count)", label: localizer.t.portainerContainers)
+                var totalRunning = 0
+                var totalContainers = 0
+                for endpoint in endpoints {
+                    if let containers = try? await client.getContainers(endpointId: endpoint.Id) {
+                        totalContainers += containers.count
+                        totalRunning += containers.filter { $0.State == "running" }.count
+                    }
+                }
+                return ServiceSummaryInfo(value: "\(totalRunning)", subValue: "/ \(totalContainers)", label: localizer.t.portainerContainers)
             case .pihole:
                 guard let client = await servicesStore.piholeClient(instanceId: instanceId) else { return nil }
                 let stats = try await client.getStats()
@@ -372,7 +391,7 @@ struct HomeView: View {
                 return ServiceSummaryInfo(
                     value: Formatters.formatNumber(overview.totalBlocked),
                     subValue: "/ \(Formatters.formatNumber(overview.totalQueries))",
-                    label: "Blocked queries"
+                    label: localizer.t.technitiumBlockedQueries
                 )
             case .beszel:
                 guard let client = await servicesStore.beszelClient(instanceId: instanceId) else { return nil }
@@ -390,7 +409,7 @@ struct HomeView: View {
                 return ServiceSummaryInfo(
                     value: Formatters.formatNumber(stats.totalUpdates),
                     subValue: "/ \(stats.total)",
-                    label: localizer.t.patchmonUpdates
+                    label: localizer.t.linuxUpdateAvailableUpdates
                 )
             case .dockhand:
                 guard let client = await servicesStore.dockhandClient(instanceId: instanceId) else { return nil }
@@ -398,29 +417,29 @@ struct HomeView: View {
                 return ServiceSummaryInfo(
                     value: "\(overview.runningContainers)",
                     subValue: "/ \(overview.totalContainers)",
-                    label: "Running containers"
+                    label: localizer.t.dockhandLiveStats
                 )
             case .craftyController:
                 guard let client = await servicesStore.craftyClient(instanceId: instanceId) else { return nil }
                 let servers = try await client.getServers()
-                let stats = await withTaskGroup(of: CraftyServerStats?.self) { group in
-                    for server in servers {
-                        group.addTask {
-                            try? await client.getServerStats(serverId: server.serverID)
-                        }
+                var running = 0
+                for server in servers {
+                    if let stat = try? await client.getServerStats(serverId: server.serverID), stat.running {
+                        running += 1
                     }
-                    var collected: [CraftyServerStats] = []
-                    while let next = await group.next() {
-                        if let next { collected.append(next) }
-                    }
-                    return collected
                 }
-                let running = stats.filter { $0.running }.count
                 return ServiceSummaryInfo(value: "\(running)", subValue: "/ \(servers.count)", label: localizer.t.craftyRunningServers)
             case .gitea:
                 guard let client = await servicesStore.giteaClient(instanceId: instanceId) else { return nil }
-                let repos = try await client.getUserRepos(page: 1, limit: 100)
-                return ServiceSummaryInfo(value: "\(repos.count)", label: localizer.t.giteaRepos)
+                var allRepos: [GiteaRepo] = []
+                var page = 1
+                while true {
+                    let repos = try await client.getUserRepos(page: page, limit: 100)
+                    allRepos.append(contentsOf: repos)
+                    if repos.count < 100 { break }
+                    page += 1
+                }
+                return ServiceSummaryInfo(value: "\(allRepos.count)", label: localizer.t.giteaRepos)
             case .nginxProxyManager:
                 guard let client = await servicesStore.npmClient(instanceId: instanceId) else { return nil }
                 let report = try await client.getHostReport()
@@ -431,7 +450,7 @@ struct HomeView: View {
                 return ServiceSummaryInfo(
                     value: "\(summary.sites)",
                     subValue: "/ \(summary.clients)",
-                    label: PangolinStrings.forLanguage(localizer.language).sitesClientsLabel
+                    label: localizer.t.pangolinSitesClientsLabel
                 )
             case .patchmon:
                 guard let client = await servicesStore.patchmonClient(instanceId: instanceId) else { return nil }
@@ -446,18 +465,28 @@ struct HomeView: View {
             case .plex:
                 guard let client = await servicesStore.plexClient(instanceId: instanceId) else { return nil }
                 let libs = try await client.getLibraries()
-                let totalItems = libs.reduce(0) { $0 + $1.itemCount + $1.episodeCount }
+                let totalItems = libs.reduce(0) { $0 + $1.itemCount }
                 return ServiceSummaryInfo(value: Formatters.formatNumber(totalItems), label: localizer.t.plexTotalItems)
             case .wakapi:
                 guard let client = await servicesStore.wakapiClient(instanceId: instanceId) else { return nil }
                 let summary = try await client.getSummary(interval: "today")
                 let total = summary.effectiveGrandTotal
-                let hours = total.hours ?? 0
-                let mins = total.minutes ?? 0
-                let timeStr = hours > 0
-                    ? "\(hours)\(localizer.t.unitHours) \(mins)\(localizer.t.unitMinutes)"
-                    : "\(mins)\(localizer.t.unitMinutes)"
+                let hours = Double(total.hours ?? 0) + Double(total.minutes ?? 0) / 60.0
+                let timeStr = formatWatchTime(hours)
                 return ServiceSummaryInfo(value: timeStr, label: localizer.t.wakapiCodedToday)
+            case .proxmox:
+                guard let client = await servicesStore.proxmoxClient(instanceId: instanceId) else { return nil }
+                let nodes = try await client.getNodes()
+                let onlineNodes = nodes.filter { $0.isOnline }
+                var totalRunning = 0
+                var totalGuests = 0
+                for node in onlineNodes {
+                    let vms = (try? await client.getVMs(node: node.node)) ?? []
+                    let lxcs = (try? await client.getLXCs(node: node.node)) ?? []
+                    totalGuests += vms.count + lxcs.count
+                    totalRunning += vms.filter { $0.isRunning }.count + lxcs.filter { $0.isRunning }.count
+                }
+                return ServiceSummaryInfo(value: "\(totalRunning)", subValue: "/ \(totalGuests)", label: localizer.t.proxmoxGuestsRunning)
             default:
                 return nil
             }
@@ -467,6 +496,9 @@ struct HomeView: View {
     }
 
     private func formatWatchTime(_ hours: Double) -> String {
+        if hours == 0 {
+            return "0m"
+        }
         if hours > 0, hours < 1 {
             let minutes = Int((hours * 60).rounded(.down))
             if minutes <= 0 {
@@ -793,8 +825,11 @@ struct ServiceIconView: View {
                     .resizable()
                     .renderingMode(.original)
                     .scaledToFit()
-            } else if let primary = candidates.first {
-                primaryIconView(primary)
+            } else {
+                // No local asset — try CDN icons (with privacy trade-off).
+                if let primary = candidates.first {
+                    primaryIconView(primary)
+                }
             }
         }
         .frame(width: size, height: size)

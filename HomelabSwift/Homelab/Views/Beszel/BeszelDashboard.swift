@@ -40,7 +40,7 @@ struct BeszelDashboard: View {
                             system: system,
                             beszelColor: beszelColor,
                             memoryColor: memoryColor,
-                            t: localizer.t
+                            t: localizer.translations
                         )
                         .contentShape(Rectangle())
                     }

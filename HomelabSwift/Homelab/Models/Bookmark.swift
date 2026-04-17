@@ -94,18 +94,21 @@ struct Bookmark: Identifiable, Codable, Hashable {
         guard iconType == .favicon, let normalizedUrl, let host = normalizedUrl.host else { return [] }
 
         var candidates: [URL] = []
+        // Try direct favicon first — no third-party involved, maximum privacy.
+        if let directFavicon = URL(string: "\(normalizedUrl.scheme ?? "https")://\(host)/favicon.ico") {
+            candidates.append(directFavicon)
+        }
+        // Then Apple touch icon — also direct, no third-party.
+        if let touchIcon = URL(string: "\(normalizedUrl.scheme ?? "https")://\(host)/apple-touch-icon.png") {
+            candidates.append(touchIcon)
+        }
+        // Only fall back to third-party services if direct requests fail.
         if let encodedAbsolute = normalizedUrl.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
            let google = URL(string: "https://www.google.com/s2/favicons?sz=128&domain_url=\(encodedAbsolute)") {
             candidates.append(google)
         }
         if let duckduckgo = URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico") {
             candidates.append(duckduckgo)
-        }
-        if let directFavicon = URL(string: "\(normalizedUrl.scheme ?? "https")://\(host)/favicon.ico") {
-            candidates.append(directFavicon)
-        }
-        if let touchIcon = URL(string: "\(normalizedUrl.scheme ?? "https")://\(host)/apple-touch-icon.png") {
-            candidates.append(touchIcon)
         }
 
         return candidates

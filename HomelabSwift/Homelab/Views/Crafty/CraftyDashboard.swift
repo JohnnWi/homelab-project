@@ -539,11 +539,15 @@ private struct CraftyCommandSheet: View {
             }
             try await client.sendCommand(serverId: server.serverID, command: trimmed)
             HapticManager.success()
+            // Show brief success feedback before dismissing.
+            commandText = ""
+            isSending = false
+            try await Task.sleep(nanoseconds: 500_000_000) // 0.5s delay so user sees the spinner complete
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
+            isSending = false
         }
-        isSending = false
     }
 }
 

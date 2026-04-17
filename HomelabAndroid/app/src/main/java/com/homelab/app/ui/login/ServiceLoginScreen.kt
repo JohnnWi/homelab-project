@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Label
+import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Key
@@ -47,6 +48,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -98,7 +100,11 @@ fun ServiceLoginScreen(
     var password by remember { mutableStateOf("") }
     var apiKey by remember { mutableStateOf("") }
     var mfaCode by remember { mutableStateOf("") }
+    var proxmoxRealm by remember { mutableStateOf("pam") }
+    var proxmoxOtp by remember { mutableStateOf("") }
+    var proxmoxUseApiToken by remember { mutableStateOf(false) }
     var fallbackUrl by remember { mutableStateOf("") }
+    var allowSelfSigned by remember { mutableStateOf(true) }
     var showSecret by remember { mutableStateOf(false) }
     var hasSubmitted by remember { mutableStateOf(false) }
 
@@ -109,9 +115,24 @@ fun ServiceLoginScreen(
         val instance = existingInstance ?: return@LaunchedEffect
         label = instance.label
         url = instance.url
-        username = instance.username.orEmpty()
-        apiKey = instance.apiKey.orEmpty()
+        if (serviceType == ServiceType.PROXMOX) {
+            val storedUsername = instance.username.orEmpty()
+            proxmoxUseApiToken = instance.apiKey.orEmpty().isNotBlank()
+            if (storedUsername.contains("@")) {
+                username = storedUsername.substringBeforeLast("@")
+                proxmoxRealm = storedUsername.substringAfterLast("@").ifBlank { "pam" }
+            } else {
+                username = storedUsername
+                proxmoxRealm = "pam"
+            }
+            apiKey = instance.apiKey.orEmpty()
+            proxmoxOtp = instance.proxmoxOtp.orEmpty()
+        } else {
+            username = instance.username.orEmpty()
+            apiKey = instance.apiKey.orEmpty()
+        }
         fallbackUrl = instance.fallbackUrl.orEmpty()
+        allowSelfSigned = instance.allowSelfSigned
         password = ""
         mfaCode = ""
     }
@@ -364,7 +385,11 @@ fun ServiceLoginScreen(
                     password = password,
                     apiKey = apiKey,
                     fallbackUrl = fallbackUrl,
-                    mfaCode = mfaCode
+                    mfaCode = mfaCode,
+                    allowSelfSigned = allowSelfSigned,
+                    proxmoxRealm = proxmoxRealm,
+                    proxmoxOtp = proxmoxOtp,
+                    proxmoxUseApiToken = proxmoxUseApiToken
                 )
             }
 
@@ -407,6 +432,50 @@ fun ServiceLoginScreen(
                     .padding(bottom = 14.dp),
                 shape = RoundedCornerShape(14.dp)
             )
+
+            Surface(
+                color = if (allowSelfSigned) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 14.dp)
+            ) {
+                androidx.compose.foundation.layout.Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = if (allowSelfSigned) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (allowSelfSigned) {
+                                stringResource(R.string.login_allow_self_signed)
+                            } else {
+                                stringResource(R.string.login_require_valid_tls)
+                            },
+                            style = MaterialTheme.typography.titleSmall,
+                            color = if (allowSelfSigned) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            text = if (allowSelfSigned) {
+                                stringResource(R.string.login_tls_permissive)
+                            } else {
+                                stringResource(R.string.login_tls_strict)
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (allowSelfSigned) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                    Switch(
+                        checked = allowSelfSigned,
+                        onCheckedChange = { allowSelfSigned = it }
+                    )
+                }
+            }
 
             if (
                 serviceType == ServiceType.PORTAINER ||
@@ -457,6 +526,93 @@ fun ServiceLoginScreen(
                     onToggleSecret = { showSecret = !showSecret }
                 )
             } else {
+                if (serviceType == ServiceType.PROXMOX) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                    ) {
+                        androidx.compose.foundation.layout.Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                if (proxmoxUseApiToken) Icons.Default.Key else Icons.Default.Lock,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.login_proxmox_auth_mode),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                                Text(
+                                    text = if (proxmoxUseApiToken) {
+                                        stringResource(R.string.login_proxmox_api_token_hint)
+                                    } else {
+                                        stringResource(R.string.login_proxmox_credentials_hint)
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
+                            Switch(
+                                checked = proxmoxUseApiToken,
+                                onCheckedChange = {
+                                    proxmoxUseApiToken = it
+                                    proxmoxOtp = ""
+                                    if (it) {
+                                        password = ""
+                                    } else {
+                                        apiKey = ""
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+
+                if (serviceType == ServiceType.PROXMOX && proxmoxUseApiToken) {
+                    SecretField(
+                        value = apiKey,
+                        onValueChange = { apiKey = it },
+                        label = stringResource(R.string.login_api_key_label),
+                        showSecret = showSecret,
+                        onToggleSecret = { showSecret = !showSecret },
+                        placeholder = stringResource(R.string.login_proxmox_api_token_placeholder)
+                    )
+
+                    Surface(
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                    ) {
+                        androidx.compose.foundation.layout.Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Icon(
+                                Icons.Default.Info,
+                                contentDescription = stringResource(R.string.login_proxmox_api_token_hint),
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = stringResource(R.string.login_proxmox_api_token_hint),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
+                    }
+                } else {
                 if (serviceType != ServiceType.PIHOLE) {
                     val isEmailField = serviceType == ServiceType.BESZEL || serviceType == ServiceType.NGINX_PROXY_MANAGER
                     val usernameLabel = when {
@@ -527,6 +683,38 @@ fun ServiceLoginScreen(
                             .padding(bottom = 14.dp),
                         shape = RoundedCornerShape(14.dp)
                     )
+                }
+
+                if (serviceType == ServiceType.PROXMOX) {
+                    OutlinedTextField(
+                        value = proxmoxRealm,
+                        onValueChange = { proxmoxRealm = it },
+                        label = { Text(stringResource(R.string.login_proxmox_realm)) },
+                        leadingIcon = { Icon(Icons.Default.Apartment, contentDescription = stringResource(R.string.login_proxmox_realm)) },
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(imeAction = ImeAction.Next),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 14.dp),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = proxmoxOtp,
+                        onValueChange = { proxmoxOtp = it },
+                        label = { Text(stringResource(R.string.login_proxmox_otp)) },
+                        leadingIcon = { Icon(Icons.Default.Key, contentDescription = stringResource(R.string.login_proxmox_otp)) },
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = KeyboardType.NumberPassword,
+                            imeAction = ImeAction.Done
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 14.dp),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+                }
                 }
             }
 

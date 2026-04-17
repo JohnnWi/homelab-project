@@ -325,7 +325,7 @@ struct GiteaDashboard: View {
             } else {
                 ForEach(sortedRepos) { repo in
                     NavigationLink(value: GiteaRepoRoute(instanceId: selectedInstanceId, owner: repo.owner.login, repoName: repo.name)) {
-                        RepoCard(repo: repo, t: localizer.t)
+                        RepoCard(repo: repo, t: localizer.translations)
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)

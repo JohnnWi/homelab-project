@@ -2,6 +2,7 @@ package com.homelab.app.data.repository
 
 import android.net.Uri
 import com.homelab.app.data.remote.api.DockhandApi
+import com.homelab.app.data.remote.TlsClientSelector
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.delay
@@ -21,7 +22,6 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
@@ -155,7 +155,7 @@ data class DockhandActionResult(
 @Singleton
 class DockhandRepository @Inject constructor(
     private val api: DockhandApi,
-    private val okHttpClient: OkHttpClient
+    private val tlsClientSelector: TlsClientSelector
 ) {
 
     suspend fun authenticate(
@@ -163,7 +163,8 @@ class DockhandRepository @Inject constructor(
         username: String,
         password: String,
         mfaCode: String,
-        fallbackUrl: String? = null
+        fallbackUrl: String? = null,
+        allowSelfSigned: Boolean = false
     ): String {
         val baseCandidates = listOf(cleanUrl(url), cleanOptionalUrl(fallbackUrl))
             .filterNotNull()
@@ -176,7 +177,8 @@ class DockhandRepository @Inject constructor(
                     baseUrl = base,
                     username = username.trim(),
                     password = password,
-                    mfaCode = mfaCode.trim()
+                    mfaCode = mfaCode.trim(),
+                    allowSelfSigned = allowSelfSigned
                 )
             } catch (error: Exception) {
                 lastError = error
@@ -495,7 +497,7 @@ class DockhandRepository @Inject constructor(
                         .build()
 
                     val outcome = withContext(Dispatchers.IO) {
-                        okHttpClient.newCall(request).execute().use { response ->
+                        tlsClientSelector.forInstance(instanceId).newCall(request).execute().use { response ->
                             val responseBody = response.body?.string().orEmpty()
                             if (!response.isSuccessful) {
                                 if (response.code in listOf(404, 405)) {
@@ -590,7 +592,8 @@ class DockhandRepository @Inject constructor(
         baseUrl: String,
         username: String,
         password: String,
-        mfaCode: String
+        mfaCode: String,
+        allowSelfSigned: Boolean
     ): String = withContext(Dispatchers.IO) {
         if (username.isBlank() && password.isBlank()) {
             if (canAccessDashboard(baseUrl, cookie = null)) {
@@ -608,7 +611,7 @@ class DockhandRepository @Inject constructor(
 
         for (path in loginPaths) {
             for (payload in payloads) {
-                val response = postJson(baseUrl, path, payload)
+                val response = postJson(baseUrl, path, payload, allowSelfSigned = allowSelfSigned)
                 val body = response.body?.string().orEmpty()
                 lastBody = body.ifBlank { lastBody }
                 val lowered = body.lowercase()
@@ -626,13 +629,13 @@ class DockhandRepository @Inject constructor(
                     response.close()
 
                     if (cookie.isNotBlank()) {
-                        if (canAccessDashboard(baseUrl, cookie)) {
-                            return@withContext cookie
-                        }
-                    } else if (canAccessDashboard(baseUrl, cookie = null)) {
-                        // Authentication can be disabled.
-                        return@withContext ""
+                    if (canAccessDashboard(baseUrl, cookie, allowSelfSigned = allowSelfSigned)) {
+                        return@withContext cookie
                     }
+                } else if (canAccessDashboard(baseUrl, cookie = null, allowSelfSigned = allowSelfSigned)) {
+                    // Authentication can be disabled.
+                    return@withContext ""
+                }
                 } else {
                     response.close()
                 }
@@ -681,17 +684,23 @@ class DockhandRepository @Inject constructor(
         return withCode + base
     }
 
-    private fun postJson(baseUrl: String, path: String, body: String): Response {
+    private fun postJson(baseUrl: String, path: String, body: String, allowSelfSigned: Boolean? = null, instanceId: String? = null): Response {
         val request = Request.Builder()
             .url(baseUrl + path)
             .post(body.toRequestBody("application/json".toMediaType()))
             .addHeader("Accept", "application/json")
             .addHeader("Content-Type", "application/json")
             .build()
-        return okHttpClient.newCall(request).execute()
+        val client = when {
+            allowSelfSigned != null -> tlsClientSelector.forAllowSelfSigned(allowSelfSigned)
+            instanceId != null -> runCatching { kotlinx.coroutines.runBlocking { tlsClientSelector.forInstance(instanceId) } }
+                .getOrElse { tlsClientSelector.forAllowSelfSigned(false) }
+            else -> tlsClientSelector.forAllowSelfSigned(false)
+        }
+        return client.newCall(request).execute()
     }
 
-    private fun canAccessDashboard(baseUrl: String, cookie: String?): Boolean {
+    private fun canAccessDashboard(baseUrl: String, cookie: String?, allowSelfSigned: Boolean? = null, instanceId: String? = null): Boolean {
         val builder = Request.Builder()
             .url("$baseUrl/api/dashboard/stats")
             .get()
@@ -702,7 +711,12 @@ class DockhandRepository @Inject constructor(
         }
 
         return runCatching {
-            okHttpClient.newCall(builder.build()).execute().use { response ->
+            val client = when {
+                allowSelfSigned != null -> tlsClientSelector.forAllowSelfSigned(allowSelfSigned)
+                instanceId != null -> runCatching { kotlinx.coroutines.runBlocking { tlsClientSelector.forInstance(instanceId) } }.getOrElse { tlsClientSelector.forAllowSelfSigned(false) }
+                else -> tlsClientSelector.forAllowSelfSigned(false)
+            }
+            client.newCall(builder.build()).execute().use { response ->
                 response.code in 200..399
             }
         }.getOrDefault(false)
@@ -1328,7 +1342,7 @@ class DockhandRepository @Inject constructor(
                 .build()
 
             val value = runCatching {
-                okHttpClient.newCall(request).execute().use { response ->
+                tlsClientSelector.forInstance(instanceId).newCall(request).execute().use { response ->
                     if (!response.isSuccessful) return@use null
                     extractComposeText(response.body?.string().orEmpty())
                 }

@@ -15,6 +15,7 @@ struct ContainerListView: View {
     @State private var isLoading = true
     @State private var actionInProgress: String?
     @State private var containerStats: [String: ContainerStats] = [:]
+    @State private var statsFetchTask: Task<Void, Never>?
     @State private var actionError: String?
     @State private var showActionError = false
 
@@ -92,6 +93,10 @@ struct ContainerListView: View {
             }
         }
         .task { await fetchContainers() }
+        .onDisappear {
+            statsFetchTask?.cancel()
+            statsFetchTask = nil
+        }
         .alert(localizer.t.error, isPresented: $showActionError) {
             Button(localizer.t.confirm, role: .cancel) { }
         } message: {
@@ -175,7 +180,7 @@ struct ContainerListView: View {
                             container: container,
                             stats: containerStats[container.Id],
                             actionInProgress: actionInProgress == container.Id,
-                            t: localizer.t,
+                            t: localizer.translations,
                             onAction: { action in
                                 handleAction(containerId: container.Id, action: action)
                             }
@@ -223,8 +228,7 @@ struct ContainerListView: View {
             }
             let list = try await client.getContainers(endpointId: endpointId)
             containers = list
-            // Trigger stats fetch
-            fetchStats(for: list)
+            startStatsFetch(for: list)
         } catch {
             if containers.isEmpty {
                 actionError = error.localizedDescription
@@ -233,18 +237,48 @@ struct ContainerListView: View {
         }
     }
 
-    private func fetchStats(for list: [PortainerContainer]) {
-        for container in list where (container.State ?? "") == "running" {
-            Task {
-                do {
-                    guard let client = await servicesStore.portainerClient(instanceId: instanceId) else { return }
-                    let stats = try await client.getContainerStats(endpointId: endpointId, containerId: container.Id)
-                    await MainActor.run {
-                        containerStats[container.Id] = stats
+    private func startStatsFetch(for list: [PortainerContainer]) {
+        statsFetchTask?.cancel()
+
+        let runningContainers = list.filter { ($0.State ?? "") == "running" }
+        let runningIDs = Set(runningContainers.map(\.Id))
+        containerStats = containerStats.filter { runningIDs.contains($0.key) }
+
+        let containersNeedingStats = runningContainers.filter { containerStats[$0.Id] == nil }
+        guard !containersNeedingStats.isEmpty else { return }
+
+        statsFetchTask = Task {
+            let batchSize = 4
+            var index = 0
+
+            while !Task.isCancelled && index < containersNeedingStats.count {
+                let upperBound = min(index + batchSize, containersNeedingStats.count)
+                let batch = Array(containersNeedingStats[index..<upperBound])
+
+                await withTaskGroup(of: (String, ContainerStats?).self) { group in
+                    for container in batch {
+                        group.addTask {
+                            do {
+                                guard let client = await servicesStore.portainerClient(instanceId: instanceId) else {
+                                    return (container.Id, nil)
+                                }
+                                let stats = try await client.getContainerStats(endpointId: endpointId, containerId: container.Id)
+                                return (container.Id, stats)
+                            } catch {
+                                return (container.Id, nil)
+                            }
+                        }
                     }
-                } catch {
-                    // Ignore stats errors
+
+                    for await (containerId, stats) in group {
+                        guard !Task.isCancelled, let stats else { continue }
+                        await MainActor.run {
+                            containerStats[containerId] = stats
+                        }
+                    }
                 }
+
+                index += batchSize
             }
         }
     }

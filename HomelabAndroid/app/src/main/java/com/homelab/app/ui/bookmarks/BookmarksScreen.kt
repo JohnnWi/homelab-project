@@ -200,6 +200,7 @@ fun BookmarksScreen(
                             bookmark.categoryId == category.id &&
                             (searchQuery.isBlank() ||
                              bookmark.title.contains(searchQuery, ignoreCase = true) ||
+                             bookmark.description.contains(searchQuery, ignoreCase = true) ||
                              bookmark.tags.any { it.contains(searchQuery, ignoreCase = true) } ||
                              bookmark.url.contains(searchQuery, ignoreCase = true))
                         }

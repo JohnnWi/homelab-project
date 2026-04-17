@@ -1,5 +1,7 @@
 import SwiftUI
 
+private let healthchecksColor = Color(hex: "#16A34A")
+
 struct HealthchecksCheckDetail: View {
     let instanceId: UUID
     let check: HealthchecksCheck
@@ -21,6 +23,8 @@ struct HealthchecksCheckDetail: View {
     @State private var actionError: String?
     private let smoothAnimation = Animation.spring(response: 0.45, dampingFraction: 0.86)
     @State private var showIntegrationsEditor = false
+    @State private var pingVisibleCount = 15
+    @State private var flipVisibleCount = 15
 
     init(instanceId: UUID, check: HealthchecksCheck, channels: [HealthchecksChannel]) {
         self.instanceId = instanceId
@@ -276,8 +280,9 @@ struct HealthchecksCheckDetail: View {
                     .padding(12)
                     .glassCard(tint: AppTheme.surface.opacity(0.45))
             } else {
+                let visible = min(pingVisibleCount, pings.count)
                 VStack(spacing: 10) {
-                    ForEach(pings.prefix(15)) { ping in
+                    ForEach(Array(pings.prefix(visible).enumerated()), id: \.element.n) { _, ping in
                         Button {
                             if ping.bodyUrl != nil {
                                 Task { await fetchPingBody(ping) }
@@ -288,6 +293,21 @@ struct HealthchecksCheckDetail: View {
                         .buttonStyle(PressableCardButtonStyle())
                         .hoverEffect(.highlight)
                         .disabled(ping.bodyUrl == nil)
+                    }
+
+                    if pings.count > visible {
+                        Button {
+                            withAnimation(.spring(response: 0.3)) {
+                                pingVisibleCount += 30
+                            }
+                        } label: {
+                            Text(localizer.t.healthchecksLoadMorePings)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(healthchecksColor)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -305,8 +325,9 @@ struct HealthchecksCheckDetail: View {
                     .padding(12)
                     .glassCard(tint: AppTheme.surface.opacity(0.45))
             } else {
+                let visible = min(flipVisibleCount, flips.count)
                 VStack(spacing: 10) {
-                    ForEach(flips.prefix(15)) { flip in
+                    ForEach(Array(flips.prefix(visible).enumerated()), id: \.element.timestamp) { _, flip in
                         HStack(spacing: 10) {
                             StatusBadge(status: flip.isUp ? "up" : "down", compact: true)
                             VStack(alignment: .leading, spacing: 2) {
@@ -320,6 +341,21 @@ struct HealthchecksCheckDetail: View {
                         }
                         .padding(12)
                         .glassCard(tint: AppTheme.surface.opacity(0.45))
+                    }
+
+                    if flips.count > visible {
+                        Button {
+                            withAnimation(.spring(response: 0.3)) {
+                                flipVisibleCount += 30
+                            }
+                        } label: {
+                            Text(localizer.t.healthchecksLoadMoreFlips)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(healthchecksColor)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -496,6 +532,8 @@ struct HealthchecksCheckDetail: View {
 
             flips = await flipsTask.value
             pings = await pingsTask.value
+            pingVisibleCount = 15
+            flipVisibleCount = 15
             state = .loaded(())
         } catch let apiError as APIError {
             state = .error(apiError)
@@ -505,10 +543,10 @@ struct HealthchecksCheckDetail: View {
     }
 
     private func fetchPingBody(_ ping: HealthchecksPing) async {
-        guard let uuid = detail.uuid else { return }
+        guard let identifier = detail.apiIdentifier else { return }
         do {
             guard let client = await servicesStore.healthchecksClient(instanceId: instanceId) else { return }
-            let body = try await client.getPingBody(checkId: uuid, n: ping.n)
+            let body = try await client.getPingBody(checkId: identifier, n: ping.n)
             bodyText = body
             showBody = true
         } catch {
@@ -584,10 +622,6 @@ private struct HealthchecksPingRow: View {
         case "fail": return "down"
         default: return ping.type
         }
-    }
-
-    private var pingTint: Color {
-        AppTheme.textSecondary
     }
 
     private var pingMeta: String {
@@ -741,7 +775,9 @@ private struct HealthchecksIntegrationsEditor: View {
 
         let customTokens = parseChannelTokens(customChannels)
         let combined = Array(selectedChannelIds) + customTokens.filter { !selectedChannelIds.contains($0) }
-        let channelsValue: String = combined.isEmpty ? "" : combined.joined(separator: ",")
+        // Send nil (not empty string) when no channels are selected, so the API
+        // treats it as a no-op rather than "clear all channels".
+        let channelsValue: String? = combined.isEmpty ? nil : combined.joined(separator: ",")
 
         let payload = HealthchecksCheckPayload(
             name: nil,

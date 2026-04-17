@@ -17,7 +17,7 @@ final class BookmarkManager {
         
         // Add a default Uncategorized category if categories are completely empty
         if categories.isEmpty {
-            let defaultCat = BookmarkCategory(id: UUID(), name: "Uncategorized", sortOrder: 0)
+            let defaultCat = BookmarkCategory(id: UUID(), name: Translations.current().categoryUncategorized, sortOrder: 0)
             categories.append(defaultCat)
             saveData()
         }
@@ -67,7 +67,7 @@ final class BookmarkManager {
         bookmarks.removeAll { $0.categoryId == category.id }
         // Ensure at least one category exists
         if categories.isEmpty {
-            categories.append(BookmarkCategory(id: UUID(), name: "Uncategorized", sortOrder: 0))
+            categories.append(BookmarkCategory(id: UUID(), name: Translations.current().categoryUncategorized, sortOrder: 0))
         }
         saveData()
     }

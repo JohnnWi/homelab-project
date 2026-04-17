@@ -1,6 +1,7 @@
 package com.homelab.app.data.repository
 
 import com.homelab.app.data.remote.api.WakapiApi
+import com.homelab.app.data.remote.TlsClientSelector
 import com.homelab.app.data.remote.dto.wakapi.WakapiDailySummariesResponse
 import com.homelab.app.data.remote.dto.wakapi.WakapiSummaryResponse
 import java.io.IOException
@@ -10,7 +11,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import retrofit2.HttpException
 
@@ -42,7 +42,7 @@ data class WakapiSummaryFilter(
 @Singleton
 class WakapiRepository @Inject constructor(
     private val api: WakapiApi,
-    private val okHttpClient: OkHttpClient
+    private val tlsClientSelector: TlsClientSelector
 ) {
     private data class TimedCache<T>(
         val value: T,
@@ -52,7 +52,12 @@ class WakapiRepository @Inject constructor(
     private val summaryCache = ConcurrentHashMap<String, TimedCache<WakapiSummaryResponse>>()
     private val activityCache = ConcurrentHashMap<String, TimedCache<WakapiDailySummariesResponse>>()
 
-    suspend fun authenticate(url: String, apiKey: String, fallbackUrl: String? = null) {
+    suspend fun authenticate(
+        url: String,
+        apiKey: String,
+        fallbackUrl: String? = null,
+        allowSelfSigned: Boolean = false
+    ) {
         withContext(Dispatchers.IO) {
             val baseCandidates = listOf(url.trim().trimEnd('/'), fallbackUrl?.trim()?.trimEnd('/'))
                 .filter { !it.isNullOrBlank() }
@@ -62,7 +67,7 @@ class WakapiRepository @Inject constructor(
             var lastError: WakapiApiException? = null
             for (baseUrl in baseCandidates) {
                 try {
-                    authenticateAgainst(baseUrl = baseUrl, apiKey = apiKey)
+                    authenticateAgainst(baseUrl = baseUrl, apiKey = apiKey, allowSelfSigned = allowSelfSigned)
                     return@withContext
                 } catch (error: WakapiApiException) {
                     lastError = error
@@ -189,7 +194,7 @@ class WakapiRepository @Inject constructor(
         }
     }
 
-    private fun authenticateAgainst(baseUrl: String, apiKey: String) {
+    private fun authenticateAgainst(baseUrl: String, apiKey: String, allowSelfSigned: Boolean) {
         val credentials = Base64.getEncoder()
             .encodeToString(apiKey.trim().toByteArray(Charsets.UTF_8))
 
@@ -204,7 +209,7 @@ class WakapiRepository @Inject constructor(
                     .addHeader("Content-Type", "application/json")
                     .build()
 
-                okHttpClient.newCall(request).execute().use { response ->
+                tlsClientSelector.forAllowSelfSigned(allowSelfSigned).newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
                         return
                     }

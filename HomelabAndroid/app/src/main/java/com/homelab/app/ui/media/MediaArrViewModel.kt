@@ -50,9 +50,6 @@ class MediaArrViewModel @Inject constructor(
     val hiddenServices: StateFlow<Set<String>> = localPreferencesRepository.hiddenServices
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
-
-
-
     val serviceOrder: StateFlow<List<ServiceType>> = localPreferencesRepository.serviceOrder
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ServiceType.entries.filter { it != ServiceType.UNKNOWN })
 

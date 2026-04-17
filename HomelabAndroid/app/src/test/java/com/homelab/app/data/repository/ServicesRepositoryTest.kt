@@ -3,6 +3,7 @@ package com.homelab.app.data.repository
 import com.homelab.app.data.local.SettingsManager
 import com.homelab.app.data.local.dao.ServiceInstanceDao
 import com.homelab.app.data.local.entity.ServiceInstanceEntity
+import com.homelab.app.data.remote.TlsClientSelector
 import com.homelab.app.domain.model.ServiceConnection
 import com.homelab.app.domain.model.ServiceInstance
 import com.homelab.app.util.GlobalEventBus
@@ -35,9 +36,11 @@ class ServicesRepositoryTest {
         val dao = ReachabilityFakeDao()
         val state = ReachabilitySettingsState()
         val instanceRepository = ServiceInstancesRepository(dao, settingsManager(state))
+        val tlsClientSelector = mockk<TlsClientSelector>()
+        every { tlsClientSelector.forAllowSelfSigned(any()) } returns OkHttpClient()
         val repository = ServicesRepository(
             serviceInstancesRepository = instanceRepository,
-            okHttpClient = OkHttpClient(),
+            tlsClientSelector = tlsClientSelector,
             globalEventBus = GlobalEventBus()
         )
         val first = ServiceInstance(
@@ -71,21 +74,24 @@ class ServicesRepositoryTest {
         val state = ReachabilitySettingsState(migrated = MutableStateFlow(true))
         val instanceRepository = ServiceInstancesRepository(dao, settingsManager(state))
         val captured = mutableListOf<Request>()
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(Interceptor { chain ->
+                val request = chain.request()
+                captured += request
+                Response.Builder()
+                    .request(request)
+                    .protocol(Protocol.HTTP_1_1)
+                    .code(200)
+                    .message("OK")
+                    .body("{}".toResponseBody("application/json".toMediaType()))
+                    .build()
+            })
+            .build()
+        val tlsClientSelector = mockk<TlsClientSelector>()
+        every { tlsClientSelector.forAllowSelfSigned(any()) } returns okHttpClient
         val repository = ServicesRepository(
             serviceInstancesRepository = instanceRepository,
-            okHttpClient = OkHttpClient.Builder()
-                .addInterceptor(Interceptor { chain ->
-                    val request = chain.request()
-                    captured += request
-                    Response.Builder()
-                        .request(request)
-                        .protocol(Protocol.HTTP_1_1)
-                        .code(200)
-                        .message("OK")
-                        .body("{}".toResponseBody("application/json".toMediaType()))
-                        .build()
-                })
-                .build(),
+            tlsClientSelector = tlsClientSelector,
             globalEventBus = GlobalEventBus()
         )
         val instance = ServiceInstance(
@@ -110,21 +116,24 @@ class ServicesRepositoryTest {
         val state = ReachabilitySettingsState(migrated = MutableStateFlow(true))
         val instanceRepository = ServiceInstancesRepository(dao, settingsManager(state))
         val captured = mutableListOf<Request>()
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(Interceptor { chain ->
+                val request = chain.request()
+                captured += request
+                Response.Builder()
+                    .request(request)
+                    .protocol(Protocol.HTTP_1_1)
+                    .code(200)
+                    .message("OK")
+                    .body("{}".toResponseBody("application/json".toMediaType()))
+                    .build()
+            })
+            .build()
+        val tlsClientSelector = mockk<TlsClientSelector>()
+        every { tlsClientSelector.forAllowSelfSigned(any()) } returns okHttpClient
         val repository = ServicesRepository(
             serviceInstancesRepository = instanceRepository,
-            okHttpClient = OkHttpClient.Builder()
-                .addInterceptor(Interceptor { chain ->
-                    val request = chain.request()
-                    captured += request
-                    Response.Builder()
-                        .request(request)
-                        .protocol(Protocol.HTTP_1_1)
-                        .code(200)
-                        .message("OK")
-                        .body("{}".toResponseBody("application/json".toMediaType()))
-                        .build()
-                })
-                .build(),
+            tlsClientSelector = tlsClientSelector,
             globalEventBus = GlobalEventBus()
         )
         val instance = ServiceInstance(

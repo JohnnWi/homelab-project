@@ -26,6 +26,8 @@ final class BackupModelsTests: XCTestCase {
             apiKey: "pangolin-key",
             piholePassword: nil,
             piholeAuthMode: nil,
+            proxmoxAuthMode: nil,
+            proxmoxRealm: nil,
             fallbackUrl: "https://pangolin.example.com",
             allowSelfSigned: false,
             password: nil,

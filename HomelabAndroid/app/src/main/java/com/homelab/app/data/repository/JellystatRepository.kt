@@ -1,6 +1,7 @@
 package com.homelab.app.data.repository
 
 import com.homelab.app.data.remote.api.JellystatApi
+import com.homelab.app.data.remote.TlsClientSelector
 import com.homelab.app.data.remote.dto.jellystat.JellystatCountDuration
 import com.homelab.app.data.remote.dto.jellystat.JellystatLibraryTypeViews
 import com.homelab.app.data.remote.dto.jellystat.JellystatSeriesPoint
@@ -16,16 +17,15 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import okhttp3.OkHttpClient
 import okhttp3.Request
 
 @Singleton
 class JellystatRepository @Inject constructor(
     private val api: JellystatApi,
-    private val okHttpClient: OkHttpClient
+    private val tlsClientSelector: TlsClientSelector
 ) {
 
-    suspend fun authenticate(url: String, apiKey: String) {
+    suspend fun authenticate(url: String, apiKey: String, allowSelfSigned: Boolean = false) {
         withContext(Dispatchers.IO) {
             val clean = cleanUrl(url)
             val key = apiKey.trim()
@@ -35,7 +35,7 @@ class JellystatRepository @Inject constructor(
                 .addHeader("Content-Type", "application/json")
                 .build()
 
-            okHttpClient.newCall(request).execute().use { response ->
+            tlsClientSelector.forAllowSelfSigned(allowSelfSigned).newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     throw IllegalStateException("Jellystat authentication failed")
                 }

@@ -15,7 +15,8 @@ interface TechnitiumApi {
         @Query("totp") totp: String? = null,
         @Query("includeInfo") includeInfo: Boolean = true,
         @Header("X-Homelab-Service") service: String = "Technitium",
-        @Header("X-Homelab-Bypass") bypass: String = "true"
+        @Header("X-Homelab-Bypass") bypass: String = "true",
+        @Header("X-Homelab-Allow-Self-Signed") allowSelfSigned: String = "false"
     ): JsonObject
 
     @GET("api/user/session/get")

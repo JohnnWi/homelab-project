@@ -93,6 +93,7 @@ private fun dashboardRoute(type: ServiceType, instanceId: String): String {
         ServiceType.PATCHMON -> "patchmon/$instanceId/dashboard"
         ServiceType.WAKAPI -> "wakapi/$instanceId/dashboard"
         ServiceType.PLEX -> "plex/$instanceId/dashboard"
+        ServiceType.PROXMOX -> "proxmox/$instanceId/dashboard"
         ServiceType.RADARR,
         ServiceType.SONARR,
         ServiceType.LIDARR,
@@ -886,6 +887,356 @@ fun AppNavigation() {
                             }
                         }
                     }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/dashboard",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.proxmox.ProxmoxDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        navController.navigate(dashboardRoute(ServiceType.PROXMOX, newInstanceId)) {
+                            popUpTo("proxmox/$instanceId/dashboard") { inclusive = true }
+                        }
+                    },
+                    onNavigateToNode = { nodeName ->
+                        navController.navigate("proxmox/$instanceId/node/$nodeName")
+                    },
+                    onNavigateToGuest = { nodeName, vmid, isQemu ->
+                        navController.navigate("proxmox/$instanceId/guest/$nodeName/$vmid/$isQemu")
+                    },
+                    onNavigateToStorage = { nodeName, storageName ->
+                        navController.navigate("proxmox/$instanceId/storage/$nodeName/$storageName")
+                    },
+                    onNavigateToPool = { poolId ->
+                        navController.navigate("proxmox/$instanceId/pool/$poolId")
+                    },
+                    onNavigateToBackup = {
+                        navController.navigate("proxmox/$instanceId/backup")
+                    },
+                    onNavigateToFirewall = {
+                        navController.navigate("proxmox/$instanceId/firewall")
+                    },
+                    onNavigateToHA = {
+                        navController.navigate("proxmox/$instanceId/ha")
+                    },
+                    onNavigateToClusterResources = {
+                        navController.navigate("proxmox/$instanceId/cluster-resources")
+                    },
+                    onNavigateToReplication = {
+                        navController.navigate("proxmox/$instanceId/replication")
+                    },
+                    onNavigateToCreate = {
+                        navController.navigate("proxmox/$instanceId/create")
+                    },
+                    onNavigateToGlobalTasks = {
+                        navController.navigate("proxmox/$instanceId/global-tasks")
+                    }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/node/{node}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("node") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                val node = backStackEntry.arguments?.getString("node") ?: return@composable
+                com.homelab.app.ui.proxmox.ProxmoxNodeDetailScreen(
+                    node = node,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToGuest = { nodeName, vmid, isQemu ->
+                        navController.navigate("proxmox/$instanceId/guest/$nodeName/$vmid/$isQemu")
+                    },
+                    onNavigateToUpdates = { nodeName ->
+                        navController.navigate("proxmox/$instanceId/apt/$nodeName")
+                    },
+                    onNavigateToCeph = { nodeName ->
+                        navController.navigate("proxmox/$instanceId/ceph/$nodeName")
+                    },
+                    onNavigateToJournal = { nodeName ->
+                        navController.navigate("proxmox/$instanceId/journal/$nodeName")
+                    },
+                    onNavigateToNetwork = { nodeName ->
+                        navController.navigate("proxmox/$instanceId/network/$nodeName")
+                    }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/guest/{node}/{vmid}/{isQemu}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("node") { type = NavType.StringType },
+                    androidx.navigation.navArgument("vmid") { type = NavType.IntType },
+                    androidx.navigation.navArgument("isQemu") { type = NavType.BoolType }
+                )
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                val node = backStackEntry.arguments?.getString("node") ?: return@composable
+                val vmid = backStackEntry.arguments?.getInt("vmid") ?: return@composable
+                val isQemu = backStackEntry.arguments?.getBoolean("isQemu") ?: true
+                com.homelab.app.ui.proxmox.ProxmoxGuestDetailScreen(
+                    node = node,
+                    vmid = vmid,
+                    isQemu = isQemu,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToConsole = { n, v, q ->
+                        navController.navigate("proxmox/$instanceId/guest/$n/$v/$q/console")
+                    },
+                    onNavigateToConfig = { n, v, q ->
+                        navController.navigate("proxmox/$instanceId/guest/$n/$v/$q/config")
+                    }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/guest/{node}/{vmid}/{isQemu}/console",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("node") { type = NavType.StringType },
+                    androidx.navigation.navArgument("vmid") { type = NavType.IntType },
+                    androidx.navigation.navArgument("isQemu") { type = NavType.BoolType }
+                )
+            ) { backStackEntry ->
+                val node = backStackEntry.arguments?.getString("node") ?: return@composable
+                val vmid = backStackEntry.arguments?.getInt("vmid") ?: return@composable
+                val isQemu = backStackEntry.arguments?.getBoolean("isQemu") ?: true
+                com.homelab.app.ui.proxmox.ProxmoxConsoleScreen(
+                    node = node,
+                    vmid = vmid,
+                    isQemu = isQemu,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/guest/{node}/{vmid}/{isQemu}/config",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("node") { type = NavType.StringType },
+                    androidx.navigation.navArgument("vmid") { type = NavType.IntType },
+                    androidx.navigation.navArgument("isQemu") { type = NavType.BoolType }
+                )
+            ) { backStackEntry ->
+                val node = backStackEntry.arguments?.getString("node") ?: return@composable
+                val vmid = backStackEntry.arguments?.getInt("vmid") ?: return@composable
+                val isQemu = backStackEntry.arguments?.getBoolean("isQemu") ?: true
+                com.homelab.app.ui.proxmox.ProxmoxConfigScreen(
+                    node = node,
+                    vmid = vmid,
+                    isQemu = isQemu,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/storage/{node}/{storage}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("node") { type = NavType.StringType },
+                    androidx.navigation.navArgument("storage") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val node = backStackEntry.arguments?.getString("node") ?: return@composable
+                val storage = backStackEntry.arguments?.getString("storage") ?: return@composable
+                com.homelab.app.ui.proxmox.ProxmoxStorageContentScreen(
+                    node = node,
+                    storage = storage,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/tasklog/{node}/{upid}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("node") { type = NavType.StringType },
+                    androidx.navigation.navArgument("upid") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val node = backStackEntry.arguments?.getString("node") ?: return@composable
+                val upid = backStackEntry.arguments?.getString("upid") ?: return@composable
+                com.homelab.app.ui.proxmox.ProxmoxTaskLogScreen(
+                    node = node,
+                    upid = upid,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/pool/{poolId}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("poolId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                val poolId = backStackEntry.arguments?.getString("poolId") ?: return@composable
+                com.homelab.app.ui.proxmox.ProxmoxPoolDetailScreen(
+                    poolId = poolId,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToGuest = { nodeName, vmid, isQemu ->
+                        navController.navigate("proxmox/$instanceId/guest/$nodeName/$vmid/$isQemu")
+                    },
+                    onNavigateToStorage = { nodeName, storageName ->
+                        navController.navigate("proxmox/$instanceId/storage/$nodeName/$storageName")
+                    }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/backup",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType }
+                )
+            ) {
+                com.homelab.app.ui.proxmox.ProxmoxBackupScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/firewall",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType }
+                )
+            ) {
+                com.homelab.app.ui.proxmox.ProxmoxFirewallScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/apt/{node}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("node") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val node = backStackEntry.arguments?.getString("node") ?: return@composable
+                com.homelab.app.ui.proxmox.ProxmoxAptUpdatesScreen(
+                    node = node,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/ha",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType }
+                )
+            ) {
+                com.homelab.app.ui.proxmox.ProxmoxHAScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/cluster-resources",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.proxmox.ProxmoxClusterResourcesScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToNode = { nodeName ->
+                        navController.navigate("proxmox/$instanceId/node/$nodeName")
+                    },
+                    onNavigateToGuest = { nodeName, vmid, isQemu ->
+                        navController.navigate("proxmox/$instanceId/guest/$nodeName/$vmid/$isQemu")
+                    }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/ceph/{node}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("node") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val node = backStackEntry.arguments?.getString("node") ?: return@composable
+                com.homelab.app.ui.proxmox.ProxmoxCephScreen(
+                    node = node,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/replication",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType }
+                )
+            ) {
+                com.homelab.app.ui.proxmox.ProxmoxReplicationScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/global-tasks",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.proxmox.ProxmoxGlobalTasksScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToTaskLog = { nodeName, upid ->
+                        navController.navigate("proxmox/$instanceId/tasklog/$nodeName/$upid")
+                    }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/create",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.proxmox.ProxmoxGuestCreateScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToJournal = { nodeName ->
+                        navController.navigate("proxmox/$instanceId/journal/$nodeName")
+                    }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/journal/{node}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("node") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val node = backStackEntry.arguments?.getString("node") ?: return@composable
+                com.homelab.app.ui.proxmox.ProxmoxJournalScreen(
+                    node = node,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "proxmox/{instanceId}/network/{node}",
+                arguments = listOf(
+                    androidx.navigation.navArgument("instanceId") { type = NavType.StringType },
+                    androidx.navigation.navArgument("node") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val node = backStackEntry.arguments?.getString("node") ?: return@composable
+                com.homelab.app.ui.proxmox.ProxmoxNetworkScreen(
+                    node = node,
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
 

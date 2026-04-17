@@ -31,6 +31,7 @@ enum class ServiceType(val displayName: String) {
     GLUETUN("Gluetun"),
     FLARESOLVERR("FlareSolverr"),
     WAKAPI("Wakapi"),
+    PROXMOX("Proxmox VE"),
     UNKNOWN("Unknown");
 
     companion object {

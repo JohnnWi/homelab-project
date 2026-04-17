@@ -85,7 +85,9 @@ enum GenericServiceSnapshot: Sendable {
 }
 
 actor GenericAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private let serviceType: ServiceType
     private var baseURL: String = ""
     private var fallbackURL: String = ""
@@ -93,13 +95,19 @@ actor GenericAPIClient {
 
     init(serviceType: ServiceType, instanceId: UUID) {
         self.serviceType = serviceType
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: serviceType, instanceId: instanceId)
     }
 
-    func configure(url: String, fallbackUrl: String? = nil, apiKey: String? = nil) {
+    func configure(url: String, fallbackUrl: String? = nil, apiKey: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.apiKey = apiKey?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: serviceType, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     func ping() async -> Bool {

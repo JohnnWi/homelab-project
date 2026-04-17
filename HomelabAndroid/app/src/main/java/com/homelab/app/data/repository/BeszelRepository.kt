@@ -14,11 +14,12 @@ import javax.inject.Singleton
 class BeszelRepository @Inject constructor(
     private val api: BeszelApi
 ) {
-    suspend fun authenticate(url: String, email: String, password: String): String {
+    suspend fun authenticate(url: String, email: String, password: String, allowSelfSigned: Boolean = false): String {
         val cleanUrl = url.trimEnd('/') + "/api/collections/users/auth-with-password"
         try {
             val response = api.authenticate(
                 url = cleanUrl,
+                allowSelfSigned = allowSelfSigned.toString(),
                 credentials = mapOf("identity" to email, "password" to password)
             )
             return response.token

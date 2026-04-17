@@ -1,6 +1,7 @@
 package com.homelab.app.data.repository
 
 import com.homelab.app.data.remote.api.PangolinApi
+import com.homelab.app.data.remote.TlsClientSelector
 import com.homelab.app.data.remote.dto.pangolin.PangolinClient
 import com.homelab.app.data.remote.dto.pangolin.PangolinDomain
 import com.homelab.app.data.remote.dto.pangolin.PangolinOrg
@@ -21,7 +22,6 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -46,13 +46,18 @@ data class PangolinSiteResourceBindings(
 @Singleton
 class PangolinRepository @Inject constructor(
     private val api: PangolinApi,
-    private val okHttpClient: OkHttpClient
+    private val tlsClientSelector: TlsClientSelector
 ) {
     private companion object {
         const val DASHBOARD_RESOURCE_LIMIT = 8
     }
 
-    suspend fun authenticate(url: String, apiKey: String, orgId: String? = null) {
+    suspend fun authenticate(
+        url: String,
+        apiKey: String,
+        orgId: String? = null,
+        allowSelfSigned: Boolean = false
+    ) {
         withContext(Dispatchers.IO) {
             val token = cleanToken(apiKey)
             val cleanedOrgId = orgId?.trim().orEmpty()
@@ -62,7 +67,7 @@ class PangolinRepository @Inject constructor(
                 .addHeader("Authorization", "Bearer $token")
                 .build()
 
-            okHttpClient.newCall(request).execute().use { response ->
+            tlsClientSelector.forAllowSelfSigned(allowSelfSigned).newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     throw IllegalStateException("Pangolin authentication failed")
                 }
@@ -109,18 +114,25 @@ class PangolinRepository @Inject constructor(
 
     suspend fun getAggregateSummary(instanceId: String, scopedOrgId: String? = null): Triple<Int, Int, Int> {
         val orgs = listOrgs(instanceId, scopedOrgId)
-        var totalSites = 0
-        var totalResources = 0
-        var totalClients = 0
+        if (orgs.isEmpty()) return Triple(0, 0, 0)
 
-        for (org in orgs) {
-            totalSites += listAllSites(instanceId, org.orgId).size
-            totalResources += listAllResources(instanceId, org.orgId).size + listAllSiteResources(instanceId, org.orgId).size
-            totalClients += listAllClients(instanceId, org.orgId).size
-            totalClients += listAllUserDevices(instanceId, org.orgId).size
+        return coroutineScope {
+            val orgResults = orgs.map { org ->
+                async {
+                    val sites = listAllSites(instanceId, org.orgId)
+                    val resources = listAllResources(instanceId, org.orgId)
+                    val siteResources = listAllSiteResources(instanceId, org.orgId)
+                    val clients = listAllClients(instanceId, org.orgId)
+                    val userDevices = listAllUserDevices(instanceId, org.orgId)
+                    Triple(sites.size, resources.size + siteResources.size, clients.size + userDevices.size)
+                }
+            }.awaitAll()
+
+            val totalSites = orgResults.sumOf { it.first }
+            val totalResources = orgResults.sumOf { it.second }
+            val totalClients = orgResults.sumOf { it.third }
+            Triple(totalSites, totalResources, totalClients)
         }
-
-        return Triple(totalSites, totalResources, totalClients)
     }
 
     private suspend fun listAllSites(instanceId: String, orgId: String): List<PangolinSite> {

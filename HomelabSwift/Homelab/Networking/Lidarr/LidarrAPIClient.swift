@@ -13,19 +13,27 @@ struct LidarrLookupArtist: Identifiable, Sendable {
 }
 
 actor LidarrAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var apiKey: String = ""
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .lidarr, instanceId: instanceId)
     }
 
-    func configure(url: String, apiKey: String, fallbackUrl: String? = nil) {
+    func configure(url: String, apiKey: String, fallbackUrl: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.apiKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .lidarr, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     func ping() async -> Bool {
@@ -107,14 +115,18 @@ actor LidarrAPIClient {
         }
     }
 
-    func getUpcomingTitles(limit: Int = 8) async -> [String] {
-        let now = Date()
+    private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+
+    func getUpcomingTitles(limit: Int = 8) async -> [String] {
+        let now = Date()
         let end = Calendar.current.date(byAdding: .day, value: 14, to: now) ?? now
-        let path = "/api/v1/calendar?start=\(formatter.string(from: now))&end=\(formatter.string(from: end))"
+        let path = "/api/v1/calendar?start=\(Self.dateFormatter.string(from: now))&end=\(Self.dateFormatter.string(from: end))"
 
         do {
             let data = try await engine.requestData(

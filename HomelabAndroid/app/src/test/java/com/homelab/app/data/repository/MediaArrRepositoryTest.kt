@@ -1,6 +1,8 @@
 package com.homelab.app.data.repository
 
+import com.homelab.app.data.remote.TlsClientSelector
 import com.homelab.app.util.ServiceType
+import io.mockk.every
 import io.mockk.mockk
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
@@ -20,14 +22,17 @@ class MediaArrRepositoryTest {
     @Test
     fun `servarr authentication only sends api key header`() = runTest {
         val requests = mutableListOf<Request>()
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                requests += chain.request()
+                success(chain.request())
+            }
+            .build()
+        val tlsClientSelector = mockk<TlsClientSelector>()
+        every { tlsClientSelector.forAllowSelfSigned(false) } returns okHttpClient
         val repository = MediaArrRepository(
             serviceInstancesRepository = mockk(relaxed = true),
-            okHttpClient = OkHttpClient.Builder()
-                .addInterceptor { chain ->
-                    requests += chain.request()
-                    success(chain.request())
-                }
-                .build()
+            tlsClientSelector = tlsClientSelector
         )
 
         repository.authenticateWithApiKey(
@@ -46,18 +51,21 @@ class MediaArrRepositoryTest {
     @Test
     fun `authentication falls back to secondary url when primary probe fails`() = runTest {
         val hosts = mutableListOf<String>()
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(Interceptor { chain ->
+                val request = chain.request()
+                hosts += request.url.host
+                if (request.url.host == "primary.example.com") {
+                    throw IOException("primary down")
+                }
+                success(request)
+            })
+            .build()
+        val tlsClientSelector = mockk<TlsClientSelector>()
+        every { tlsClientSelector.forAllowSelfSigned(false) } returns okHttpClient
         val repository = MediaArrRepository(
             serviceInstancesRepository = mockk(relaxed = true),
-            okHttpClient = OkHttpClient.Builder()
-                .addInterceptor(Interceptor { chain ->
-                    val request = chain.request()
-                    hosts += request.url.host
-                    if (request.url.host == "primary.example.com") {
-                        throw IOException("primary down")
-                    }
-                    success(request)
-                })
-                .build()
+            tlsClientSelector = tlsClientSelector
         )
 
         repository.authenticateWithApiKey(
@@ -73,25 +81,28 @@ class MediaArrRepositoryTest {
     @Test
     fun `qbittorrent authentication falls back to secondary url`() = runTest {
         val hosts = mutableListOf<String>()
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(Interceptor { chain ->
+                val request = chain.request()
+                hosts += request.url.host
+                if (request.url.host == "primary.example.com") {
+                    throw IOException("primary down")
+                }
+                Response.Builder()
+                    .request(request)
+                    .protocol(Protocol.HTTP_1_1)
+                    .code(200)
+                    .message("OK")
+                    .addHeader("Set-Cookie", "SID=abc123; HttpOnly")
+                    .body("Ok.".toResponseBody("text/plain".toMediaType()))
+                    .build()
+            })
+            .build()
+        val tlsClientSelector = mockk<TlsClientSelector>()
+        every { tlsClientSelector.forAllowSelfSigned(false) } returns okHttpClient
         val repository = MediaArrRepository(
             serviceInstancesRepository = mockk(relaxed = true),
-            okHttpClient = OkHttpClient.Builder()
-                .addInterceptor(Interceptor { chain ->
-                    val request = chain.request()
-                    hosts += request.url.host
-                    if (request.url.host == "primary.example.com") {
-                        throw IOException("primary down")
-                    }
-                    Response.Builder()
-                        .request(request)
-                        .protocol(Protocol.HTTP_1_1)
-                        .code(200)
-                        .message("OK")
-                        .addHeader("Set-Cookie", "SID=abc123; HttpOnly")
-                        .body("Ok.".toResponseBody("text/plain".toMediaType()))
-                        .build()
-                })
-                .build()
+            tlsClientSelector = tlsClientSelector
         )
 
         val sid = repository.authenticateQbittorrent(

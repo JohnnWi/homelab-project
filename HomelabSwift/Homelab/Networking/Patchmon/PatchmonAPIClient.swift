@@ -6,7 +6,9 @@ actor PatchmonAPIClient {
         let savedAt: Date
     }
 
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var tokenKey: String = ""
@@ -15,18 +17,30 @@ actor PatchmonAPIClient {
     private let hostsCacheTTL: TimeInterval = 45
     private var hostsCache: [String: HostsCacheEntry] = [:]
 
+    /// Tracks the current rate-limit retry task to avoid spawning multiple
+    /// concurrent retry chains when several requests hit a 429 at the same time.
+    private var activeRateLimitRetryTask: Task<Void, Never>?
+
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .patchmon, instanceId: instanceId)
     }
 
     // MARK: - Configuration
 
-    func configure(url: String, tokenKey: String, tokenSecret: String, fallbackUrl: String? = nil) {
+    func configure(url: String, tokenKey: String, tokenSecret: String, fallbackUrl: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.tokenKey = tokenKey.trimmingCharacters(in: .whitespacesAndNewlines)
         self.tokenSecret = tokenSecret
         self.hostsCache.removeAll()
+        self.activeRateLimitRetryTask?.cancel()
+        self.activeRateLimitRetryTask = nil
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .patchmon, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     // MARK: - Ping
@@ -230,6 +244,10 @@ actor PatchmonAPIClient {
         var lastError: Error?
 
         for attempt in 1...maxRateLimitAttempts {
+            while let activeTask = activeRateLimitRetryTask {
+                _ = await activeTask.value
+            }
+
             do {
                 return try await operation()
             } catch {
@@ -243,7 +261,15 @@ actor PatchmonAPIClient {
 
                 let seconds = rateLimitDelaySeconds(for: error, attempt: attempt)
                 AppLogger.shared.warn("PatchMon rate limit hit (attempt \(attempt)). Retrying in \(seconds)s.", source: "PatchMon")
-                try await Task.sleep(nanoseconds: UInt64(seconds) * 1_000_000_000)
+
+                if activeRateLimitRetryTask == nil {
+                    let retryTask: Task<Void, Never> = Task {
+                        try? await Task.sleep(nanoseconds: UInt64(seconds) * 1_000_000_000)
+                    }
+                    activeRateLimitRetryTask = retryTask
+                    _ = await retryTask.value
+                    activeRateLimitRetryTask = nil
+                }
             }
         }
 

@@ -151,19 +151,27 @@ struct PlexDashboardData: Sendable {
 // MARK: - Plex API Client
 
 actor PlexAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var token: String = ""
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .plex, instanceId: instanceId)
     }
 
-    func configure(url: String, token: String, fallbackUrl: String? = nil) {
+    func configure(url: String, token: String, fallbackUrl: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.token = token.trimmingCharacters(in: .whitespacesAndNewlines)
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .plex, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     func ping() async -> Bool {

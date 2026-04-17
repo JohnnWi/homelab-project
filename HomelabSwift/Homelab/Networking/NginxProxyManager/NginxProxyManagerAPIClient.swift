@@ -1,7 +1,9 @@
 import Foundation
 
 actor NginxProxyManagerAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var token: String = ""
@@ -11,12 +13,13 @@ actor NginxProxyManagerAPIClient {
     private var onTokenRefreshed: (@Sendable (String) -> Void)?
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .nginxProxyManager, instanceId: instanceId)
     }
 
     // MARK: - Configuration
 
-    func configure(url: String, token: String, fallbackUrl: String? = nil, email: String? = nil, password: String? = nil) {
+    func configure(url: String, token: String, fallbackUrl: String? = nil, email: String? = nil, password: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.token = token
@@ -26,6 +29,11 @@ actor NginxProxyManagerAPIClient {
         if let password, !password.isEmpty {
             self.storedPassword = password
         }
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .nginxProxyManager, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     func setTokenRefreshCallback(_ callback: @escaping @Sendable (String) -> Void) {
@@ -79,7 +87,8 @@ actor NginxProxyManagerAPIClient {
         req.httpBody = body
         req.timeoutInterval = 8
 
-        let (data, resp) = try await URLSession.shared.data(for: req)
+        let session = BaseNetworkEngine.authSession(allowSelfSigned: storedAllowSelfSigned, timeout: 8)
+        let (data, resp) = try await session.data(for: req)
         guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else {
             throw APIError.custom("Authentication failed. Check your email and password.")
         }
@@ -88,7 +97,7 @@ actor NginxProxyManagerAPIClient {
         var resolvedToken = decoded.resolvedToken
         
         // Per NPMplus: Se il token nel JSON è vuoto, cerca nei cookie.
-        if resolvedToken.isEmpty, let setCookie = http.allHeaderFields["Set-Cookie"] as? String {
+        if resolvedToken.isEmpty, let setCookie = http.value(forHTTPHeaderField: "Set-Cookie") {
             // Estrae "token=..." oppure potenziale nome di JWT usando le regex o semplice string parsing.
             let cookies = setCookie.components(separatedBy: .init(charactersIn: ",;"))
             for cookie in cookies {

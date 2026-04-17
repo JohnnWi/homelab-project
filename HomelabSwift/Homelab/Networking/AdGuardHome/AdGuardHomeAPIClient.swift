@@ -1,23 +1,31 @@
 import Foundation
 
 actor AdGuardHomeAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var username: String = ""
     private var password: String = ""
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .adguardHome, instanceId: instanceId)
     }
 
     // MARK: - Configuration
 
-    func configure(url: String, username: String, password: String, fallbackUrl: String? = nil) {
+    func configure(url: String, username: String, password: String, fallbackUrl: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanControlURL(url)
         self.fallbackURL = Self.cleanControlURL(fallbackUrl ?? "")
         self.username = username
         self.password = password
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .adguardHome, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     // MARK: - Ping
@@ -33,11 +41,12 @@ actor AdGuardHomeAPIClient {
 
     // MARK: - Authentication
 
-    func authenticate(url: String, username: String, password: String) async throws {
+    func authenticate(url: String, username: String, password: String, fallbackUrl: String? = nil) async throws {
         let cleanURL = Self.cleanControlURL(url)
+        let cleanFallback = Self.cleanControlURL(fallbackUrl ?? "")
         let data = try await engine.requestData(
             baseURL: cleanURL,
-            fallbackURL: "",
+            fallbackURL: cleanFallback,
             path: "/status",
             headers: Self.basicAuthHeaders(username: username, password: password)
         )

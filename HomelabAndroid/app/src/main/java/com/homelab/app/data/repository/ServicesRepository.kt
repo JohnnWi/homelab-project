@@ -1,5 +1,6 @@
 package com.homelab.app.data.repository
 
+import com.homelab.app.data.remote.TlsClientSelector
 import com.homelab.app.domain.model.ServiceInstance
 import com.homelab.app.util.GlobalEventBus
 import com.homelab.app.util.ServiceType
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -28,7 +28,7 @@ import javax.inject.Singleton
 @Singleton
 class ServicesRepository @Inject constructor(
     private val serviceInstancesRepository: ServiceInstancesRepository,
-    private val okHttpClient: OkHttpClient,
+    private val tlsClientSelector: TlsClientSelector,
     private val globalEventBus: GlobalEventBus
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -38,15 +38,6 @@ class ServicesRepository @Inject constructor(
     private val lastBulkReachabilityCheckMs = AtomicLong(0L)
     private val minBulkReachabilityIntervalMs = 45_000L
     private val bulkReachabilityCheckInFlight = AtomicBoolean(false)
-    private val reachabilityClient by lazy {
-        okHttpClient.newBuilder()
-            .connectTimeout(4, TimeUnit.SECONDS)
-            .readTimeout(4, TimeUnit.SECONDS)
-            .writeTimeout(4, TimeUnit.SECONDS)
-            .callTimeout(6, TimeUnit.SECONDS)
-            .build()
-    }
-
     private val _reachability = MutableStateFlow<Map<String, Boolean?>>(emptyMap())
     private val _pinging = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     private val _isTailscaleConnected = MutableStateFlow(false)
@@ -139,11 +130,19 @@ class ServicesRepository @Inject constructor(
                     ServiceType.CRAFTY_CONTROLLER -> listOf("/api/v2/servers", "/api/v2", "")
                     ServiceType.PANGOLIN -> listOf("/v1/orgs", "/v1/openapi.json", "/v1/")
                     ServiceType.WAKAPI -> listOf("/api/health", "/api/summary", "")
+                    ServiceType.PROXMOX -> listOf("/api2/json/version", "")
                     else -> listOf("")
                 }
 
                 pathsToTry.any { path ->
                     runCatching {
+                        val reachabilityClient = tlsClientSelector.forAllowSelfSigned(instance.allowSelfSigned)
+                            .newBuilder()
+                            .connectTimeout(4, TimeUnit.SECONDS)
+                            .readTimeout(4, TimeUnit.SECONDS)
+                            .writeTimeout(4, TimeUnit.SECONDS)
+                            .callTimeout(6, TimeUnit.SECONDS)
+                            .build()
                         reachabilityClient.newCall(
                             Request.Builder()
                                 .url(baseUrl + path)

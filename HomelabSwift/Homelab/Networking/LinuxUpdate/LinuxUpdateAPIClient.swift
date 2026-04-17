@@ -6,19 +6,27 @@ struct LinuxUpdateActionOutcome: Sendable {
 }
 
 actor LinuxUpdateAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var apiToken: String = ""
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .linuxUpdate, instanceId: instanceId)
     }
 
-    func configure(url: String, apiToken: String, fallbackUrl: String? = nil) {
+    func configure(url: String, apiToken: String, fallbackUrl: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.apiToken = Self.cleanToken(apiToken)
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .linuxUpdate, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     func ping() async -> Bool {
@@ -612,27 +620,28 @@ enum DockhandStackActionKind: Sendable {
 }
 
 actor DockhandAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var sessionCookie: String = ""
     private var username: String = ""
     private var storedPassword: String = ""
 
-    private static let authSession: URLSession = {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 8
-        config.timeoutIntervalForResource = 8
-        config.httpShouldSetCookies = false
-        config.httpCookieAcceptPolicy = .never
-        return URLSession(configuration: config, delegate: BaseNetworkEngine.insecureDelegateForPortainerAuth, delegateQueue: nil)
-    }()
-
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .dockhand, instanceId: instanceId)
     }
 
-    func configure(url: String, sessionCookie: String, fallbackUrl: String? = nil, username: String? = nil, password: String? = nil) {
+    func configure(
+        url: String,
+        sessionCookie: String,
+        fallbackUrl: String? = nil,
+        username: String? = nil,
+        password: String? = nil,
+        allowSelfSigned: Bool? = nil
+    ) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.sessionCookie = sessionCookie.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -642,6 +651,10 @@ actor DockhandAPIClient {
         if let password, !password.isEmpty {
             self.storedPassword = password
         }
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .dockhand, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     func ping() async -> Bool {
@@ -967,7 +980,8 @@ actor DockhandAPIClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        let (data, response) = try await Self.authSession.data(for: request)
+        let session = BaseNetworkEngine.authSession(allowSelfSigned: storedAllowSelfSigned, timeout: 8)
+        let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else {
             throw APIError.custom("Authentication failed")
         }
@@ -1862,12 +1876,12 @@ enum DockhandJSON {
         return nil
     }
 
-    static func firstNonEmpty(_ values: [String?], allowEmpty: Bool = true) -> String {
+    static func firstNonEmpty(_ values: [String?]) -> String {
         let first = values.compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.first(where: { !$0.isEmpty })
         if let first {
             return first
         }
-        return allowEmpty ? "" : ""
+        return ""
     }
 
     static func firstNonEmptyOptional(_ values: [String?]) -> String? {

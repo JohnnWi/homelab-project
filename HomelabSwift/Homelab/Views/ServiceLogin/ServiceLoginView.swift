@@ -20,6 +20,14 @@ struct ServiceLoginView: View {
     @State private var errorMessage: String?
     @State private var shakeOffset: CGFloat = 0
     @State private var didPrefill = false
+    @State private var allowSelfSigned = true
+    @State private var proxmoxAuthMode: Int = 0 // 0 = Credentials, 1 = API Token
+    @State private var proxmoxRealm = "pam"
+    @State private var proxmoxApiTokenEntryMode = 0 // 0 = Guided, 1 = Raw
+    @State private var proxmoxApiUser = ""
+    @State private var proxmoxApiRealm = "pam"
+    @State private var proxmoxApiTokenId = ""
+    @State private var proxmoxApiTokenSecret = ""
 
     private var existingInstance: ServiceInstance? {
         existingInstanceId.flatMap { servicesStore.instance(id: $0) }
@@ -63,6 +71,36 @@ struct ServiceLoginView: View {
         serviceType == .gluetun || serviceType == .flaresolverr
     }
 
+    private var isProxmox: Bool {
+        serviceType == .proxmox
+    }
+
+    private var canSubmit: Bool {
+        let cleanUrl = normalizedURL(url)
+        guard !cleanUrl.isEmpty else { return false }
+
+        if !isProxmox {
+            return true
+        }
+
+        if proxmoxAuthMode == 1 {
+            if proxmoxApiTokenEntryMode == 0 {
+                return ProxmoxAPITokenParts(
+                    user: proxmoxApiUser,
+                    realm: proxmoxApiRealm,
+                    tokenID: proxmoxApiTokenId,
+                    secret: proxmoxApiTokenSecret
+                ) != nil
+            }
+            return normalizedOptional(apiKey) != nil
+        }
+
+        let identity = normalizedOptional(username) ?? existingInstance?.username
+        if identity == nil { return false }
+        let storedPassword = existingInstance?.password
+        return normalizedOptional(password) != nil || (isEditing && storedPassword?.isEmpty == false)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -98,6 +136,22 @@ struct ServiceLoginView: View {
             }
             .task {
                 prefillIfNeeded()
+            }
+            .onChange(of: proxmoxApiTokenEntryMode) { _, newValue in
+                guard isProxmox, proxmoxAuthMode == 1 else { return }
+                if newValue == 0, let parts = ProxmoxAPITokenParts(rawValue: apiKey) {
+                    proxmoxApiUser = parts.user
+                    proxmoxApiRealm = parts.realm
+                    proxmoxApiTokenId = parts.tokenID
+                    proxmoxApiTokenSecret = parts.secret
+                } else if newValue == 1, let token = ProxmoxAPITokenParts(
+                    user: proxmoxApiUser,
+                    realm: proxmoxApiRealm,
+                    tokenID: proxmoxApiTokenId,
+                    secret: proxmoxApiTokenSecret
+                )?.rawValue {
+                    apiKey = token
+                }
             }
         }
     }
@@ -214,7 +268,9 @@ struct ServiceLoginView: View {
                 )
             }
 
-            if usesApiKeyAuth {
+            if isProxmox {
+                proxmoxAuthSection
+            } else if usesApiKeyAuth {
                 InputField(
                     icon: "key.fill",
                     placeholder: localizer.t.loginApiKey,
@@ -229,7 +285,7 @@ struct ServiceLoginView: View {
                 if serviceType == .pangolin {
                     InputField(
                         icon: "building.2.fill",
-                        placeholder: PangolinStrings.forLanguage(localizer.language).orgIdPlaceholder,
+                        placeholder: localizer.t.loginPangolinOrgIdPlaceholder,
                         text: $username,
                         onSubmit: handleSave
                     )
@@ -263,11 +319,40 @@ struct ServiceLoginView: View {
                         icon: "lock.rotation",
                         placeholder: localizer.t.loginOptional2FA,
                         text: $mfaCode,
-                        keyboardType: .numberPad,
+                        keyboardType: .asciiCapable,
                         onSubmit: handleSave
                     )
                 }
             }
+
+            // TLS validation toggle
+            HStack(spacing: 12) {
+                Image(systemName: allowSelfSigned ? "lock.open.fill" : "lock.fill")
+                    .font(.title3)
+                    .foregroundStyle(allowSelfSigned ? AppTheme.warning : AppTheme.running)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        (allowSelfSigned ? AppTheme.warning : AppTheme.running).opacity(0.1),
+                        in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(allowSelfSigned ? localizer.t.loginAllowSelfSigned : localizer.t.loginRequireValidTLS)
+                        .font(.body.weight(.medium))
+                    Text(localizer.t.loginTLSDesc)
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+
+                Spacer()
+
+                Toggle("", isOn: $allowSelfSigned)
+                    .labelsHidden()
+                    .tint(AppTheme.accent)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .glassCard()
 
             Button(action: handleSave) {
                 Group {
@@ -288,7 +373,7 @@ struct ServiceLoginView: View {
             .buttonStyle(.borderedProminent)
             .tint(serviceColor)
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .disabled(isLoading)
+            .disabled(isLoading || !canSubmit)
             .padding(.top, 6)
 
         }
@@ -306,7 +391,7 @@ struct ServiceLoginView: View {
         case .craftyController:  return localizer.t.loginHintCraftyController
         case .gitea:             return localizer.t.loginHintGitea2FA
         case .nginxProxyManager: return localizer.t.loginHintNpm
-        case .pangolin:          return PangolinStrings.forLanguage(localizer.language).loginHint
+        case .pangolin:          return localizer.t.loginHintPangolin
         case .healthchecks:      return localizer.t.loginHintHealthchecks
         case .patchmon:          return localizer.t.loginHintPatchmon
         case .jellystat:         return localizer.t.loginHintJellystat
@@ -316,6 +401,7 @@ struct ServiceLoginView: View {
         case .flaresolverr:
                                  return localizer.t.loginHintFlaresolverr
         case .wakapi:            return localizer.t.loginHintWakapi
+        case .proxmox:           return localizer.t.loginHintProxmox
         case .qbittorrent, .radarr, .sonarr, .lidarr, .jellyseerr, .prowlarr, .bazarr:
                                  return nil
         default: return nil
@@ -357,9 +443,33 @@ struct ServiceLoginView: View {
         label = existing.displayLabel
         url = existing.url
         fallbackUrl = existing.fallbackUrl ?? ""
-        username = existing.username ?? ""
-        apiKey = existing.apiKey ?? ""
-        password = existing.piholePassword ?? existing.password ?? ""
+        allowSelfSigned = existing.allowSelfSigned
+        proxmoxAuthMode = existing.proxmoxAuthMode == .apiToken ? 1 : 0
+        proxmoxRealm = existing.proxmoxRealm ?? "pam"
+        proxmoxApiRealm = "pam"
+        proxmoxApiTokenEntryMode = 0
+        proxmoxApiUser = ""
+        proxmoxApiTokenId = ""
+        proxmoxApiTokenSecret = ""
+
+        if serviceType == .proxmox {
+            username = existing.username ?? ""
+            apiKey = proxmoxAuthMode == 1 ? (existing.apiKey ?? "") : ""
+            password = proxmoxAuthMode == 0 ? (existing.password ?? "") : ""
+            if proxmoxAuthMode == 1, let token = existing.apiKey, let parts = ProxmoxAPITokenParts(rawValue: token) {
+                proxmoxApiUser = parts.user
+                proxmoxApiRealm = parts.realm
+                proxmoxApiTokenId = parts.tokenID
+                proxmoxApiTokenSecret = parts.secret
+                proxmoxApiTokenEntryMode = 0
+            } else if proxmoxAuthMode == 1 {
+                proxmoxApiTokenEntryMode = 1
+            }
+        } else {
+            username = existing.username ?? ""
+            apiKey = existing.apiKey ?? ""
+            password = existing.piholePassword ?? existing.password ?? ""
+        }
         mfaCode = ""
         didPrefill = true
     }
@@ -398,6 +508,7 @@ struct ServiceLoginView: View {
                 && existing.username == normalizedOptional(username)
                 && existing.apiKey == normalizedOptional(apiKey)
                 && normalizedOptional(password).map { !$0.isEmpty } != true
+                && serviceType != .proxmox
 
             if metadataOnly {
                 return ServiceInstance(
@@ -410,10 +521,52 @@ struct ServiceLoginView: View {
                     apiKey: existing.apiKey,
                     piholePassword: existing.piholePassword,
                     piholeAuthMode: existing.piholeAuthMode,
+                    proxmoxAuthMode: existing.proxmoxAuthMode,
+                    proxmoxRealm: existing.proxmoxRealm,
                     fallbackUrl: fallbackUrl,
                     allowSelfSigned: existing.allowSelfSigned,
                     password: existing.password
                 )
+            }
+
+            if serviceType == .proxmox, existing.url == url {
+                let desiredAuthMode: ProxmoxAuthMode = proxmoxAuthMode == 1 ? .apiToken : .credentials
+
+                if desiredAuthMode == .apiToken {
+                    let desiredToken = resolvedProxmoxApiToken() ?? existing.apiKey
+                    if existing.proxmoxAuthMode == .apiToken,
+                       desiredToken == existing.apiKey {
+                        return existing.updating(
+                            label: label,
+                            username: normalizedOptional(proxmoxApiUser) ?? existing.username,
+                            apiKey: desiredToken,
+                            proxmoxAuthMode: .apiToken,
+                            proxmoxRealm: normalizedOptional(proxmoxApiRealm) ?? existing.proxmoxRealm,
+                            fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
+                        )
+                    }
+                } else {
+                    let desiredUsername = normalizedOptional(username) ?? existing.username
+                    let desiredRealm = normalizedOptional(proxmoxRealm) ?? existing.proxmoxRealm ?? "pam"
+                    let passwordChanged = normalizedOptional(password) != nil
+                    let otpProvided = normalizedOptional(mfaCode) != nil
+
+                    if existing.proxmoxAuthMode != .apiToken,
+                       desiredUsername == existing.username,
+                       desiredRealm == (existing.proxmoxRealm ?? "pam"),
+                       !passwordChanged,
+                       !otpProvided {
+                        return existing.updating(
+                            label: label,
+                            username: desiredUsername,
+                            proxmoxAuthMode: .credentials,
+                            proxmoxRealm: desiredRealm,
+                            fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
+                        )
+                    }
+                }
             }
         }
 
@@ -424,6 +577,7 @@ struct ServiceLoginView: View {
                 throw APIError.custom(localizer.t.loginErrorCredentials)
             }
             let client = PortainerAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configureWithApiKey(url: url, apiKey: key, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
             try await client.authenticateWithApiKey(url: url, apiKey: key)
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
@@ -433,7 +587,8 @@ struct ServiceLoginView: View {
                 token: existingInstance?.token ?? "",
                 username: existingInstance?.username,
                 apiKey: key,
-                fallbackUrl: fallbackUrl
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
             )
 
         case .healthchecks:
@@ -442,6 +597,7 @@ struct ServiceLoginView: View {
                 throw APIError.custom(localizer.t.loginErrorCredentials)
             }
             let client = HealthchecksAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: url, apiKey: key, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
             try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
@@ -451,7 +607,8 @@ struct ServiceLoginView: View {
                 token: "",
                 username: existingInstance?.username,
                 apiKey: key,
-                fallbackUrl: fallbackUrl
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
             )
 
         case .wakapi:
@@ -460,6 +617,7 @@ struct ServiceLoginView: View {
                 throw APIError.custom(localizer.t.loginErrorCredentials)
             }
             let client = WakapiAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: url, apiKey: key, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
             try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
@@ -469,7 +627,8 @@ struct ServiceLoginView: View {
                 token: "",
                 username: existingInstance?.username,
                 apiKey: key,
-                fallbackUrl: fallbackUrl
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
             )
 
         case .linuxUpdate:
@@ -478,6 +637,7 @@ struct ServiceLoginView: View {
                 throw APIError.custom(localizer.t.loginErrorCredentials)
             }
             let client = LinuxUpdateAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: url, apiToken: key, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
             try await client.authenticate(url: url, apiToken: key, fallbackUrl: fallbackUrl)
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
@@ -487,7 +647,8 @@ struct ServiceLoginView: View {
                 token: "",
                 username: existingInstance?.username,
                 apiKey: key,
-                fallbackUrl: fallbackUrl
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
             )
 
         case .technitium:
@@ -510,6 +671,14 @@ struct ServiceLoginView: View {
             }
 
             let client = TechnitiumAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(
+                url: url,
+                token: existingInstance?.token ?? "",
+                fallbackUrl: fallbackUrl,
+                username: identity,
+                password: resolvedPassword,
+                allowSelfSigned: allowSelfSigned
+            )
             let token = try await client.authenticate(
                 url: url,
                 username: identity,
@@ -526,6 +695,7 @@ struct ServiceLoginView: View {
                 token: token,
                 username: identity,
                 fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned,
                 password: resolvedPassword
             )
 
@@ -549,6 +719,14 @@ struct ServiceLoginView: View {
             }
 
             let client = DockhandAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(
+                url: url,
+                sessionCookie: existingInstance?.token ?? "",
+                fallbackUrl: fallbackUrl,
+                username: identity,
+                password: resolvedPassword,
+                allowSelfSigned: allowSelfSigned
+            )
             let sessionCookie = try await client.authenticate(
                 url: url,
                 username: identity,
@@ -564,6 +742,7 @@ struct ServiceLoginView: View {
                 token: sessionCookie,
                 username: identity,
                 fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned,
                 password: resolvedPassword
             )
 
@@ -587,6 +766,14 @@ struct ServiceLoginView: View {
             }
 
             let client = CraftyAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(
+                url: url,
+                username: identity,
+                password: resolvedPassword,
+                token: existingInstance?.token ?? "",
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
+            )
             let token = try await client.authenticate(
                 url: url,
                 username: identity,
@@ -601,6 +788,7 @@ struct ServiceLoginView: View {
                 token: token,
                 username: identity,
                 fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned,
                 password: resolvedPassword
             )
 
@@ -610,6 +798,7 @@ struct ServiceLoginView: View {
                 throw APIError.custom(localizer.t.loginErrorCredentials)
             }
             let client = JellystatAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: url, apiKey: key, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
             try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
@@ -619,7 +808,8 @@ struct ServiceLoginView: View {
                 token: "",
                 username: existingInstance?.username,
                 apiKey: key,
-                fallbackUrl: fallbackUrl
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
             )
 
         case .pihole:
@@ -628,6 +818,14 @@ struct ServiceLoginView: View {
                 throw APIError.custom(localizer.t.loginErrorCredentials)
             }
             let client = PiHoleAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(
+                url: url,
+                sid: existingInstance?.token ?? "",
+                authMode: existingInstance?.piholeAuthMode,
+                fallbackUrl: fallbackUrl,
+                password: secret,
+                allowSelfSigned: allowSelfSigned
+            )
             let sid = try await client.authenticate(url: url, password: secret, fallbackUrl: fallbackUrl)
             let authMode: PiHoleAuthMode = sid == secret ? .legacy : .session
             return ServiceInstance(
@@ -640,7 +838,8 @@ struct ServiceLoginView: View {
                 apiKey: existingInstance?.apiKey,
                 piholePassword: secret,
                 piholeAuthMode: authMode,
-                fallbackUrl: fallbackUrl
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
             )
 
         case .adguardHome:
@@ -653,7 +852,8 @@ struct ServiceLoginView: View {
                 throw APIError.custom(localizer.t.loginErrorPasswordRequired)
             }
             let client = AdGuardHomeAPIClient(instanceId: existingInstanceId ?? UUID())
-            try await client.authenticate(url: url, username: identity, password: secret)
+            await client.configure(url: url, username: identity, password: secret, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
+            try await client.authenticate(url: url, username: identity, password: secret, fallbackUrl: fallbackUrl)
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
                 type: .adguardHome,
@@ -662,6 +862,7 @@ struct ServiceLoginView: View {
                 token: "",
                 username: identity,
                 fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned,
                 password: secret
             )
 
@@ -678,7 +879,8 @@ struct ServiceLoginView: View {
             let storedPassword: String?
             if let secret, !secret.isEmpty {
                 let client = BeszelAPIClient(instanceId: existingInstanceId ?? UUID())
-                token = try await client.authenticate(url: url, email: identity, password: secret)
+                await client.configure(url: url, token: existingInstance?.token ?? "", fallbackUrl: fallbackUrl, email: identity, password: secret, allowSelfSigned: allowSelfSigned)
+                token = try await client.authenticate(url: url, email: identity, password: secret, fallbackUrl: fallbackUrl)
                 storedPassword = secret
             } else if let existingToken = existingInstance?.token, !existingToken.isEmpty {
                 token = existingToken
@@ -694,6 +896,7 @@ struct ServiceLoginView: View {
                 token: token,
                 username: identity,
                 fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned,
                 password: storedPassword
             )
 
@@ -711,7 +914,8 @@ struct ServiceLoginView: View {
             let storedPassword: String?
             if let secret, !secret.isEmpty {
                 let client = GiteaAPIClient(instanceId: existingInstanceId ?? UUID())
-                let result = try await client.authenticate(url: url, username: identity, password: secret)
+                await client.configure(url: url, token: existingInstance?.token ?? "", fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
+                let result = try await client.authenticate(url: url, username: identity, password: secret, fallbackUrl: fallbackUrl)
                 token = result.token
                 resolvedUsername = result.username
                 storedPassword = secret
@@ -730,6 +934,7 @@ struct ServiceLoginView: View {
                 token: token,
                 username: resolvedUsername,
                 fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned,
                 password: storedPassword
             )
 
@@ -746,7 +951,8 @@ struct ServiceLoginView: View {
             let storedPassword: String?
             if let secret, !secret.isEmpty {
                 let client = NginxProxyManagerAPIClient(instanceId: existingInstanceId ?? UUID())
-                token = try await client.authenticate(url: url, email: identity, password: secret)
+                await client.configure(url: url, token: existingInstance?.token ?? "", fallbackUrl: fallbackUrl, email: identity, password: secret, allowSelfSigned: allowSelfSigned)
+                token = try await client.authenticate(url: url, email: identity, password: secret, fallbackUrl: fallbackUrl)
                 storedPassword = secret
             } else if let existingToken = existingInstance?.token, !existingToken.isEmpty {
                 token = existingToken
@@ -762,6 +968,7 @@ struct ServiceLoginView: View {
                 token: token,
                 username: identity,
                 fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned,
                 password: storedPassword
             )
 
@@ -772,6 +979,7 @@ struct ServiceLoginView: View {
             }
             let orgId = normalizedOptional(username)
             let client = PangolinAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: url, apiKey: key, fallbackUrl: fallbackUrl, orgId: orgId, allowSelfSigned: allowSelfSigned)
             try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl, orgId: orgId)
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
@@ -781,7 +989,8 @@ struct ServiceLoginView: View {
                 token: "",
                 username: orgId,
                 apiKey: key,
-                fallbackUrl: fallbackUrl
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
             )
 
         case .patchmon:
@@ -796,6 +1005,7 @@ struct ServiceLoginView: View {
             let resolvedSecret: String
             if let tokenSecret, !tokenSecret.isEmpty {
                 let client = PatchmonAPIClient(instanceId: existingInstanceId ?? UUID())
+                await client.configure(url: url, tokenKey: tokenKey, tokenSecret: tokenSecret, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
                 try await client.authenticate(url: url, tokenKey: tokenKey, tokenSecret: tokenSecret, fallbackUrl: fallbackUrl)
                 resolvedSecret = tokenSecret
             } else if let existingSecret = existingInstance?.password, !existingSecret.isEmpty {
@@ -811,6 +1021,7 @@ struct ServiceLoginView: View {
                 token: existingInstance?.token ?? "",
                 username: tokenKey,
                 fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned,
                 password: resolvedSecret
             )
 
@@ -820,6 +1031,7 @@ struct ServiceLoginView: View {
                 throw APIError.custom(localizer.t.loginErrorCredentials)
             }
             let client = PlexAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: url, token: key, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
             try await client.authenticate(url: url, token: key, fallbackUrl: fallbackUrl)
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
@@ -829,7 +1041,8 @@ struct ServiceLoginView: View {
                 token: "",
                 username: existingInstance?.username,
                 apiKey: key,
-                fallbackUrl: fallbackUrl
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
             )
         
         case .qbittorrent:
@@ -842,6 +1055,14 @@ struct ServiceLoginView: View {
                 throw APIError.custom(localizer.t.loginErrorPasswordRequired)
             }
             let client = QbittorrentAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(
+                url: url,
+                sid: existingInstance?.token ?? "",
+                fallbackUrl: fallbackUrl,
+                username: identity,
+                password: secret,
+                allowSelfSigned: allowSelfSigned
+            )
             let sid = try await client.authenticate(url: url, username: identity, password: secret, fallbackUrl: fallbackUrl)
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
@@ -851,6 +1072,7 @@ struct ServiceLoginView: View {
                 token: sid,
                 username: identity,
                 fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned,
                 password: secret
             )
             
@@ -860,6 +1082,7 @@ struct ServiceLoginView: View {
                 throw APIError.custom(localizer.t.loginErrorCredentials)
             }
             let client = RadarrAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: url, apiKey: key, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
             try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
@@ -868,7 +1091,8 @@ struct ServiceLoginView: View {
                 url: url,
                 token: "",
                 apiKey: key,
-                fallbackUrl: fallbackUrl
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
             )
             
         case .sonarr:
@@ -877,6 +1101,7 @@ struct ServiceLoginView: View {
                 throw APIError.custom(localizer.t.loginErrorCredentials)
             }
             let client = SonarrAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: url, apiKey: key, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
             try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
@@ -885,7 +1110,8 @@ struct ServiceLoginView: View {
                 url: url,
                 token: "",
                 apiKey: key,
-                fallbackUrl: fallbackUrl
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
             )
             
         case .lidarr:
@@ -894,6 +1120,7 @@ struct ServiceLoginView: View {
                 throw APIError.custom(localizer.t.loginErrorCredentials)
             }
             let client = LidarrAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: url, apiKey: key, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
             try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
@@ -902,7 +1129,8 @@ struct ServiceLoginView: View {
                 url: url,
                 token: "",
                 apiKey: key,
-                fallbackUrl: fallbackUrl
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
             )
             
         case .jellyseerr, .prowlarr, .bazarr:
@@ -912,7 +1140,7 @@ struct ServiceLoginView: View {
             }
             let genericType = serviceType
             let client = GenericAPIClient(serviceType: genericType, instanceId: existingInstanceId ?? UUID())
-            await client.configure(url: url, fallbackUrl: fallbackUrl, apiKey: key)
+            await client.configure(url: url, fallbackUrl: fallbackUrl, apiKey: key, allowSelfSigned: allowSelfSigned)
             guard await client.ping() else {
                 throw APIError.custom(localizer.t.loginErrorFailed)
             }
@@ -923,14 +1151,15 @@ struct ServiceLoginView: View {
                 url: url,
                 token: "",
                 apiKey: key,
-                fallbackUrl: fallbackUrl
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
             )
 
         case .gluetun, .flaresolverr:
             let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
             let genericType = serviceType
             let client = GenericAPIClient(serviceType: genericType, instanceId: existingInstanceId ?? UUID())
-            await client.configure(url: url, fallbackUrl: fallbackUrl, apiKey: key)
+            await client.configure(url: url, fallbackUrl: fallbackUrl, apiKey: key, allowSelfSigned: allowSelfSigned)
             guard await client.ping() else {
                 throw APIError.custom(localizer.t.loginErrorFailed)
             }
@@ -941,8 +1170,91 @@ struct ServiceLoginView: View {
                 url: url,
                 token: "",
                 apiKey: key,
-                fallbackUrl: fallbackUrl
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
             )
+
+        case .proxmox:
+            let authMode: ProxmoxAuthMode = proxmoxAuthMode == 1 ? .apiToken : .credentials
+
+            if authMode == .apiToken {
+                let token = resolvedProxmoxApiToken()
+                    ?? (existingInstance?.proxmoxAuthMode == .apiToken ? existingInstance?.apiKey : nil)
+                guard let token, !token.isEmpty else {
+                    throw APIError.custom(localizer.t.proxmoxInvalidApiToken)
+                }
+                let client = ProxmoxAPIClient(instanceId: existingInstanceId ?? UUID())
+                await client.configure(
+                    url: url,
+                    fallbackUrl: fallbackUrl,
+                    apiTokenString: token,
+                    allowSelfSigned: allowSelfSigned
+                )
+                try await client.authenticateWithApiToken(url: url, apiToken: token)
+                return ServiceInstance(
+                    id: existingInstanceId ?? UUID(),
+                    type: .proxmox,
+                    label: label,
+                    url: url,
+                    token: "",
+                    username: proxmoxApiTokenEntryMode == 0 ? normalizedOptional(proxmoxApiUser) : nil,
+                    apiKey: token,
+                    proxmoxAuthMode: .apiToken,
+                    proxmoxRealm: proxmoxApiTokenEntryMode == 0 ? normalizedOptional(proxmoxApiRealm) : nil,
+                    fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
+                )
+            } else {
+                let identity = normalizedOptional(username) ?? existingInstance?.username
+                let secret = normalizedOptional(password)
+                guard let identity, !identity.isEmpty else {
+                    throw APIError.custom(localizer.t.loginErrorCredentials)
+                }
+                if existingInstance != nil && url != existingInstance?.url && secret == nil {
+                    throw APIError.custom(localizer.t.loginErrorPasswordRequired)
+                }
+                let resolvedPassword: String
+                if let secret, !secret.isEmpty {
+                    resolvedPassword = secret
+                } else if let existing = existingInstance?.password, !existing.isEmpty {
+                    resolvedPassword = existing
+                } else {
+                    throw APIError.custom(localizer.t.loginErrorCredentials)
+                }
+                let client = ProxmoxAPIClient(instanceId: existingInstanceId ?? UUID())
+                let resolvedRealm = proxmoxRealm.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "pam" : proxmoxRealm
+                await client.configure(
+                    url: url,
+                    fallbackUrl: fallbackUrl,
+                    username: identity,
+                    password: resolvedPassword,
+                    otp: mfaCode.trimmingCharacters(in: .whitespacesAndNewlines),
+                    realm: resolvedRealm,
+                    allowSelfSigned: allowSelfSigned
+                )
+                let result = try await client.authenticate(
+                    url: url,
+                    username: identity,
+                    password: resolvedPassword,
+                    otp: mfaCode.trimmingCharacters(in: .whitespacesAndNewlines),
+                    realm: resolvedRealm
+                )
+                return ServiceInstance(
+                    id: existingInstanceId ?? UUID(),
+                    type: .proxmox,
+                    label: label,
+                    url: url,
+                    token: result.ticket,
+                    username: identity,
+                    apiKey: result.csrf,
+                    proxmoxAuthMode: .credentials,
+                    proxmoxRealm: resolvedRealm,
+                    proxmoxOTP: normalizedOptional(mfaCode),
+                    fallbackUrl: fallbackUrl,
+                    allowSelfSigned: allowSelfSigned,
+                    password: resolvedPassword
+                )
+            }
         }
     }
 
@@ -986,6 +1298,13 @@ struct ServiceLoginView: View {
     }
 
     private func resolveErrorMessage(_ error: Error) -> String {
+        let message = error.localizedDescription.lowercased()
+        if message.contains("webauthn") || message.contains("u2f") || message.contains("tfa-challenge") {
+            return localizer.t.proxmoxCredentialsHint
+        }
+        if message.contains("api token") && message.contains("format") {
+            return localizer.t.proxmoxInvalidApiToken
+        }
         if let mapped = APIError.localizedNetworkError(error) {
             return mapped
         }
@@ -993,6 +1312,227 @@ struct ServiceLoginView: View {
             return apiError.localizedDescription
         }
         return error.localizedDescription
+    }
+
+    private func resolvedProxmoxApiToken() -> String? {
+        if proxmoxApiTokenEntryMode == 0 {
+            return ProxmoxAPITokenParts(
+                user: proxmoxApiUser,
+                realm: proxmoxApiRealm,
+                tokenID: proxmoxApiTokenId,
+                secret: proxmoxApiTokenSecret
+            )?.rawValue
+        }
+        return normalizedOptional(apiKey)
+    }
+
+    private var proxmoxRealmSuggestions: [String] {
+        ["pam", "pve", "ldap", "ad", "openid"]
+    }
+
+    private func proxmoxInfoCard(icon: String, title: String, body: String, tint: Color) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.subheadline.bold())
+                .foregroundStyle(tint)
+                .frame(width: 28, height: 28)
+                .background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.primary)
+                Text(body)
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer()
+        }
+        .padding(14)
+        .glassCard(tint: tint.opacity(0.06))
+    }
+
+    private func proxmoxInlineNotice(icon: String, message: String, tint: Color) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: icon)
+                .font(.caption.bold())
+                .foregroundStyle(tint)
+                .frame(width: 18, height: 18)
+
+            Text(message)
+                .font(.caption)
+                .foregroundStyle(AppTheme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 2)
+    }
+
+    private func proxmoxRealmInput(_ realm: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            InputField(
+                icon: "building.2.fill",
+                placeholder: localizer.t.proxmoxRealm,
+                text: realm
+            )
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(proxmoxRealmSuggestions, id: \.self) { suggestion in
+                        Button {
+                            HapticManager.light()
+                            realm.wrappedValue = suggestion
+                        } label: {
+                            Text(suggestion.uppercased())
+                                .font(.caption.bold())
+                                .foregroundStyle(realm.wrappedValue.caseInsensitiveCompare(suggestion) == .orderedSame ? .white : serviceColor)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 7)
+                                .background(
+                                    realm.wrappedValue.caseInsensitiveCompare(suggestion) == .orderedSame
+                                    ? AnyShapeStyle(serviceColor)
+                                    : AnyShapeStyle(serviceColor.opacity(0.08)),
+                                    in: Capsule()
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 2)
+            }
+
+            Text(localizer.t.proxmoxCustomRealmHint)
+                .font(.caption2)
+                .foregroundStyle(AppTheme.textMuted)
+        }
+    }
+
+    // MARK: - Proxmox Auth Section
+
+    @ViewBuilder
+    private var proxmoxAuthSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(localizer.t.proxmoxAuthMode.sentenceCased())
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.textMuted)
+
+            Picker(localizer.t.proxmoxAuthMode, selection: $proxmoxAuthMode) {
+                Text(localizer.t.proxmoxCredentialsMode).tag(0)
+                Text(localizer.t.proxmoxApiTokenMode).tag(1)
+            }
+            .pickerStyle(.segmented)
+            .padding(.vertical, 4)
+
+            if proxmoxAuthMode == 1 {
+                proxmoxInfoCard(
+                    icon: "key.fill",
+                    title: localizer.t.proxmoxApiTokenMode,
+                    body: localizer.t.proxmoxApiTokenRecommendedHint,
+                    tint: serviceColor
+                )
+
+                Text(localizer.t.proxmoxApiTokenMode.sentenceCased())
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppTheme.textMuted)
+                    .padding(.horizontal, 2)
+
+                Picker(localizer.t.proxmoxApiTokenMode, selection: $proxmoxApiTokenEntryMode) {
+                    Text(localizer.t.proxmoxApiTokenStructuredMode).tag(0)
+                    Text(localizer.t.proxmoxApiTokenPasteMode).tag(1)
+                }
+                .pickerStyle(.segmented)
+
+                if proxmoxApiTokenEntryMode == 0 {
+                    InputField(
+                        icon: "person.fill",
+                        placeholder: localizer.t.proxmoxApiUser,
+                        text: $proxmoxApiUser
+                    )
+
+                    proxmoxRealmInput($proxmoxApiRealm)
+
+                    InputField(
+                        icon: "number",
+                        placeholder: localizer.t.proxmoxApiTokenId,
+                        text: $proxmoxApiTokenId
+                    )
+
+                    InputField(
+                        icon: "key.fill",
+                        placeholder: localizer.t.proxmoxApiTokenSecret,
+                        text: $proxmoxApiTokenSecret,
+                        isSecure: !showPassword,
+                        showToggle: true,
+                        toggleAction: { showPassword.toggle() },
+                        showPassword: showPassword,
+                        onSubmit: handleSave
+                    )
+                } else {
+                    InputField(
+                        icon: "key.fill",
+                        placeholder: localizer.t.proxmoxApiTokenPlaceholder,
+                        text: $apiKey,
+                        isSecure: !showPassword,
+                        showToggle: true,
+                        toggleAction: { showPassword.toggle() },
+                        showPassword: showPassword,
+                        onSubmit: handleSave
+                    )
+                }
+
+                proxmoxInlineNotice(
+                    icon: "terminal.fill",
+                    message: localizer.t.proxmoxConsoleCredentialsOnly,
+                    tint: .orange
+                )
+
+                Text(localizer.t.proxmoxApiTokenHint)
+                    .font(.caption2)
+                    .foregroundStyle(AppTheme.textMuted)
+                    .padding(.horizontal, 2)
+            } else {
+                proxmoxInfoCard(
+                    icon: "lock.shield.fill",
+                    title: localizer.t.proxmoxCredentialsMode,
+                    body: localizer.t.proxmoxCredentialsHint,
+                    tint: serviceColor
+                )
+
+                InputField(
+                    icon: "person.fill",
+                    placeholder: localizer.t.loginUsername,
+                    text: $username
+                )
+
+                proxmoxRealmInput($proxmoxRealm)
+
+                InputField(
+                    icon: "lock.fill",
+                    placeholder: isEditing ? localizer.t.loginPasswordIfChanging : localizer.t.loginPassword,
+                    text: $password,
+                    isSecure: !showPassword,
+                    showToggle: true,
+                    toggleAction: { showPassword.toggle() },
+                    showPassword: showPassword
+                )
+
+                InputField(
+                    icon: "lock.rotation",
+                    placeholder: localizer.t.loginOptional2FA,
+                    text: $mfaCode,
+                    keyboardType: .asciiCapable,
+                    onSubmit: handleSave
+                )
+
+                Text(localizer.t.proxmoxOtpRecoveryHint)
+                    .font(.caption2)
+                    .foregroundStyle(AppTheme.textMuted)
+                    .padding(.horizontal, 2)
+            }
+        }
     }
 }
 

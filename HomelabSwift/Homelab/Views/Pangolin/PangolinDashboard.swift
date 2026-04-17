@@ -194,12 +194,18 @@ struct PangolinDashboard: View {
         }
         .task(id: autoRefreshTaskKey) {
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(20))
+                try? await Task.sleep(for: .seconds(60))
                 guard !Task.isCancelled else { break }
+                // Skip refresh when the app is not in the foreground to avoid
+                // unnecessary API load and battery drain.
+                guard scenePhase == .active else { continue }
+                guard !isFetchingSnapshot else { continue }
                 await fetchSnapshot(forceLoading: false)
             }
         }
     }
+
+    @Environment(\.scenePhase) private var scenePhase
 
     private var fetchTaskKey: String { selectedInstanceId.uuidString }
     private var autoRefreshTaskKey: String { "\(selectedInstanceId.uuidString):\(selectedOrgId ?? "auto")" }

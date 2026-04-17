@@ -89,10 +89,17 @@ struct PinEntryView: View {
     var onComplete: ((String) -> Void)?
     var showBiometric: Bool = false
     var onBiometricTap: (() -> Void)? = nil
+    var lockoutSeconds: Int = 0
 
     private let pinLength = 6
     private let buttonSize: CGFloat = 72
     private var palette: SecurityPalette { .resolve(for: colorScheme) }
+
+    private var isLockedOut: Bool { lockoutSeconds > 0 }
+
+    private var lockoutMessage: String {
+        String(format: localizer.t.securityLockoutMessage, lockoutSeconds)
+    }
 
     var body: some View {
         VStack(spacing: 28) {
@@ -137,8 +144,17 @@ struct PinEntryView: View {
             .padding(.vertical, 4)
             .modifier(ShakeModifier(shaking: errorMessage != nil))
 
-            // Error message
-            if let error = errorMessage {
+            // Error message / Lockout timer
+            if isLockedOut {
+                HStack(spacing: 6) {
+                    Image(systemName: "lock.slash.fill")
+                        .font(.caption2)
+                    Text(lockoutMessage)
+                        .font(.caption.weight(.medium))
+                }
+                .foregroundStyle(AppTheme.danger)
+                .transition(.opacity)
+            } else if let error = errorMessage {
                 Text(error)
                     .font(.caption)
                     .foregroundStyle(AppTheme.danger)
@@ -168,10 +184,11 @@ struct PinEntryView: View {
                             let icon = context.biometryType == .faceID ? "faceid" : "touchid"
                             Image(systemName: icon)
                                 .font(.title2)
-                                .foregroundStyle(palette.keypadText)
+                                .foregroundStyle(isLockedOut ? palette.keypadText.opacity(0.3) : palette.keypadText)
                                 .frame(width: buttonSize, height: buttonSize)
                         }
-                        .background(keypadCircle)
+                        .background(keypadCircle.opacity(isLockedOut ? 0.5 : 1.0))
+                        .disabled(isLockedOut)
                     } else {
                         Color.clear
                             .frame(width: buttonSize, height: buttonSize)
@@ -187,10 +204,11 @@ struct PinEntryView: View {
                     } label: {
                         Image(systemName: "delete.left.fill")
                             .font(.title2)
-                            .foregroundStyle(palette.keypadText)
+                            .foregroundStyle(isLockedOut ? palette.keypadText.opacity(0.3) : palette.keypadText)
                             .frame(width: buttonSize, height: buttonSize)
                     }
-                    .background(keypadCircle)
+                    .background(keypadCircle.opacity(isLockedOut ? 0.5 : 1.0))
+                    .disabled(isLockedOut)
                     .accessibilityLabel(localizer.t.delete)
                 }
             }
@@ -200,7 +218,7 @@ struct PinEntryView: View {
 
     private func numberButton(_ digit: String) -> some View {
         Button {
-            guard pin.count < pinLength else { return }
+            guard !isLockedOut, pin.count < pinLength else { return }
             pin.append(digit)
             HapticManager.light()
             if pin.count == pinLength {
@@ -211,10 +229,11 @@ struct PinEntryView: View {
         } label: {
             Text(digit)
                 .font(.title.bold())
-                .foregroundStyle(palette.keypadText)
+                .foregroundStyle(isLockedOut ? palette.keypadText.opacity(0.3) : palette.keypadText)
                 .frame(width: buttonSize, height: buttonSize)
         }
-        .background(keypadCircle)
+        .background(keypadCircle.opacity(isLockedOut ? 0.5 : 1.0))
+        .disabled(isLockedOut)
     }
 
     private var keypadCircle: some View {

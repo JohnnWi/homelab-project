@@ -326,7 +326,7 @@ struct DockhandDashboard: View {
         )
 
         return VStack(alignment: .leading, spacing: 12) {
-            sectionTitle(localizer.t.summaryTitle, trailing: nil)
+            sectionHeader(localizer.t.summaryTitle, trailing: nil)
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
                 statCard(title: localizer.t.containersAll, value: "\(stats.totalContainers)", icon: "shippingbox", tint: dockhandColor, filter: .all)
@@ -423,7 +423,7 @@ struct DockhandDashboard: View {
                     .minimumScaleFactor(0.82)
 
                 if let badge = badge(for: tab) {
-                    miniPill(badge, tint: selected ? dockhandColor : AppTheme.textMuted)
+                    DockhandMiniPill(text: badge, tint: selected ? dockhandColor : AppTheme.textMuted)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -468,7 +468,7 @@ struct DockhandDashboard: View {
 
     private var quickContainersSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionTitle(localizer.t.portainerContainers, trailing: "\(filteredContainers.count)")
+            sectionHeader(localizer.t.portainerContainers, trailing: "\(filteredContainers.count)")
 
             let preview = Array(filteredContainers.prefix(3))
             if preview.isEmpty {
@@ -493,7 +493,7 @@ struct DockhandDashboard: View {
     private var quickStacksSection: some View {
         let stacks = dashboard?.stacks ?? []
         return VStack(alignment: .leading, spacing: 10) {
-            sectionTitle(localizer.t.dockhandStacks, trailing: "\(stacks.count)")
+            sectionHeader(localizer.t.dockhandStacks, trailing: "\(stacks.count)")
 
             let preview = Array(stacks.prefix(3))
             if preview.isEmpty {
@@ -537,7 +537,7 @@ struct DockhandDashboard: View {
 
     private var containerSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionTitle(localizer.t.portainerContainers, trailing: "\(filteredContainers.count)")
+            sectionHeader(localizer.t.portainerContainers, trailing: "\(filteredContainers.count)")
 
             if filteredContainers.isEmpty && state.value != nil {
                 placeholder(localizer.t.dockhandNoContainers)
@@ -557,7 +557,7 @@ struct DockhandDashboard: View {
     private var stackSection: some View {
         let stacks = dashboard?.stacks ?? []
         return VStack(alignment: .leading, spacing: 10) {
-            sectionTitle(localizer.t.dockhandStacks, trailing: "\(stacks.count)")
+            sectionHeader(localizer.t.dockhandStacks, trailing: "\(stacks.count)")
 
             if stacks.isEmpty && state.value != nil {
                 placeholder(localizer.t.dockhandNoStacks)
@@ -587,13 +587,13 @@ struct DockhandDashboard: View {
         )
 
         return VStack(alignment: .leading, spacing: 10) {
-            sectionTitle(localizer.t.dockhandResources, trailing: nil)
+            sectionHeader(localizer.t.dockhandResources, trailing: nil)
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
-                resourceStatCard(localizer.t.dockhandImages, value: stats.images, tint: dockhandColor)
-                resourceStatCard(localizer.t.dockhandVolumes, value: stats.volumes, tint: AppTheme.info)
-                resourceStatCard(localizer.t.dockhandNetworks, value: stats.networks, tint: AppTheme.running)
-                resourceStatCard(localizer.t.dockhandStacks, value: stats.stacks, tint: AppTheme.warning)
+                DockhandResourceStatCard(title: localizer.t.dockhandImages, value: stats.images, tint: dockhandColor)
+                DockhandResourceStatCard(title: localizer.t.dockhandVolumes, value: stats.volumes, tint: AppTheme.info)
+                DockhandResourceStatCard(title: localizer.t.dockhandNetworks, value: stats.networks, tint: AppTheme.running)
+                DockhandResourceStatCard(title: localizer.t.dockhandStacks, value: stats.stacks, tint: AppTheme.warning)
             }
         }
     }
@@ -601,7 +601,7 @@ struct DockhandDashboard: View {
     private var activitySection: some View {
         let activity = limitedActivity
         return VStack(alignment: .leading, spacing: 10) {
-            sectionTitle(localizer.t.dockhandActivity, trailing: "\(dashboard?.activity.count ?? 0)")
+            sectionHeader(localizer.t.dockhandActivity, trailing: "\(dashboard?.activity.count ?? 0)")
 
             if activity.isEmpty {
                 placeholder(localizer.t.noData)
@@ -616,7 +616,7 @@ struct DockhandDashboard: View {
     private var schedulesSection: some View {
         let schedules = limitedSchedules
         return VStack(alignment: .leading, spacing: 10) {
-            sectionTitle(localizer.t.dockhandSchedules, trailing: "\(dashboard?.schedules.count ?? 0)")
+            sectionHeader(localizer.t.dockhandSchedules, trailing: "\(dashboard?.schedules.count ?? 0)")
 
             if schedules.isEmpty {
                 placeholder(localizer.t.noData)
@@ -634,120 +634,14 @@ struct DockhandDashboard: View {
     }
 
     private func containerCard(_ container: DockhandContainerInfo) -> some View {
-        let statusTint = containerTint(container)
-        let borderColor = container.isIssue ? statusTint.opacity(0.34) : .white.opacity(0.05)
-        return VStack(alignment: .leading, spacing: 9) {
-            HStack(spacing: 8) {
-                Text(container.name)
-                    .font(.subheadline.weight(.semibold))
-                    .lineLimit(1)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(AppTheme.textMuted)
-            }
-
-            Text(container.image)
-                .font(.caption)
-                .foregroundStyle(AppTheme.textMuted)
-                .lineLimit(1)
-
-            HStack(spacing: 8) {
-                miniPill(container.state, tint: statusTint)
-                if let health = container.health, !health.isEmpty {
-                    miniPill(health, tint: healthTint(for: health))
-                }
-                Spacer()
-                Text(container.portsSummary)
-                    .font(.caption2)
-                    .foregroundStyle(AppTheme.textMuted)
-                    .lineLimit(1)
-            }
-        }
-        .padding(12)
-        .glassCard(cornerRadius: AppTheme.smallRadius, tint: nil)
-        .overlay {
-            RoundedRectangle(cornerRadius: AppTheme.smallRadius, style: .continuous)
-                .stroke(borderColor, lineWidth: 1)
+        DockhandContainerCard(container: container) {
+            openContainerDetail(container.id)
         }
     }
 
     private func stackCard(_ stack: DockhandStackInfo) -> some View {
-        let running = stack.status.lowercased().contains("running") || stack.status.lowercased().contains("up")
-        let tint = running ? AppTheme.running : AppTheme.warning
-        let borderColor = running ? Color.white.opacity(0.05) : tint.opacity(0.3)
-
-        return HStack(spacing: 10) {
-            Circle()
-                .fill(tint.opacity(0.14))
-                .frame(width: 28, height: 28)
-                .overlay {
-                    Image(systemName: "square.3.layers.3d")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(tint)
-                }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(stack.name)
-                    .font(.subheadline.weight(.semibold))
-                    .lineLimit(1)
-                Text((stack.source?.isEmpty == false ? stack.source : stack.status) ?? stack.status)
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.textMuted)
-                    .lineLimit(1)
-            }
-
-            Spacer()
-
-            miniPill(stack.status, tint: tint)
-            Text("\(stack.services)")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppTheme.textSecondary)
-            Image(systemName: "chevron.right")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppTheme.textMuted)
-        }
-        .padding(12)
-        .glassCard(cornerRadius: AppTheme.smallRadius, tint: nil)
-        .overlay {
-            RoundedRectangle(cornerRadius: AppTheme.smallRadius, style: .continuous)
-                .stroke(borderColor, lineWidth: 1)
-        }
-    }
-
-    private func resourceChip(_ title: String, value: Int) -> some View {
-        HStack(spacing: 6) {
-            Text("\(value)")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.primary)
-            Text(title)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(AppTheme.textMuted)
-                .lineLimit(1)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(AppTheme.surface.opacity(0.85), in: Capsule())
-    }
-
-    private func resourceStatCard(_ title: String, value: Int, tint: Color) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(AppTheme.textMuted)
-                .lineLimit(1)
-
-            Text("\(value)")
-                .font(.title3.weight(.bold))
-                .foregroundStyle(tint)
-        }
-        .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .glassCard(cornerRadius: AppTheme.smallRadius, tint: tint.opacity(0.08))
-        .overlay {
-            RoundedRectangle(cornerRadius: AppTheme.smallRadius, style: .continuous)
-            .stroke(tint.opacity(0.28), lineWidth: 1)
+        DockhandStackCard(stack: stack) {
+            openStackDetail(stack)
         }
     }
 
@@ -781,11 +675,11 @@ struct DockhandDashboard: View {
 
                 Spacer(minLength: 0)
 
-                miniPill(displayActivityText(item.status), tint: tint)
+                DockhandMiniPill(text: displayActivityText(item.status), tint: tint)
             }
 
             HStack(spacing: 8) {
-                miniPill(displayActivityCategory(item), tint: dockhandColor)
+                DockhandMiniPill(text: displayActivityCategory(item), tint: dockhandColor)
                 if let createdAt = displayDockhandDate(item.createdAt) {
                     Label(createdAt, systemImage: "clock")
                         .font(.caption2)
@@ -807,7 +701,7 @@ struct DockhandDashboard: View {
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
                 Spacer()
-                miniPill(item.enabled ? localizer.t.statusOnline : localizer.t.dockhandDisabled, tint: tint)
+                DockhandMiniPill(text: item.enabled ? localizer.t.statusOnline : localizer.t.dockhandDisabled, tint: tint)
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(AppTheme.textMuted)
@@ -828,38 +722,16 @@ struct DockhandDashboard: View {
         .glassCard(cornerRadius: AppTheme.smallRadius)
     }
 
-    private func miniPill(_ text: String, tint: Color) -> some View {
-        Text(text)
-            .font(.caption2.weight(.semibold))
-            .lineLimit(1)
-            .foregroundStyle(tint)
-            .padding(.horizontal, 9)
-            .padding(.vertical, 4)
-            .background(tint.opacity(0.14), in: Capsule())
-    }
-
-    private func sectionTitle(_ title: String, trailing: String?, uppercased: Bool = true) -> some View {
-        HStack {
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppTheme.textMuted)
-                .textCase(uppercased ? .uppercase : nil)
-            Spacer()
-            if let trailing {
-                Text(trailing)
-                    .font(.caption2)
-                    .foregroundStyle(AppTheme.textMuted)
-            }
-        }
+    private func sectionHeader(_ title: String, trailing: String? = nil, uppercased: Bool = true) -> some View {
+        DockhandSectionTitle(title: title, trailing: trailing, uppercased: uppercased)
     }
 
     private func placeholder(_ text: String) -> some View {
-        Text(text)
-            .font(.subheadline)
-            .foregroundStyle(AppTheme.textMuted)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(14)
-            .glassCard(cornerRadius: AppTheme.smallRadius)
+        DockhandPlaceholder(text: text)
+    }
+
+    private func detailRow(_ label: String, _ value: String) -> some View {
+        DockhandDetailRow(label: label, value: value)
     }
 
     @ViewBuilder
@@ -987,13 +859,13 @@ struct DockhandDashboard: View {
                         .lineLimit(2)
 
                     HStack(spacing: 8) {
-                        stackActionButton(title: localizer.t.actionStart, icon: "play.fill", tint: AppTheme.running, enabled: !isRunningAction && !isSavingCompose) {
+                        DockhandStackActionButton(title: localizer.t.actionStart, icon: "play.fill", tint: AppTheme.running, enabled: !isRunningAction && !isSavingCompose) {
                             Task { await runStackAction(.start, stack: detail.stack) }
                         }
-                        stackActionButton(title: localizer.t.actionRestart, icon: "arrow.clockwise", tint: AppTheme.info, enabled: !isRunningAction && !isSavingCompose) {
+                        DockhandStackActionButton(title: localizer.t.actionRestart, icon: "arrow.clockwise", tint: AppTheme.info, enabled: !isRunningAction && !isSavingCompose) {
                             Task { await runStackAction(.restart, stack: detail.stack) }
                         }
-                        stackActionButton(title: localizer.t.actionStop, icon: "stop.fill", tint: AppTheme.warning, enabled: !isRunningAction && !isSavingCompose) {
+                        DockhandStackActionButton(title: localizer.t.actionStop, icon: "stop.fill", tint: AppTheme.warning, enabled: !isRunningAction && !isSavingCompose) {
                             Task { await runStackAction(.stop, stack: detail.stack) }
                         }
                     }
@@ -1017,7 +889,7 @@ struct DockhandDashboard: View {
 
                     let detailRows = curatedStackRows(detail)
                     if !detailRows.isEmpty {
-                        sectionTitle(localizer.t.detailContainer, trailing: nil)
+                        sectionHeader(localizer.t.detailContainer, trailing: nil)
                         VStack(spacing: 8) {
                             ForEach(Array(detailRows.enumerated()), id: \.offset) { _, pair in
                                 detailRow(pair.0, pair.1)
@@ -1029,7 +901,7 @@ struct DockhandDashboard: View {
 
                     let relatedContainers = stackRelatedContainers(for: detail.stack)
                     if !relatedContainers.isEmpty {
-                        sectionTitle(localizer.t.portainerContainers, trailing: "\(relatedContainers.count)")
+                        sectionHeader(localizer.t.portainerContainers, trailing: "\(relatedContainers.count)")
                         VStack(spacing: 8) {
                             ForEach(Array(relatedContainers.prefix(6))) { container in
                                 Button {
@@ -1049,7 +921,7 @@ struct DockhandDashboard: View {
                     }
 
                     let composeEditable = canEditCompose(detail.compose)
-                    sectionTitle(localizer.t.detailComposeFile, trailing: nil, uppercased: false)
+                    sectionHeader(localizer.t.detailComposeFile, trailing: nil, uppercased: false)
                     if isEditingCompose {
                         VStack(alignment: .leading, spacing: 8) {
                             TextEditor(text: $composeDraft)
@@ -1059,7 +931,7 @@ struct DockhandDashboard: View {
                                 .background(AppTheme.surface.opacity(0.66), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                             HStack(spacing: 8) {
-                                detailActionButton(
+                                DockhandDetailActionButton(
                                     title: localizer.t.cancel,
                                     icon: "xmark",
                                     tint: AppTheme.textMuted,
@@ -1068,7 +940,7 @@ struct DockhandDashboard: View {
                                     isEditingCompose = false
                                     composeDraft = detail.compose
                                 }
-                                detailActionButton(
+                                DockhandDetailActionButton(
                                     title: localizer.t.detailComposeSave,
                                     icon: "checkmark",
                                     tint: dockhandColor,
@@ -1084,7 +956,7 @@ struct DockhandDashboard: View {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Spacer()
-                                detailActionButton(
+                                DockhandDetailActionButton(
                                     title: localizer.t.copy,
                                     icon: "doc.on.doc",
                                     tint: dockhandColor,
@@ -1105,7 +977,7 @@ struct DockhandDashboard: View {
                             .frame(minHeight: 180, alignment: .top)
 
                             if composeEditable {
-                                detailActionButton(
+                                DockhandDetailActionButton(
                                     title: localizer.t.actionEdit,
                                     icon: "pencil",
                                     tint: dockhandColor,
@@ -1184,7 +1056,7 @@ struct DockhandDashboard: View {
 
                     let related = scheduleActivityItems(for: detail)
                     if !related.isEmpty {
-                        sectionTitle(localizer.t.dockhandActivity, trailing: "\(related.count)")
+                        sectionHeader(localizer.t.dockhandActivity, trailing: "\(related.count)")
                         VStack(spacing: 8) {
                             ForEach(Array(related.prefix(6))) { item in
                                 activityRow(item)
@@ -1213,16 +1085,16 @@ struct DockhandDashboard: View {
             }
 
             HStack(spacing: 8) {
-                detailActionButton(title: localizer.t.refresh, icon: "arrow.clockwise", tint: dockhandColor, enabled: !isRunningAction) {
+                DockhandDetailActionButton(title: localizer.t.refresh, icon: "arrow.clockwise", tint: dockhandColor, enabled: !isRunningAction) {
                     Task { await fetchContainerDetail(forceLoading: false) }
                 }
-                detailActionButton(title: localizer.t.actionStart, icon: "play.fill", tint: AppTheme.running, enabled: !isRunningAction) {
+                DockhandDetailActionButton(title: localizer.t.actionStart, icon: "play.fill", tint: AppTheme.running, enabled: !isRunningAction) {
                     Task { await runContainerAction(.start, containerId: detail.container.id) }
                 }
-                detailActionButton(title: localizer.t.actionStop, icon: "stop.fill", tint: AppTheme.warning, enabled: !isRunningAction) {
+                DockhandDetailActionButton(title: localizer.t.actionStop, icon: "stop.fill", tint: AppTheme.warning, enabled: !isRunningAction) {
                     Task { await runContainerAction(.stop, containerId: detail.container.id) }
                 }
-                detailActionButton(title: localizer.t.actionRestart, icon: "arrow.clockwise", tint: AppTheme.info, enabled: !isRunningAction) {
+                DockhandDetailActionButton(title: localizer.t.actionRestart, icon: "arrow.clockwise", tint: AppTheme.info, enabled: !isRunningAction) {
                     Task { await runContainerAction(.restart, containerId: detail.container.id) }
                 }
             }
@@ -1236,7 +1108,7 @@ struct DockhandDashboard: View {
                 }
             }
 
-            sectionTitle(localizer.t.detailContainer, trailing: nil)
+            sectionHeader(localizer.t.detailContainer, trailing: nil)
             if !overviewRows.isEmpty {
                 VStack(spacing: 8) {
                     ForEach(Array(overviewRows.enumerated()), id: \.offset) { _, pair in
@@ -1247,15 +1119,15 @@ struct DockhandDashboard: View {
                 .glassCard(cornerRadius: AppTheme.smallRadius)
             }
 
-            sectionTitle(localizer.t.dockhandLogs, trailing: nil)
+            sectionHeader(localizer.t.dockhandLogs, trailing: nil)
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     if !detail.logs.isEmpty {
-                        miniPill("\(logLines.count)", tint: dockhandColor)
+                        DockhandMiniPill(text: "\(logLines.count)", tint: dockhandColor)
                     }
                     Spacer()
                     if !detail.logs.isEmpty {
-                        detailActionButton(title: localizer.t.copy, icon: "doc.on.doc", tint: dockhandColor, enabled: true) {
+                        DockhandDetailActionButton(title: localizer.t.copy, icon: "doc.on.doc", tint: dockhandColor, enabled: true) {
                             UIPasteboard.general.string = detail.logs
                             actionMessage = localizer.t.copy
                         }
@@ -1287,71 +1159,7 @@ struct DockhandDashboard: View {
         }
     }
 
-    private func detailRow(_ label: String, _ value: String) -> some View {
-        HStack(alignment: .top) {
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(AppTheme.textMuted)
-            Spacer()
-            Text(value)
-                .font(.caption)
-                .foregroundStyle(AppTheme.textSecondary)
-                .multilineTextAlignment(.trailing)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    private func detailActionButton(
-        title: String,
-        icon: String,
-        tint: Color,
-        enabled: Bool,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Label(title, systemImage: icon)
-                .font(.caption.weight(.semibold))
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 8)
-                .foregroundStyle(enabled ? tint : AppTheme.textMuted)
-                .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(enabled ? tint.opacity(0.12) : AppTheme.surface.opacity(0.7))
-                )
-        }
-        .buttonStyle(.plain)
-        .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.65)
-    }
-
-    private func stackActionButton(
-        title: String,
-        icon: String,
-        tint: Color,
-        enabled: Bool,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Label(title, systemImage: icon)
-                .font(.caption.weight(.semibold))
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 10)
-                .foregroundStyle(enabled ? tint : AppTheme.textMuted)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(enabled ? tint.opacity(0.12) : AppTheme.surface.opacity(0.7))
-                )
-        }
-        .buttonStyle(.plain)
-        .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.65)
-    }
+    // MARK: - Tab helpers
 
     private func title(for tab: DockhandDashboardTab) -> String {
         switch tab {

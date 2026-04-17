@@ -11,6 +11,7 @@ interface PortainerApi {
         @Url url: String,
         @Header("X-Homelab-Service") service: String = "Portainer",
         @Header("X-Homelab-Bypass") bypass: String = "true",
+        @Header("X-Homelab-Allow-Self-Signed") allowSelfSigned: String = "false",
         @Body credentials: Map<String, String>
     ): PortainerAuthResponse
 
@@ -19,6 +20,7 @@ interface PortainerApi {
         @Url url: String,
         @Header("X-Homelab-Service") service: String = "Portainer",
         @Header("X-Homelab-Bypass") bypass: String = "true",
+        @Header("X-Homelab-Allow-Self-Signed") allowSelfSigned: String = "false",
         @Header("X-API-Key") apiKey: String
     ): List<PortainerEndpoint>
 

@@ -1,21 +1,29 @@
 import Foundation
 
 actor HealthchecksAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var apiKey: String = ""
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .healthchecks, instanceId: instanceId)
     }
 
     // MARK: - Configuration
 
-    func configure(url: String, apiKey: String, fallbackUrl: String? = nil) {
+    func configure(url: String, apiKey: String, fallbackUrl: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.apiKey = apiKey
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .healthchecks, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     // MARK: - Ping

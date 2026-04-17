@@ -24,6 +24,7 @@ import com.homelab.app.data.repository.ServiceInstancesRepository
 import com.homelab.app.data.repository.ServicesRepository
 import com.homelab.app.data.repository.TechnitiumRepository
 import com.homelab.app.data.repository.WakapiRepository
+import com.homelab.app.data.repository.ProxmoxRepository
 import com.homelab.app.domain.model.PiHoleAuthMode
 import com.homelab.app.domain.model.ServiceInstance
 import com.homelab.app.util.ErrorHandler
@@ -58,7 +59,8 @@ class ServiceLoginViewModel @Inject constructor(
     private val pangolinRepository: PangolinRepository,
     private val plexRepository: PlexRepository,
     private val mediaArrRepository: MediaArrRepository,
-    private val wakapiRepository: WakapiRepository
+    private val wakapiRepository: WakapiRepository,
+    private val proxmoxRepository: ProxmoxRepository
 ) : ViewModel() {
 
     private val existingInstanceId: String? = savedStateHandle["instanceId"]
@@ -88,7 +90,11 @@ class ServiceLoginViewModel @Inject constructor(
         password: String = "",
         apiKey: String = "",
         fallbackUrl: String = "",
-        mfaCode: String = ""
+        mfaCode: String = "",
+        allowSelfSigned: Boolean = true,
+        proxmoxRealm: String = "pam",
+        proxmoxOtp: String = "",
+        proxmoxUseApiToken: Boolean = false
     ) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -103,11 +109,19 @@ class ServiceLoginViewModel @Inject constructor(
             val trimmedPassword = password.trim()
             val trimmedApiKey = apiKey.trim()
             val trimmedMfaCode = mfaCode.trim()
+            val normalizedStoredUsername = when (serviceType) {
+                ServiceType.PROXMOX -> {
+                    if (trimmedUsername.isBlank()) ""
+                    else if (trimmedUsername.contains("@")) trimmedUsername
+                    else "${trimmedUsername}@${proxmoxRealm.ifBlank { "pam" }}"
+                }
+                else -> trimmedUsername
+            }
 
             try {
                 val metadataOnly = existing != null &&
                     existing.url == cleanUrl &&
-                    existing.username.orEmpty() == trimmedUsername &&
+                    existing.username.orEmpty() == normalizedStoredUsername &&
                     existing.apiKey.orEmpty() == trimmedApiKey &&
                     existing.piHoleStoredSecret.orEmpty() == trimmedPassword
 
@@ -120,7 +134,7 @@ class ServiceLoginViewModel @Inject constructor(
                     when (serviceType) {
                         ServiceType.PORTAINER -> {
                             require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
-                            portainerRepository.authenticateWithApiKey(cleanUrl, trimmedApiKey)
+                            portainerRepository.authenticateWithApiKey(cleanUrl, trimmedApiKey, allowSelfSigned = allowSelfSigned)
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -135,7 +149,7 @@ class ServiceLoginViewModel @Inject constructor(
                             val secret = trimmedPassword.ifBlank {
                                 existing?.piHoleStoredSecret ?: throw IllegalArgumentException(context.getString(R.string.login_error_password_required))
                             }
-                            val token = piholeRepository.authenticate(cleanUrl, secret)
+                            val token = piholeRepository.authenticate(cleanUrl, secret, allowSelfSigned = allowSelfSigned)
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -156,7 +170,7 @@ class ServiceLoginViewModel @Inject constructor(
                                 throw IllegalArgumentException(context.getString(R.string.login_error_password_required))
                             }
                             require(authPassword.isNotBlank()) { context.getString(R.string.login_error_password_required) }
-                            adGuardHomeRepository.authenticate(cleanUrl, trimmedUsername, authPassword)
+                            adGuardHomeRepository.authenticate(cleanUrl, trimmedUsername, authPassword, allowSelfSigned = allowSelfSigned)
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -176,7 +190,7 @@ class ServiceLoginViewModel @Inject constructor(
                                 throw IllegalArgumentException(context.getString(R.string.login_error_password_required))
                             }
                             require(authPassword.isNotBlank()) { context.getString(R.string.login_error_password_required) }
-                            val token = beszelRepository.authenticate(cleanUrl, trimmedUsername, authPassword)
+                            val token = beszelRepository.authenticate(cleanUrl, trimmedUsername, authPassword, allowSelfSigned = allowSelfSigned)
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -197,7 +211,7 @@ class ServiceLoginViewModel @Inject constructor(
                                 throw IllegalArgumentException(context.getString(R.string.login_error_password_required))
                             }
                             require(authPassword.isNotBlank()) { context.getString(R.string.login_error_password_required) }
-                            val token = giteaRepository.authenticate(cleanUrl, trimmedUsername, authPassword)
+                            val token = giteaRepository.authenticate(cleanUrl, trimmedUsername, authPassword, allowSelfSigned = allowSelfSigned)
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -218,7 +232,7 @@ class ServiceLoginViewModel @Inject constructor(
                                 throw IllegalArgumentException(context.getString(R.string.login_error_password_required))
                             }
                             require(authPassword.isNotBlank()) { context.getString(R.string.login_error_password_required) }
-                            val token = nginxProxyManagerRepository.authenticate(cleanUrl, trimmedUsername, authPassword)
+                            val token = nginxProxyManagerRepository.authenticate(cleanUrl, trimmedUsername, authPassword, allowSelfSigned = allowSelfSigned)
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -232,7 +246,7 @@ class ServiceLoginViewModel @Inject constructor(
                         }
                         ServiceType.HEALTHCHECKS -> {
                             require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
-                            healthchecksRepository.validateApiKey(cleanUrl, trimmedApiKey)
+                            healthchecksRepository.validateApiKey(cleanUrl, trimmedApiKey, allowSelfSigned = allowSelfSigned)
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -245,7 +259,7 @@ class ServiceLoginViewModel @Inject constructor(
                         ServiceType.PANGOLIN -> {
                             require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
                             val orgId = trimmedUsername.ifBlank { null }
-                            pangolinRepository.authenticate(cleanUrl, trimmedApiKey, orgId)
+                            pangolinRepository.authenticate(cleanUrl, trimmedApiKey, orgId, allowSelfSigned = allowSelfSigned)
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -258,7 +272,7 @@ class ServiceLoginViewModel @Inject constructor(
                         }
                         ServiceType.LINUX_UPDATE -> {
                             require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
-                            linuxUpdateRepository.authenticate(cleanUrl, trimmedApiKey)
+                            linuxUpdateRepository.authenticate(cleanUrl, trimmedApiKey, allowSelfSigned = allowSelfSigned)
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -283,7 +297,8 @@ class ServiceLoginViewModel @Inject constructor(
                                 username = trimmedUsername,
                                 password = authPassword,
                                 totp = trimmedMfaCode,
-                                fallbackUrl = cleanFallbackUrl
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
                             )
 
                             ServiceInstance(
@@ -312,7 +327,8 @@ class ServiceLoginViewModel @Inject constructor(
                                 username = trimmedUsername,
                                 password = authPassword,
                                 mfaCode = trimmedMfaCode,
-                                fallbackUrl = cleanFallbackUrl
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
                             )
 
                             ServiceInstance(
@@ -340,7 +356,8 @@ class ServiceLoginViewModel @Inject constructor(
                                 url = cleanUrl,
                                 username = trimmedUsername,
                                 password = authPassword,
-                                fallbackUrl = cleanFallbackUrl
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
                             )
                             ServiceInstance(
                                 id = instanceId,
@@ -355,7 +372,7 @@ class ServiceLoginViewModel @Inject constructor(
                         }
                         ServiceType.JELLYSTAT -> {
                             require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
-                            jellystatRepository.authenticate(cleanUrl, trimmedApiKey)
+                            jellystatRepository.authenticate(cleanUrl, trimmedApiKey, allowSelfSigned = allowSelfSigned)
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -374,7 +391,7 @@ class ServiceLoginViewModel @Inject constructor(
                                 throw IllegalArgumentException(context.getString(R.string.patchmon_login_error_token_secret_required))
                             }
                             require(tokenSecret.isNotBlank()) { context.getString(R.string.patchmon_login_error_token_secret_required) }
-                            patchmonRepository.authenticate(cleanUrl, trimmedUsername, tokenSecret)
+                            patchmonRepository.authenticate(cleanUrl, trimmedUsername, tokenSecret, allowSelfSigned = allowSelfSigned)
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -387,7 +404,7 @@ class ServiceLoginViewModel @Inject constructor(
                         }
                         ServiceType.PLEX -> {
                             require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
-                            plexRepository.authenticate(cleanUrl, trimmedApiKey)
+                            plexRepository.authenticate(cleanUrl, trimmedApiKey, allowSelfSigned = allowSelfSigned)
                             ServiceInstance(
                                 id = instanceId,
                                 type = serviceType,
@@ -402,7 +419,8 @@ class ServiceLoginViewModel @Inject constructor(
                             wakapiRepository.authenticate(
                                 url = cleanUrl,
                                 apiKey = trimmedApiKey,
-                                fallbackUrl = cleanFallbackUrl
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
                             )
                             ServiceInstance(
                                 id = instanceId,
@@ -412,6 +430,53 @@ class ServiceLoginViewModel @Inject constructor(
                                 apiKey = trimmedApiKey,
                                 fallbackUrl = cleanFallbackUrl
                             )
+                        }
+                        ServiceType.PROXMOX -> {
+                            if (proxmoxUseApiToken) {
+                                require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_api_key_label) }
+                                proxmoxRepository.authenticateWithApiToken(
+                                    url = cleanUrl,
+                                    apiToken = trimmedApiKey,
+                                    allowSelfSigned = allowSelfSigned
+                                )
+                                ServiceInstance(
+                                    id = instanceId,
+                                    type = serviceType,
+                                    label = normalizedLabel,
+                                    url = cleanUrl,
+                                    apiKey = trimmedApiKey,
+                                    fallbackUrl = cleanFallbackUrl
+                                )
+                            } else {
+                                require(trimmedUsername.isNotBlank()) { context.getString(R.string.login_error_username_required) }
+                                val resolvedPassword = trimmedPassword.ifBlank {
+                                    if (existing != null && existing.url == cleanUrl && existing.username == normalizedStoredUsername) {
+                                        return@ifBlank existing.password.orEmpty()
+                                    }
+                                    throw IllegalArgumentException(context.getString(R.string.login_error_password_required))
+                                }
+                                require(resolvedPassword.isNotBlank()) { context.getString(R.string.login_error_password_required) }
+                                val authTicket = proxmoxRepository.authenticate(
+                                    url = cleanUrl,
+                                    username = trimmedUsername,
+                                    password = resolvedPassword,
+                                    otp = proxmoxOtp.ifBlank { null },
+                                    realm = proxmoxRealm.ifBlank { "pam" },
+                                    allowSelfSigned = allowSelfSigned
+                                )
+                                ServiceInstance(
+                                    id = instanceId,
+                                    type = serviceType,
+                                    label = normalizedLabel,
+                                    url = cleanUrl,
+                                    token = authTicket.ticket,
+                                    proxmoxCsrfToken = authTicket.csrfPreventionToken,
+                                    proxmoxOtp = proxmoxOtp.ifBlank { null },
+                                    username = authTicket.username,
+                                    password = resolvedPassword,
+                                    fallbackUrl = cleanFallbackUrl
+                                )
+                            }
                         }
                         ServiceType.QBITTORRENT -> {
                             require(trimmedUsername.isNotBlank()) { context.getString(R.string.login_error_username_required) }
@@ -426,7 +491,8 @@ class ServiceLoginViewModel @Inject constructor(
                                 url = cleanUrl,
                                 username = trimmedUsername,
                                 password = resolvedPassword,
-                                fallbackUrl = cleanFallbackUrl
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
                             )
                             ServiceInstance(
                                 id = instanceId,
@@ -450,7 +516,8 @@ class ServiceLoginViewModel @Inject constructor(
                                 url = cleanUrl,
                                 serviceType = serviceType,
                                 apiKey = trimmedApiKey,
-                                fallbackUrl = cleanFallbackUrl
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
                             )
                             ServiceInstance(
                                 id = instanceId,
@@ -467,7 +534,8 @@ class ServiceLoginViewModel @Inject constructor(
                                 url = cleanUrl,
                                 serviceType = serviceType,
                                 apiKey = trimmedApiKey,
-                                fallbackUrl = cleanFallbackUrl
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
                             )
                             ServiceInstance(
                                 id = instanceId,
@@ -480,7 +548,7 @@ class ServiceLoginViewModel @Inject constructor(
                         }
                         ServiceType.UNKNOWN -> throw IllegalArgumentException(context.getString(R.string.error_unknown))
                     }
-                }
+                }.copy(allowSelfSigned = allowSelfSigned)
 
                 servicesRepository.saveInstance(instance)
                 _existingInstance.value = instance

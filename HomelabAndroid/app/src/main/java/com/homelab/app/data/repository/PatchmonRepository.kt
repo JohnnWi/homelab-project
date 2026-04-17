@@ -1,6 +1,7 @@
 package com.homelab.app.data.repository
 
 import com.homelab.app.data.remote.api.PatchmonApi
+import com.homelab.app.data.remote.TlsClientSelector
 import com.homelab.app.data.remote.dto.patchmon.PatchmonAgentQueueResponse
 import com.homelab.app.data.remote.dto.patchmon.PatchmonDeleteResponse
 import com.homelab.app.data.remote.dto.patchmon.PatchmonHostInfo
@@ -20,7 +21,6 @@ import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import retrofit2.HttpException
 
@@ -47,7 +47,7 @@ class PatchmonApiException(
 @Singleton
 class PatchmonRepository @Inject constructor(
     private val api: PatchmonApi,
-    private val okHttpClient: OkHttpClient
+    private val tlsClientSelector: TlsClientSelector
 ) {
 
     private data class HostsCacheEntry(
@@ -59,7 +59,7 @@ class PatchmonRepository @Inject constructor(
     private val hostsCacheTtlMs = 5 * 60_000L
     private val hostsCache = ConcurrentHashMap<String, HostsCacheEntry>()
 
-    suspend fun authenticate(url: String, tokenKey: String, tokenSecret: String) {
+    suspend fun authenticate(url: String, tokenKey: String, tokenSecret: String, allowSelfSigned: Boolean = false) {
         withContext(Dispatchers.IO) {
             val clean = url.trimEnd('/')
             val credentials = Base64.getEncoder()
@@ -70,7 +70,7 @@ class PatchmonRepository @Inject constructor(
                 .addHeader("Content-Type", "application/json")
                 .build()
 
-            okHttpClient.newCall(request).execute().use { response ->
+            tlsClientSelector.forAllowSelfSigned(allowSelfSigned).newCall(request).execute().use { response ->
                 if (response.isSuccessful) return@use
                 val body = response.body?.string().orEmpty()
                 throw mapHttpStatus(response.code, body)

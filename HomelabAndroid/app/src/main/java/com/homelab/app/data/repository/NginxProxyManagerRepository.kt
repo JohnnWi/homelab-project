@@ -25,11 +25,12 @@ import javax.inject.Singleton
 class NginxProxyManagerRepository @Inject constructor(
     private val api: NginxProxyManagerApi
 ) {
-    suspend fun authenticate(url: String, email: String, password: String): String {
+    suspend fun authenticate(url: String, email: String, password: String, allowSelfSigned: Boolean = false): String {
         val cleanUrl = url.trimEnd('/') + "/api/tokens"
         try {
             val response = api.authenticate(
                 url = cleanUrl,
+                allowSelfSigned = allowSelfSigned.toString(),
                 credentials = mapOf("identity" to email, "secret" to password)
             )
             

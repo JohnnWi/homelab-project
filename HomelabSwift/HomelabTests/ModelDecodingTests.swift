@@ -584,23 +584,33 @@ final class ModelDecodingTests: XCTestCase {
     func testServiceInstanceEncoding() throws {
         let instance = ServiceInstance(
             id: UUID(uuidString: "30000000-0000-0000-0000-000000000001")!,
-            type: .portainer,
-            label: "Portainer Lab",
-            url: "https://portainer.lab/",
-            token: "jwt123",
-            apiKey: "key456",
-            fallbackUrl: "https://portainer.example.com/"
+            type: .proxmox,
+            label: "Proxmox Lab",
+            url: "https://proxmox.lab/",
+            token: "ticket123",
+            username: "root",
+            apiKey: "csrf456",
+            proxmoxAuthMode: .credentials,
+            proxmoxRealm: "pve",
+            proxmoxOTP: "123456",
+            fallbackUrl: "https://portainer.example.com/",
+            allowSelfSigned: true
         )
 
         let data = try JSONEncoder().encode(instance)
         let decoded = try JSONDecoder().decode(ServiceInstance.self, from: data)
 
         XCTAssertEqual(decoded.id, instance.id)
-        XCTAssertEqual(decoded.type, .portainer)
-        XCTAssertEqual(decoded.label, "Portainer Lab")
-        XCTAssertEqual(decoded.url, "https://portainer.lab")
-        XCTAssertEqual(decoded.apiKey, "key456")
+        XCTAssertEqual(decoded.type, ServiceType.proxmox)
+        XCTAssertEqual(decoded.label, "Proxmox Lab")
+        XCTAssertEqual(decoded.url, "https://proxmox.lab")
+        XCTAssertEqual(decoded.apiKey, "csrf456")
+        XCTAssertEqual(decoded.username, "root")
+        XCTAssertEqual(decoded.proxmoxAuthMode, ProxmoxAuthMode.credentials)
+        XCTAssertEqual(decoded.proxmoxRealm, "pve")
+        XCTAssertEqual(decoded.proxmoxOTP, "123456")
         XCTAssertEqual(decoded.fallbackUrl, "https://portainer.example.com")
+        XCTAssertTrue(decoded.allowSelfSigned)
     }
 
     func testLegacyServiceConnectionMigrationUsesDisplayNameLabel() {
@@ -619,6 +629,295 @@ final class ModelDecodingTests: XCTestCase {
         XCTAssertEqual(migrated.url, "https://beszel.local")
         XCTAssertEqual(migrated.token, "token-1")
         XCTAssertEqual(migrated.username, "ops@example.com")
+    }
+
+    func testProxmoxTaskLogDecoding() throws {
+        let json = """
+        {
+            "data": [
+                { "n": 2, "t": "second line" },
+                { "n": 1, "t": "first line" }
+            ]
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(ProxmoxAPIResponse<[ProxmoxTaskLogEntry]>.self, from: json)
+
+        XCTAssertEqual(decoded.data.count, 2)
+        XCTAssertEqual(decoded.data[0].n, 2)
+        XCTAssertEqual(decoded.data[1].t, "first line")
+    }
+
+    func testProxmoxRRDDataDecodingProvidesComputedMetrics() throws {
+        let json = """
+        {
+            "time": 1710000000,
+            "cpu": 0.42,
+            "maxcpu": 4,
+            "mem": 2147483648,
+            "maxmem": 4294967296,
+            "netin": 1048576,
+            "netout": 524288,
+            "diskread": 4096,
+            "diskwrite": 2048
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(ProxmoxRRDData.self, from: json)
+
+        XCTAssertEqual(decoded.cpuPercent, 42, accuracy: 0.01)
+        XCTAssertEqual(decoded.memoryPercent, 50, accuracy: 0.01)
+        XCTAssertEqual(decoded.networkRate, 1572864, accuracy: 0.01)
+        XCTAssertEqual(decoded.diskRate, 6144, accuracy: 0.01)
+        XCTAssertNotNil(decoded.date)
+        XCTAssertTrue(decoded.hasData)
+    }
+
+    func testProxmoxApiTokenPartsParseRawToken() {
+        let parsed = ProxmoxAPITokenParts(rawValue: "root@pam!homelab=super-secret-token")
+
+        XCTAssertEqual(parsed?.user, "root")
+        XCTAssertEqual(parsed?.realm, "pam")
+        XCTAssertEqual(parsed?.tokenID, "homelab")
+        XCTAssertEqual(parsed?.secret, "super-secret-token")
+        XCTAssertEqual(parsed?.rawValue, "root@pam!homelab=super-secret-token")
+    }
+
+    func testProxmoxApiTokenPartsRejectInvalidToken() {
+        XCTAssertNil(ProxmoxAPITokenParts(rawValue: "root@pam"))
+        XCTAssertNil(ProxmoxAPITokenParts(user: "root", realm: "pam", tokenID: "", secret: "secret"))
+    }
+
+    func testProxmoxGuestConfigParsesDynamicInterfacesAndDisks() throws {
+        let json = """
+        {
+            "name": "ubuntu-vm",
+            "memory": 4096,
+            "cores": 4,
+            "cpu": "x86-64-v2-AES",
+            "net0": "virtio=BC:24:11:22:33:44,bridge=vmbr0,firewall=1,tag=20,rate=50",
+            "ipconfig0": "ip=192.168.10.20/24,gw=192.168.10.1",
+            "scsi0": "local-lvm:vm-101-disk-0,size=64G,backup=1,replicate=0,ssd=1",
+            "rootfs": "local-zfs:subvol-101-disk-0,size=8G"
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(ProxmoxGuestConfig.self, from: json)
+
+        XCTAssertEqual(decoded.networkInterfaces.count, 1)
+        XCTAssertEqual(decoded.displayName, "ubuntu-vm")
+        XCTAssertEqual(decoded.networkInterfaces.first?.model, "virtio")
+        XCTAssertEqual(decoded.networkInterfaces.first?.bridge, "vmbr0")
+        XCTAssertEqual(decoded.networkInterfaces.first?.ipAddress, "192.168.10.20/24")
+        XCTAssertEqual(decoded.networkInterfaces.first?.gateway, "192.168.10.1")
+        XCTAssertEqual(decoded.diskDevices.count, 2)
+        XCTAssertEqual(decoded.diskDevices.first(where: { $0.key == "scsi0" })?.storage, "local-lvm")
+        XCTAssertEqual(decoded.diskDevices.first(where: { $0.key == "scsi0" })?.size, "64G")
+        XCTAssertEqual(decoded.diskDevices.first(where: { $0.key == "rootfs" })?.mountPoint, "/")
+    }
+
+    func testProxmoxGuestConfigParsesAgentFlags() throws {
+        let json = """
+        {
+            "name": "debian-ct",
+            "agent": "enabled=1,fstrim_cloned_disks=1"
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(ProxmoxGuestConfig.self, from: json)
+
+        XCTAssertEqual(decoded.guestAgentEnabled, true)
+    }
+
+    func testProxmoxGuestConfigUsesHostnameForLXCDisplayName() throws {
+        let json = """
+        {
+            "hostname": "debian-ct",
+            "memory": 2048,
+            "cores": 2
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(ProxmoxGuestConfig.self, from: json)
+
+        XCTAssertEqual(decoded.hostname, "debian-ct")
+        XCTAssertEqual(decoded.displayName, "debian-ct")
+    }
+
+    func testProxmoxGuestAgentUsersAndTimezoneDecode() throws {
+        let usersJSON = """
+        {
+            "data": [
+                { "user": "root", "login-time": 1712731092.25 },
+                { "user": "ops", "domain": "LAB", "login-time": 1712732092.5 }
+            ]
+        }
+        """.data(using: .utf8)!
+
+        let timezoneJSON = """
+        {
+            "data": {
+                "zone": "Europe/Rome",
+                "offset": 7200
+            }
+        }
+        """.data(using: .utf8)!
+
+        let users = try JSONDecoder().decode(ProxmoxAPIResponse<[ProxmoxGuestAgentUser]>.self, from: usersJSON).data
+        let timezone = try JSONDecoder().decode(ProxmoxAPIResponse<ProxmoxGuestAgentTimezone>.self, from: timezoneJSON).data
+
+        XCTAssertEqual(users.count, 2)
+        XCTAssertEqual(users[0].displayName, "root")
+        XCTAssertEqual(users[1].displayName, "LAB\\ops")
+        XCTAssertNotNil(users[0].loginDate)
+        XCTAssertEqual(timezone.displayName, "Europe/Rome (UTC+02:00)")
+    }
+
+    func testProxmoxGuestAgentFilesystemDecodingProvidesUsageAndDiskSummary() throws {
+        let json = """
+        {
+            "data": [
+                {
+                    "name": "/dev/sda2",
+                    "mountpoint": "/",
+                    "type": "ext4",
+                    "used-bytes": 32212254720,
+                    "total-bytes": 64424509440,
+                    "disk": [
+                        { "bus-type": "scsi", "dev": "/dev/sda" }
+                    ]
+                }
+            ]
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(ProxmoxAPIResponse<[ProxmoxGuestAgentFilesystem]>.self, from: json)
+        let filesystem = try XCTUnwrap(decoded.data.first)
+
+        XCTAssertEqual(filesystem.mountpoint, "/")
+        XCTAssertEqual(filesystem.capacityBytes, 64_424_509_440)
+        XCTAssertEqual(filesystem.usagePercent, 0.5, accuracy: 0.0001)
+        XCTAssertEqual(filesystem.diskSummary, "scsi • /dev/sda")
+    }
+
+    func testProxmoxBackupJobFallbackIdIsStable() throws {
+        let json = """
+        {
+            "enabled": 1,
+            "storage": "pbs-store",
+            "schedule": "daily",
+            "vmid": "100,101",
+            "mode": "snapshot"
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(ProxmoxBackupJob.self, from: json)
+
+        XCTAssertEqual(decoded.id, decoded.id)
+        XCTAssertFalse(decoded.id.isEmpty)
+        XCTAssertEqual(decoded.id, "pbs-store|daily|100,101|snapshot")
+    }
+
+    func testProxmoxSnapshotDecodingKeepsCurrentMarker() throws {
+        let json = """
+        {
+            "name": "current",
+            "description": "Current running state",
+            "snaptime": 1700000000,
+            "vmstate": 1
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(ProxmoxSnapshot.self, from: json)
+
+        XCTAssertTrue(decoded.isCurrent)
+        XCTAssertTrue(decoded.hasVMState)
+        XCTAssertEqual(decoded.name, "current")
+    }
+
+    func testProxmoxReplicationJobFallbackIdIsStable() throws {
+        let json = """
+        {
+            "source": "pve-1",
+            "target": "pve-2",
+            "guest": 100,
+            "schedule": "*/15",
+            "type": "local"
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(ProxmoxReplicationJob.self, from: json)
+
+        XCTAssertEqual(decoded.id, decoded.id)
+        XCTAssertFalse(decoded.id.isEmpty)
+        XCTAssertEqual(decoded.id, "pve-1|pve-2|100|*/15|local")
+    }
+
+    func testProxmoxConsoleSessionUsesTicketCookie() async throws {
+        let client = ProxmoxAPIClient(instanceId: UUID())
+        await client.configure(
+            url: "https://proxmox.lab",
+            ticket: "ticket123",
+            csrfToken: "csrf456",
+            username: "root",
+            password: "secret",
+            realm: "pam"
+        )
+
+        let session = try await client.consoleSession(node: "pve-1", vmid: 101, type: "kvm")
+
+        XCTAssertEqual(session.cookieName, "PVEAuthCookie")
+        XCTAssertEqual(session.cookieValue, "ticket123")
+        XCTAssertEqual(session.cookieDomain, "proxmox.lab")
+        XCTAssertTrue(session.isSecure)
+        XCTAssertEqual(
+            session.url.absoluteString,
+            "https://proxmox.lab/?console=kvm&vmid=101&node=pve-1&resize=off"
+        )
+    }
+
+    func testProxmoxConsoleSessionTracksHttpScheme() async throws {
+        let client = ProxmoxAPIClient(instanceId: UUID())
+        await client.configure(
+            url: "http://proxmox.lab:8006",
+            ticket: "ticket123",
+            csrfToken: "csrf456",
+            username: "root",
+            password: "secret",
+            realm: "pam"
+        )
+
+        let session = try await client.consoleSession(node: "pve-1", vmid: 101, type: "lxc")
+
+        XCTAssertFalse(session.isSecure)
+        XCTAssertEqual(
+            session.url.absoluteString,
+            "http://proxmox.lab:8006/?console=lxc&vmid=101&node=pve-1&resize=off"
+        )
+    }
+
+    func testProxmoxTaskRunningStateStopsAfterEndOrExitStatus() {
+        let finished = ProxmoxTask(
+            upid: "UPID:test",
+            type: "qmstart",
+            status: "stopped",
+            starttime: 1_700_000_000,
+            endtime: 1_700_000_060,
+            exitstatus: "OK"
+        )
+
+        let failed = ProxmoxTask(
+            upid: "UPID:failed",
+            type: "qmstart",
+            status: nil,
+            starttime: 1_700_000_000,
+            endtime: nil,
+            exitstatus: "TASK ERROR: failed"
+        )
+
+        XCTAssertFalse(finished.isRunning)
+        XCTAssertFalse(failed.isRunning)
+        XCTAssertTrue(finished.isOk)
     }
 
     func testServiceTypeDecodesLinuxUpdateRawValue() throws {
@@ -747,5 +1046,126 @@ final class ModelDecodingTests: XCTestCase {
         XCTAssertEqual(decoded.data.first?.grandTotal?.totalSeconds ?? 0, 5400, accuracy: 0.001)
         XCTAssertEqual(decoded.data.first?.languages?.first?.displayName, "Swift")
         XCTAssertEqual(decoded.data.first?.range?.timezone, "UTC")
+    }
+
+    func testProxmoxVMCreationRequestBuildsExpectedFormParameters() {
+        let request = ProxmoxVMCreationRequest(
+            vmid: 321,
+            name: "ubuntu-prod",
+            node: "pve-01",
+            diskStorage: "local-lvm",
+            diskSizeGiB: 64,
+            memoryMB: 8192,
+            cores: 4,
+            sockets: 1,
+            bridge: "vmbr0",
+            isoVolumeId: "local:iso/ubuntu-24.04.iso",
+            osType: "l26",
+            bios: "ovmf",
+            machine: "q35",
+            pool: "lab",
+            tags: "linux,production",
+            description: "Primary Ubuntu VM",
+            enableGuestAgent: true,
+            startAtBoot: true,
+            createAsTemplate: true
+        )
+
+        let params = request.formParameters()
+
+        XCTAssertEqual(params["vmid"], "321")
+        XCTAssertEqual(params["name"], "ubuntu-prod")
+        XCTAssertEqual(params["scsi0"], "local-lvm:64")
+        XCTAssertEqual(params["ide2"], "local:iso/ubuntu-24.04.iso,media=cdrom")
+        XCTAssertEqual(params["boot"], "order=scsi0;ide2;net0")
+        XCTAssertEqual(params["net0"], "virtio,bridge=vmbr0")
+        XCTAssertEqual(params["agent"], "enabled=1")
+        XCTAssertEqual(params["template"], "1")
+        XCTAssertEqual(params["pool"], "lab")
+    }
+
+    func testProxmoxLXCCreationRequestBuildsStaticNetworkParameters() {
+        let request = ProxmoxLXCCreationRequest(
+            vmid: 205,
+            hostname: "debian-ct",
+            node: "pve-02",
+            ostemplate: "local:vztmpl/debian-12-standard.tar.zst",
+            rootfsStorage: "local-lvm",
+            rootfsSizeGiB: 12,
+            memoryMB: 2048,
+            swapMB: 512,
+            cores: 2,
+            bridge: "vmbr1",
+            addressMode: .staticAddress,
+            ipv4Address: "10.0.50.20/24",
+            gateway: "10.0.50.1",
+            password: "secret",
+            pool: "containers",
+            tags: "debian,lxc",
+            description: "Debian application container",
+            unprivileged: true,
+            startAtBoot: false
+        )
+
+        let params = request.formParameters()
+
+        XCTAssertEqual(params["vmid"], "205")
+        XCTAssertEqual(params["hostname"], "debian-ct")
+        XCTAssertEqual(params["ostemplate"], "local:vztmpl/debian-12-standard.tar.zst")
+        XCTAssertEqual(params["rootfs"], "local-lvm:12")
+        XCTAssertEqual(params["net0"], "name=eth0,bridge=vmbr1,ip=10.0.50.20/24,gw=10.0.50.1")
+        XCTAssertEqual(params["password"], "secret")
+        XCTAssertEqual(params["unprivileged"], "1")
+        XCTAssertEqual(params["onboot"], "0")
+    }
+
+    func testProxmoxBackupArchiveMetadataParsesFromVolumeIdentifier() {
+        let volumeId = "pbs-store:backup/vzdump-qemu-412-2026_04_10-18_20_33.vma.zst"
+
+        let metadata = ProxmoxBackupArchiveMetadata.parse(from: volumeId)
+
+        XCTAssertEqual(metadata?.guestType, .qemu)
+        XCTAssertEqual(metadata?.vmid, 412)
+        XCTAssertEqual(metadata?.archiveName, "vzdump-qemu-412-2026_04_10-18_20_33.vma.zst")
+    }
+
+    func testProxmoxVMRestoreRequestBuildsExpectedFormParameters() {
+        let request = ProxmoxVMRestoreRequest(
+            vmid: 901,
+            archiveVolumeId: "pbs-store:backup/vzdump-qemu-412-2026_04_10-18_20_33.vma.zst",
+            storage: "local-lvm",
+            unique: true,
+            force: false,
+            pool: "lab"
+        )
+
+        let params = request.formParameters()
+
+        XCTAssertEqual(params["vmid"], "901")
+        XCTAssertEqual(params["archive"], "pbs-store:backup/vzdump-qemu-412-2026_04_10-18_20_33.vma.zst")
+        XCTAssertEqual(params["storage"], "local-lvm")
+        XCTAssertEqual(params["unique"], "1")
+        XCTAssertNil(params["force"])
+        XCTAssertEqual(params["pool"], "lab")
+    }
+
+    func testProxmoxLXCRestoreRequestBuildsExpectedFormParameters() {
+        let request = ProxmoxLXCRestoreRequest(
+            vmid: 902,
+            archiveVolumeId: "pbs-store:backup/vzdump-lxc-221-2026_04_10-18_20_33.tar.zst",
+            storage: "local-zfs",
+            unique: false,
+            force: true,
+            pool: nil
+        )
+
+        let params = request.formParameters()
+
+        XCTAssertEqual(params["vmid"], "902")
+        XCTAssertEqual(params["ostemplate"], "pbs-store:backup/vzdump-lxc-221-2026_04_10-18_20_33.tar.zst")
+        XCTAssertEqual(params["storage"], "local-zfs")
+        XCTAssertEqual(params["restore"], "1")
+        XCTAssertEqual(params["force"], "1")
+        XCTAssertNil(params["unique"])
     }
 }

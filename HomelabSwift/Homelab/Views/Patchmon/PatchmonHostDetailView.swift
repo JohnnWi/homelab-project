@@ -167,7 +167,7 @@ struct PatchmonHostDetailView: View {
                             selectedTab = tab
                         }
                     } label: {
-                        Text(tab.title(localizer.t))
+                        Text(tab.title(localizer.translations))
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(selected ? .white : AppTheme.textSecondary)
                             .padding(.horizontal, 12)
@@ -393,7 +393,7 @@ struct PatchmonHostDetailView: View {
 
             if let packages = hostPackages?.packages {
                 if packages.isEmpty {
-                    emptyData(localizer.t.patchmonNoPackages)
+                    emptyData(updatesOnlyPackages ? localizer.t.patchmonNoUpdatesAvailable : localizer.t.patchmonNoPackages)
                 } else {
                     let visibleCount = min(packageVisibleCount, packages.count)
                     VStack(spacing: 8) {

@@ -8,6 +8,7 @@ struct BookmarksView: View {
 
     @State private var editingCategory: BookmarkCategory?
     @State private var showingAddCategory = false
+    @State private var categoryToDelete: BookmarkCategory?
 
     @State private var editingBookmark: Bookmark?
     @State private var showingAddBookmark = false
@@ -147,6 +148,20 @@ struct BookmarksView: View {
                     bookmarkManager.updateBookmark(bookmark, newTitle: title, newDescription: desc, newUrl: url, newCategoryId: catId, newIconType: type, newIconValue: val_, newTags: tags)
                 }
             }
+            .alert(localizer.t.categoryDelete, isPresented: .init(
+                get: { categoryToDelete != nil },
+                set: { if !$0 { categoryToDelete = nil } }
+            )) {
+                Button(localizer.t.cancel, role: .cancel) { }
+                Button(localizer.t.delete, role: .destructive) {
+                    if let category = categoryToDelete {
+                        bookmarkManager.deleteCategory(category)
+                    }
+                    categoryToDelete = nil
+                }
+            } message: {
+                Text(localizer.t.categoryDeleteConfirm)
+            }
         }
     }
 
@@ -275,7 +290,9 @@ struct BookmarksView: View {
     }
 
     private func categoryHeader(_ category: BookmarkCategory, visibleCount: Int, isCollapsed: Bool, onToggle: @escaping () -> Void) -> some View {
-        HStack(spacing: 10) {
+        let visibleCountText = String(visibleCount)
+
+        return HStack(spacing: 10) {
             Button(action: onToggle) {
                 HStack(spacing: 10) {
                     RoundedRectangle(cornerRadius: 3)
@@ -296,7 +313,7 @@ struct BookmarksView: View {
                         .textCase(nil)
                         .lineLimit(1)
 
-                    Text("\(visibleCount)")
+                    Text(visibleCountText)
                         .font(.caption.bold())
                         .foregroundStyle(AppTheme.textSecondary)
                         .padding(.horizontal, 8)
@@ -315,7 +332,7 @@ struct BookmarksView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(category.name)
-            .accessibilityValue("\(visibleCount)")
+            .accessibilityValue(visibleCountText)
             .accessibilityHint(isCollapsed ? localizer.t.bookmarkExpandCategory : localizer.t.bookmarkCollapseCategory)
 
             Menu {
@@ -333,7 +350,7 @@ struct BookmarksView: View {
                 }
 
                 Button(role: .destructive) {
-                    bookmarkManager.deleteCategory(category)
+                    categoryToDelete = category
                 } label: {
                     Label(localizer.t.delete, systemImage: "trash")
                 }

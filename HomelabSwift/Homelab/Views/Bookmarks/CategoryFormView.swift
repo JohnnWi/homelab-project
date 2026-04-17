@@ -2,7 +2,7 @@ import SwiftUI
 
 struct CategoryFormView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(BookmarksStore.self) private var store
+    @Bindable private var bookmarkManager = BookmarkManager.shared
     @Environment(Localizer.self) private var localizer
     
     var categoryToEdit: BookmarkCategory?
@@ -62,8 +62,8 @@ struct CategoryFormView: View {
             }
             .alert(localizer.t.categoryDelete, isPresented: $isShowingDeleteConfirm) {
                 Button(localizer.t.delete, role: .destructive) {
-                    if let id = categoryToEdit?.id {
-                        store.deleteCategory(id)
+                    if let cat = categoryToEdit {
+                        bookmarkManager.deleteCategory(cat)
                     }
                     dismiss()
                 }
@@ -75,14 +75,11 @@ struct CategoryFormView: View {
     }
     
     private func save() {
+        let iconValue = icon.isEmpty ? nil : icon
         if let cat = categoryToEdit {
-            var updated = cat
-            updated.name = name
-            updated.icon = icon.isEmpty ? nil : icon
-            store.updateCategory(updated)
+            bookmarkManager.updateCategory(cat, newName: name, newIcon: iconValue, newColor: cat.color)
         } else {
-            let newCat = BookmarkCategory(name: name, icon: icon.isEmpty ? nil : icon, sortOrder: store.categories.count)
-            store.addCategory(newCat)
+            bookmarkManager.addCategory(name: name, icon: iconValue)
         }
         dismiss()
     }

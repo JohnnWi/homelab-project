@@ -11,12 +11,16 @@ import javax.inject.Singleton
 class GiteaRepository @Inject constructor(
     private val api: GiteaApi
 ) {
-    suspend fun authenticate(url: String, username: String, password: String): String {
+    suspend fun authenticate(url: String, username: String, password: String, allowSelfSigned: Boolean = false): String {
         val baseUrl = url.trimEnd('/')
         try {
             // 1. Try if 'password' is actually a token
             try {
-                api.authenticateUser(url = "$baseUrl/api/v1/user", authHeader = "token $password")
+                api.authenticateUser(
+                    url = "$baseUrl/api/v1/user",
+                    allowSelfSigned = allowSelfSigned.toString(),
+                    authHeader = "token $password"
+                )
                 return password // It's a token, return as is
             } catch (e: Exception) {
                 // Not a token or needs basic auth
@@ -26,7 +30,11 @@ class GiteaRepository @Inject constructor(
             val basicAuthEncoded = "Basic ${basicAuthRaw.encodeUtf8().base64()}"
             
             // 2. Verify credentials against /user
-            val user = api.authenticateUser(url = "$baseUrl/api/v1/user", authHeader = basicAuthEncoded)
+            val user = api.authenticateUser(
+                url = "$baseUrl/api/v1/user",
+                allowSelfSigned = allowSelfSigned.toString(),
+                authHeader = basicAuthEncoded
+            )
             
             // 3. Try to generate a long-lived app token
             try {
@@ -37,6 +45,7 @@ class GiteaRepository @Inject constructor(
                 )
                 val response = api.createToken(
                     url = "$baseUrl/api/v1/users/${user.login}/tokens",
+                    allowSelfSigned = allowSelfSigned.toString(),
                     authHeader = basicAuthEncoded,
                     body = request
                 )

@@ -24,6 +24,7 @@ private final class ServiceClientManager {
     private var lidarrClients: [UUID: LidarrAPIClient] = [:]
     private var genericClients: [UUID: GenericAPIClient] = [:]
     private var wakapiClients: [UUID: WakapiAPIClient] = [:]
+    private var proxmoxClients: [UUID: ProxmoxAPIClient] = [:]
 
     func portainerClient(id: UUID) -> PortainerAPIClient {
         if let client = portainerClients[id] {
@@ -204,6 +205,15 @@ private final class ServiceClientManager {
         return client
     }
 
+    func proxmoxClient(id: UUID) -> ProxmoxAPIClient {
+        if let client = proxmoxClients[id] {
+            return client
+        }
+        let client = ProxmoxAPIClient(instanceId: id)
+        proxmoxClients[id] = client
+        return client
+    }
+
     func genericClient(id: UUID, type: ServiceType) -> GenericAPIClient {
         if let client = genericClients[id] {
             return client
@@ -255,9 +265,38 @@ private final class ServiceClientManager {
             lidarrClients.removeValue(forKey: id)
         case .wakapi:
             wakapiClients.removeValue(forKey: id)
+        case .proxmox:
+            proxmoxClients.removeValue(forKey: id)
         case .jellyseerr, .prowlarr, .bazarr, .gluetun, .flaresolverr:
             genericClients.removeValue(forKey: id)
         }
+    }
+
+    /// Removes all clients whose instance IDs are no longer present in the store.
+    /// Call this after deleting instances or rebuilding the service list.
+    func purgeUnknownClients(knownInstanceIds: Set<UUID>) {
+        portainerClients = portainerClients.filter { knownInstanceIds.contains($0.key) }
+        piholeClients = piholeClients.filter { knownInstanceIds.contains($0.key) }
+        adguardClients = adguardClients.filter { knownInstanceIds.contains($0.key) }
+        technitiumClients = technitiumClients.filter { knownInstanceIds.contains($0.key) }
+        beszelClients = beszelClients.filter { knownInstanceIds.contains($0.key) }
+        healthchecksClients = healthchecksClients.filter { knownInstanceIds.contains($0.key) }
+        linuxUpdateClients = linuxUpdateClients.filter { knownInstanceIds.contains($0.key) }
+        dockhandClients = dockhandClients.filter { knownInstanceIds.contains($0.key) }
+        craftyClients = craftyClients.filter { knownInstanceIds.contains($0.key) }
+        giteaClients = giteaClients.filter { knownInstanceIds.contains($0.key) }
+        npmClients = npmClients.filter { knownInstanceIds.contains($0.key) }
+        pangolinClients = pangolinClients.filter { knownInstanceIds.contains($0.key) }
+        patchmonClients = patchmonClients.filter { knownInstanceIds.contains($0.key) }
+        jellystatClients = jellystatClients.filter { knownInstanceIds.contains($0.key) }
+        plexClients = plexClients.filter { knownInstanceIds.contains($0.key) }
+        qbittorrentClients = qbittorrentClients.filter { knownInstanceIds.contains($0.key) }
+        radarrClients = radarrClients.filter { knownInstanceIds.contains($0.key) }
+        sonarrClients = sonarrClients.filter { knownInstanceIds.contains($0.key) }
+        lidarrClients = lidarrClients.filter { knownInstanceIds.contains($0.key) }
+        wakapiClients = wakapiClients.filter { knownInstanceIds.contains($0.key) }
+        proxmoxClients = proxmoxClients.filter { knownInstanceIds.contains($0.key) }
+        genericClients = genericClients.filter { knownInstanceIds.contains($0.key) }
     }
 }
 
@@ -559,6 +598,11 @@ final class ServicesStore {
         return clientManager.wakapiClient(id: instance.id)
     }
 
+    func proxmoxClient(instanceId: UUID) async -> ProxmoxAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .proxmox else { return nil }
+        return clientManager.proxmoxClient(id: instance.id)
+    }
+
     func genericMediaClient(instanceId: UUID) async -> GenericAPIClient? {
         guard let instance = instancesById[instanceId],
               [.jellyseerr, .prowlarr, .bazarr, .gluetun, .flaresolverr].contains(instance.type) else {
@@ -616,6 +660,8 @@ final class ServicesStore {
             ok = await clientManager.lidarrClient(id: instanceId).ping()
         case .wakapi:
             ok = await clientManager.wakapiClient(id: instanceId).ping()
+        case .proxmox:
+            ok = await clientManager.proxmoxClient(id: instanceId).ping()
         case .jellyseerr, .prowlarr, .bazarr, .gluetun, .flaresolverr:
             ok = await clientManager.genericClient(id: instanceId, type: instance.type).ping()
         }
@@ -631,6 +677,9 @@ final class ServicesStore {
 
         let ids = Array(instancesById.keys)
         guard !ids.isEmpty else { return }
+
+        // Purge any orphaned clients that no longer correspond to known instances.
+        clientManager.purgeUnknownClients(knownInstanceIds: Set(ids))
 
         await withTaskGroup(of: Void.self) { group in
             for id in ids {
@@ -789,6 +838,17 @@ final class ServicesStore {
 
         // Keep stored instances and mark them temporarily unreachable when auth expires.
         // This prevents destructive data loss for services that require re-login.
+        // Proxmox: re-authenticate using stored username/password
+        if current.type == .proxmox,
+           current.proxmoxAuthMode != .apiToken,
+           let username = current.username, !username.isEmpty,
+           let password = current.password, !password.isEmpty {
+            let client = clientManager.proxmoxClient(id: instanceId)
+            if await client.refreshAuthenticatedSession() {
+                return
+            }
+        }
+
         if instancesById[instanceId] != nil {
             reachabilityByInstanceId[instanceId] = false
             persistState()
@@ -801,9 +861,9 @@ final class ServicesStore {
         case .portainer:
             let client = clientManager.portainerClient(id: instance.id)
             if let apiKey = instance.apiKey, !apiKey.isEmpty {
-                await client.configureWithApiKey(url: instance.url, apiKey: apiKey, fallbackUrl: instance.fallbackUrl)
+                await client.configureWithApiKey(url: instance.url, apiKey: apiKey, fallbackUrl: instance.fallbackUrl, allowSelfSigned: instance.allowSelfSigned)
             } else {
-                await client.configure(url: instance.url, jwt: instance.token, fallbackUrl: instance.fallbackUrl)
+                await client.configure(url: instance.url, jwt: instance.token, fallbackUrl: instance.fallbackUrl, allowSelfSigned: instance.allowSelfSigned)
             }
 
         case .pihole:
@@ -829,7 +889,7 @@ final class ServicesStore {
                 configuredSID = instance.token
             }
 
-            await client.configure(url: instance.url, sid: configuredSID, authMode: authMode, fallbackUrl: instance.fallbackUrl, password: instance.piHoleStoredSecret)
+            await client.configure(url: instance.url, sid: configuredSID, authMode: authMode, fallbackUrl: instance.fallbackUrl, password: instance.piHoleStoredSecret, allowSelfSigned: instance.allowSelfSigned)
             let instanceId = instance.id
             await client.setTokenRefreshCallback { [weak self] newSid, newMode in
                 Task { @MainActor in
@@ -844,7 +904,7 @@ final class ServicesStore {
 
         case .adguardHome:
             let client = clientManager.adguardClient(id: instance.id)
-            await client.configure(url: instance.url, username: instance.username ?? "", password: instance.password ?? "", fallbackUrl: instance.fallbackUrl)
+            await client.configure(url: instance.url, username: instance.username ?? "", password: instance.password ?? "", fallbackUrl: instance.fallbackUrl, allowSelfSigned: instance.allowSelfSigned)
 
         case .technitium:
             let client = clientManager.technitiumClient(id: instance.id)
@@ -854,7 +914,7 @@ final class ServicesStore {
                 fallbackUrl: instance.fallbackUrl,
                 username: instance.username,
                 password: instance.password
-            )
+            , allowSelfSigned: instance.allowSelfSigned)
             let instanceId = instance.id
             await client.setTokenRefreshCallback { [weak self] newToken in
                 Task { @MainActor in
@@ -867,7 +927,7 @@ final class ServicesStore {
 
         case .beszel:
             let client = clientManager.beszelClient(id: instance.id)
-            await client.configure(url: instance.url, token: instance.token, fallbackUrl: instance.fallbackUrl, email: instance.username, password: instance.password)
+            await client.configure(url: instance.url, token: instance.token, fallbackUrl: instance.fallbackUrl, email: instance.username, password: instance.password, allowSelfSigned: instance.allowSelfSigned)
             let instanceId = instance.id
             await client.setTokenRefreshCallback { [weak self] newToken in
                 Task { @MainActor in
@@ -880,11 +940,11 @@ final class ServicesStore {
 
         case .healthchecks:
             let client = clientManager.healthchecksClient(id: instance.id)
-            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl)
+            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl, allowSelfSigned: instance.allowSelfSigned)
 
         case .linuxUpdate:
             let client = clientManager.linuxUpdateClient(id: instance.id)
-            await client.configure(url: instance.url, apiToken: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl)
+            await client.configure(url: instance.url, apiToken: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl, allowSelfSigned: instance.allowSelfSigned)
 
         case .dockhand:
             let client = clientManager.dockhandClient(id: instance.id)
@@ -894,7 +954,7 @@ final class ServicesStore {
                 fallbackUrl: instance.fallbackUrl,
                 username: instance.username,
                 password: instance.password
-            )
+            , allowSelfSigned: instance.allowSelfSigned)
 
         case .craftyController:
             let client = clientManager.craftyClient(id: instance.id)
@@ -904,11 +964,11 @@ final class ServicesStore {
                 password: instance.password ?? "",
                 token: instance.token,
                 fallbackUrl: instance.fallbackUrl
-            )
+            , allowSelfSigned: instance.allowSelfSigned)
 
         case .gitea:
             let client = clientManager.giteaClient(id: instance.id)
-            await client.configure(url: instance.url, token: instance.token, fallbackUrl: instance.fallbackUrl)
+            await client.configure(url: instance.url, token: instance.token, fallbackUrl: instance.fallbackUrl, allowSelfSigned: instance.allowSelfSigned)
 
         case .nginxProxyManager:
             let client = clientManager.npmClient(id: instance.id)
@@ -918,7 +978,7 @@ final class ServicesStore {
                 fallbackUrl: instance.fallbackUrl,
                 email: instance.username,
                 password: instance.password
-            )
+            , allowSelfSigned: instance.allowSelfSigned)
             let instanceId = instance.id
             await client.setTokenRefreshCallback { [weak self] newToken in
                 Task { @MainActor in
@@ -936,7 +996,7 @@ final class ServicesStore {
                 apiKey: instance.apiKey ?? "",
                 fallbackUrl: instance.fallbackUrl,
                 orgId: instance.username
-            )
+            , allowSelfSigned: instance.allowSelfSigned)
 
         case .patchmon:
             let client = clientManager.patchmonClient(id: instance.id)
@@ -945,7 +1005,7 @@ final class ServicesStore {
                 tokenKey: instance.username ?? "",
                 tokenSecret: instance.password ?? "",
                 fallbackUrl: instance.fallbackUrl
-            )
+            , allowSelfSigned: instance.allowSelfSigned)
 
         case .jellystat:
             let client = clientManager.jellystatClient(id: instance.id)
@@ -953,7 +1013,7 @@ final class ServicesStore {
                 url: instance.url,
                 apiKey: instance.apiKey ?? "",
                 fallbackUrl: instance.fallbackUrl
-            )
+            , allowSelfSigned: instance.allowSelfSigned)
 
         case .wakapi:
             let client = clientManager.wakapiClient(id: instance.id)
@@ -961,7 +1021,7 @@ final class ServicesStore {
                 url: instance.url,
                 apiKey: instance.apiKey ?? "",
                 fallbackUrl: instance.fallbackUrl
-            )
+            , allowSelfSigned: instance.allowSelfSigned)
 
         case .plex:
             let client = clientManager.plexClient(id: instance.id)
@@ -969,7 +1029,7 @@ final class ServicesStore {
                 url: instance.url,
                 token: instance.apiKey ?? "",
                 fallbackUrl: instance.fallbackUrl
-            )
+            , allowSelfSigned: instance.allowSelfSigned)
         case .qbittorrent:
             let client = clientManager.qbittorrentClient(id: instance.id)
             await client.configure(
@@ -978,7 +1038,7 @@ final class ServicesStore {
                 fallbackUrl: instance.fallbackUrl,
                 username: instance.username,
                 password: instance.password
-            )
+            , allowSelfSigned: instance.allowSelfSigned)
             let instanceId = instance.id
             await client.setTokenRefreshCallback { [weak self] newSid in
                 Task { @MainActor in
@@ -990,16 +1050,42 @@ final class ServicesStore {
             }
         case .radarr:
             let client = clientManager.radarrClient(id: instance.id)
-            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl)
+            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl, allowSelfSigned: instance.allowSelfSigned)
         case .sonarr:
             let client = clientManager.sonarrClient(id: instance.id)
-            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl)
+            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl, allowSelfSigned: instance.allowSelfSigned)
         case .lidarr:
             let client = clientManager.lidarrClient(id: instance.id)
-            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl)
+            await client.configure(url: instance.url, apiKey: instance.apiKey ?? "", fallbackUrl: instance.fallbackUrl, allowSelfSigned: instance.allowSelfSigned)
         case .jellyseerr, .prowlarr, .bazarr, .gluetun, .flaresolverr:
             let client = clientManager.genericClient(id: instance.id, type: instance.type)
-            await client.configure(url: instance.url, fallbackUrl: instance.fallbackUrl, apiKey: instance.apiKey)
+            await client.configure(url: instance.url, fallbackUrl: instance.fallbackUrl, apiKey: instance.apiKey, allowSelfSigned: instance.allowSelfSigned)
+
+        case .proxmox:
+            let client = clientManager.proxmoxClient(id: instance.id)
+            let authMode = instance.proxmoxAuthMode ?? ((instance.password?.isEmpty == false || instance.username?.isEmpty == false) ? .credentials : .apiToken)
+            await client.configure(
+                url: instance.url,
+                fallbackUrl: instance.fallbackUrl,
+                ticket: authMode == .credentials ? instance.token : nil,
+                csrfToken: authMode == .credentials ? instance.apiKey : nil,
+                apiTokenString: authMode == .apiToken ? instance.apiKey : nil,
+                username: instance.username,
+                password: instance.password,
+                otp: instance.proxmoxOTP,
+                realm: instance.proxmoxRealm,
+                allowSelfSigned: instance.allowSelfSigned
+            )
+            let instanceId = instance.id
+            await client.setTokenRefreshCallback { [weak self] newTicket, newCsrf in
+                Task { @MainActor in
+                    guard let self, var current = self.instancesById[instanceId] else { return }
+                    current.token = newTicket
+                    current = current.updating(apiKey: newCsrf)
+                    self.instancesById[instanceId] = current
+                    self.persistState()
+                }
+            }
         }
     }
 

@@ -72,9 +72,6 @@ class SettingsViewModel @Inject constructor(
     val hiddenServices: StateFlow<Set<String>> = localPreferencesRepository.hiddenServices
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
-
-
-
     val appIcon: StateFlow<AppIconOption> = localPreferencesRepository.appIcon
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppIconOption.DEFAULT)
 
@@ -95,7 +92,12 @@ class SettingsViewModel @Inject constructor(
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
         }
 
+    private val _storedPin = MutableStateFlow<String?>(null)
+
     init {
+        viewModelScope.launch {
+            localPreferencesRepository.appPin.collect { _storedPin.value = it }
+        }
         viewModelScope.launch {
             checkForUpdateBanner(force = false)
         }
@@ -110,14 +112,12 @@ class SettingsViewModel @Inject constructor(
     fun setLanguageMode(mode: LanguageMode) {
         viewModelScope.launch {
             localPreferencesRepository.setLanguageMode(mode)
-            androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
-                androidx.core.os.LocaleListCompat.forLanguageTags(mode.code)
-            )
         }
+        // Apply locale change on all API levels
+        androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
+            androidx.core.os.LocaleListCompat.forLanguageTags(mode.code)
+        )
     }
-
-
-
 
     fun setAppIcon(icon: AppIconOption) {
         viewModelScope.launch {
@@ -169,10 +169,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun verifyPin(pin: String): Boolean {
-        val currentPin = kotlinx.coroutines.runBlocking {
-            localPreferencesRepository.appPin.firstOrNull()
-        }
-        return currentPin == pin
+        return _storedPin.value == pin
     }
 
     fun clearSecurity() {

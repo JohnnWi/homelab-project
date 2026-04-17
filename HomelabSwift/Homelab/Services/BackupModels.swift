@@ -22,6 +22,8 @@ struct BackupServiceEntry: Codable {
     let apiKey: String?
     let piholePassword: String?
     let piholeAuthMode: String?
+    let proxmoxAuthMode: String?
+    let proxmoxRealm: String?
     let fallbackUrl: String?
     let allowSelfSigned: Bool
     let password: String?
@@ -60,6 +62,7 @@ enum BackupServiceTypeMapper {
         case .gluetun:           return "gluetun"
         case .flaresolverr:      return "flaresolverr"
         case .wakapi:            return "wakapi"
+        case .proxmox:           return "proxmox"
         }
     }
 
@@ -100,6 +103,9 @@ enum BackupServiceTypeMapper {
         case "gluetun":              return .gluetun
         case "flaresolverr":         return .flaresolverr
         case "wakapi":               return .wakapi
+        case "proxmox",
+             "proxmox_ve",
+             "pve":                  return .proxmox
         default:                     return nil
         }
     }
@@ -121,6 +127,23 @@ enum BackupServiceTypeMapper {
         case .legacy:  return "legacy"
         }
     }
+
+    static func proxmoxAuthMode(from string: String?) -> ProxmoxAuthMode? {
+        guard let string else { return nil }
+        switch string.lowercased() {
+        case "credentials": return .credentials
+        case "api_token", "apitoken": return .apiToken
+        default: return nil
+        }
+    }
+
+    static func backupAuthMode(for mode: ProxmoxAuthMode?) -> String? {
+        guard let mode else { return nil }
+        switch mode {
+        case .credentials: return "credentials"
+        case .apiToken: return "api_token"
+        }
+    }
 }
 
 // MARK: - Conversion Helpers
@@ -137,6 +160,8 @@ extension ServiceInstance {
             apiKey: apiKey,
             piholePassword: piholePassword,
             piholeAuthMode: BackupServiceTypeMapper.backupAuthMode(for: piholeAuthMode),
+            proxmoxAuthMode: BackupServiceTypeMapper.backupAuthMode(for: proxmoxAuthMode),
+            proxmoxRealm: proxmoxRealm,
             fallbackUrl: fallbackUrl,
             allowSelfSigned: allowSelfSigned,
             password: password,
@@ -159,6 +184,8 @@ extension BackupServiceEntry {
             apiKey: apiKey,
             piholePassword: piholePassword,
             piholeAuthMode: BackupServiceTypeMapper.piholeAuthMode(from: piholeAuthMode),
+            proxmoxAuthMode: BackupServiceTypeMapper.proxmoxAuthMode(from: proxmoxAuthMode),
+            proxmoxRealm: proxmoxRealm,
             fallbackUrl: fallbackUrl,
             allowSelfSigned: allowSelfSigned,
             password: password

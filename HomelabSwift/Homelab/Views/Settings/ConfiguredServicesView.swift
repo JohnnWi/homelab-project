@@ -7,9 +7,11 @@ import LocalAuthentication
 /// Requires auth every time the view appears (enter or return from background).
 struct AuthGatedConfiguredServicesView: View {
     @Environment(SettingsStore.self) private var settingsStore
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var isUnlocked = false
     @State private var unlockSessionID = UUID()
+    @State private var lastBackgroundDate: Date?
 
     var body: some View {
         Group {
@@ -17,6 +19,7 @@ struct AuthGatedConfiguredServicesView: View {
                 LockScreenView {
                     unlockSessionID = UUID()
                     isUnlocked = true
+                    lastBackgroundDate = nil
                 }
                 .toolbar(.hidden, for: .tabBar)
             } else {
@@ -29,12 +32,35 @@ struct AuthGatedConfiguredServicesView: View {
             if !settingsStore.isPinSet {
                 unlockSessionID = UUID()
                 isUnlocked = true
+            } else if let lastBg = lastBackgroundDate,
+                      Date().timeIntervalSince(lastBg) > 60 {
+                // Lock if more than 60 seconds passed in background.
+                isUnlocked = false
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .background:
+                if settingsStore.isPinSet {
+                    lastBackgroundDate = Date()
+                }
+            case .active:
+                if settingsStore.isPinSet,
+                   let lastBg = lastBackgroundDate,
+                   Date().timeIntervalSince(lastBg) > 60 {
+                    isUnlocked = false
+                }
+            default:
+                break
             }
         }
         .onChange(of: settingsStore.isPinSet) { _, isPinSet in
             if !isPinSet {
                 unlockSessionID = UUID()
                 isUnlocked = true
+            } else {
+                // PIN was just set — require auth.
+                isUnlocked = false
             }
         }
     }

@@ -67,19 +67,27 @@ struct JellystatWatchSummary: Sendable {
 }
 
 actor JellystatAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var apiKey: String = ""
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .jellystat, instanceId: instanceId)
     }
 
-    func configure(url: String, apiKey: String, fallbackUrl: String? = nil) {
+    func configure(url: String, apiKey: String, fallbackUrl: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.apiKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .jellystat, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     func ping() async -> Bool {
@@ -280,25 +288,28 @@ actor JellystatAPIClient {
         }
     }
 
-    private static func parseDateKey(_ key: String) -> Date? {
+    private static let formatters: [DateFormatter] = {
         let formats = [
             "MMM d, yyyy",
             "MMM dd, yyyy",
             "yyyy-MM-dd",
             "yyyy/MM/dd"
         ]
-
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-
-        for format in formats {
+        return formats.map { format in
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(secondsFromGMT: 0)
             formatter.dateFormat = format
+            return formatter
+        }
+    }()
+
+    private static func parseDateKey(_ key: String) -> Date? {
+        for formatter in formatters {
             if let date = formatter.date(from: key) {
                 return date
             }
         }
-
         return nil
     }
 }

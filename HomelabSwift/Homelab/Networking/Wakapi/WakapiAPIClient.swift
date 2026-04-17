@@ -6,7 +6,9 @@ actor WakapiAPIClient {
         let timestamp: Date
     }
 
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var apiKey: String = ""
@@ -15,17 +17,23 @@ actor WakapiAPIClient {
     private let cacheTTL: TimeInterval = 120
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .wakapi, instanceId: instanceId)
     }
 
     // MARK: - Configuration
 
-    func configure(url: String, apiKey: String, fallbackUrl: String? = nil) {
+    func configure(url: String, apiKey: String, fallbackUrl: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.apiKey = apiKey
         self.summaryCache.removeAll()
         self.dailySummaryCache.removeAll()
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .wakapi, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     private func authHeaders() -> [String: String] {

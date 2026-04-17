@@ -1,7 +1,9 @@
 import Foundation
 
 actor QbittorrentAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var sid: String = ""
@@ -11,6 +13,7 @@ actor QbittorrentAPIClient {
     private var onTokenRefresh: (@Sendable (String) -> Void)? = nil
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .qbittorrent, instanceId: instanceId)
     }
 
@@ -24,12 +27,17 @@ actor QbittorrentAPIClient {
         fallbackUrl: String? = nil,
         username: String? = nil,
         password: String? = nil
-    ) {
+    , allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.sid = sid
         self.username = Self.cleanCredential(username)
         self.password = Self.cleanCredential(password)
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .qbittorrent, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     func ping() async -> Bool {
@@ -249,10 +257,7 @@ actor QbittorrentAPIClient {
         ]
         req.httpBody = components.query?.data(using: .utf8)
 
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 10
-        config.httpShouldSetCookies = false
-        let session = URLSession(configuration: config, delegate: BaseNetworkEngine.insecureDelegateForPortainerAuth, delegateQueue: nil)
+        let session = BaseNetworkEngine.authSession(allowSelfSigned: storedAllowSelfSigned, timeout: 10)
 
         AppLogger.shared.network("--> POST \(fullUrl.absoluteString)", source: "qBittorrent")
         let (data, response) = try await session.data(for: req)

@@ -13,40 +13,75 @@ extension Notification.Name {
 final class BaseNetworkEngine: Sendable {
     let serviceType: ServiceType
     let instanceId: UUID
+    private let allowSelfSigned: Bool
     private let timeoutInterval: TimeInterval = 8
     private let pingTimeout: TimeInterval = 3
 
+    // MARK: - Shared delegates & sessions
+
     private static let insecureDelegate = InsecureTrustDelegate()
-    static let insecureDelegateForPortainerAuth = insecureDelegate
-    private static let requestSession: URLSession = {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 8
-        config.timeoutIntervalForResource = 8
-        config.httpShouldSetCookies = false
-        config.httpCookieAcceptPolicy = .never
-        return URLSession(configuration: config, delegate: insecureDelegate, delegateQueue: nil)
+    private static let secureDelegate = SecureTrustDelegate()
+
+    static let insecureDelegateForPortainerAuth: URLSessionDelegate = insecureDelegate
+
+    // Insecure sessions (self-signed certs allowed — default for homelab)
+    private static let insecureRequestSession: URLSession = {
+        makeSession(delegate: insecureDelegate, timeout: 8)
     }()
-    private static let pingSession: URLSession = {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 3
-        config.timeoutIntervalForResource = 3
-        config.httpShouldSetCookies = false
-        config.httpCookieAcceptPolicy = .never
-        return URLSession(configuration: config, delegate: insecureDelegate, delegateQueue: nil)
+    private static let insecurePingSession: URLSession = {
+        makeSession(delegate: insecureDelegate, timeout: 3)
     }()
-    private static let imageSession: URLSession = {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 8
-        config.timeoutIntervalForResource = 8
-        config.httpShouldSetCookies = false
-        config.httpCookieAcceptPolicy = .never
-        config.requestCachePolicy = .returnCacheDataElseLoad
-        return URLSession(configuration: config, delegate: insecureDelegate, delegateQueue: nil)
+    private static let insecureImageSession: URLSession = {
+        makeSession(delegate: insecureDelegate, timeout: 8, cachePolicy: .returnCacheDataElseLoad)
     }()
 
-    init(serviceType: ServiceType, instanceId: UUID) {
+    // Secure sessions (standard TLS validation — used when allowSelfSigned = false)
+    private static let secureRequestSession: URLSession = {
+        makeSession(delegate: secureDelegate, timeout: 8)
+    }()
+    private static let securePingSession: URLSession = {
+        makeSession(delegate: secureDelegate, timeout: 3)
+    }()
+    private static let secureImageSession: URLSession = {
+        makeSession(delegate: secureDelegate, timeout: 8, cachePolicy: .returnCacheDataElseLoad)
+    }()
+
+    private static func makeSession(
+        delegate: URLSessionDelegate,
+        timeout: TimeInterval,
+        cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+    ) -> URLSession {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = timeout
+        config.timeoutIntervalForResource = timeout
+        config.httpShouldSetCookies = false
+        config.httpCookieAcceptPolicy = .never
+        config.requestCachePolicy = cachePolicy
+        return URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
+    }
+
+    static func authSession(allowSelfSigned: Bool, timeout: TimeInterval) -> URLSession {
+        makeSession(delegate: allowSelfSigned ? insecureDelegate : secureDelegate, timeout: timeout)
+    }
+
+    init(serviceType: ServiceType, instanceId: UUID, allowSelfSigned: Bool = true) {
         self.serviceType = serviceType
         self.instanceId = instanceId
+        self.allowSelfSigned = allowSelfSigned
+    }
+
+    // MARK: - Session selection
+
+    private var requestSession: URLSession {
+        allowSelfSigned ? Self.insecureRequestSession : Self.secureRequestSession
+    }
+
+    private var pingSession: URLSession {
+        allowSelfSigned ? Self.insecurePingSession : Self.securePingSession
+    }
+
+    private var imageSession: URLSession {
+        allowSelfSigned ? Self.insecureImageSession : Self.secureImageSession
     }
 
     static func imageData(from url: URL, headers: [String: String] = [:]) async throws -> Data {
@@ -55,7 +90,7 @@ final class BaseNetworkEngine: Sendable {
         headers.forEach { key, value in
             request.setValue(value, forHTTPHeaderField: key)
         }
-        let (data, response) = try await imageSession.data(for: request)
+        let (data, response) = try await Self.insecureImageSession.data(for: request)
         guard let http = response as? HTTPURLResponse else {
             throw APIError.custom("Invalid image response")
         }
@@ -168,7 +203,7 @@ final class BaseNetworkEngine: Sendable {
             request.setValue(value, forHTTPHeaderField: key)
         }
         do {
-            let (_, response) = try await BaseNetworkEngine.pingSession.data(for: request)
+            let (_, response) = try await pingSession.data(for: request)
             guard let http = response as? HTTPURLResponse else { return false }
             return (200...399).contains(http.statusCode)
         } catch {
@@ -197,7 +232,7 @@ final class BaseNetworkEngine: Sendable {
         req.httpBody = body
 
         logRequest(req)
-        let (data, response) = try await BaseNetworkEngine.requestSession.data(for: req)
+        let (data, response) = try await requestSession.data(for: req)
         logResponse(response, data: data)
         try interceptResponse(response, data: data)
 
@@ -228,7 +263,7 @@ final class BaseNetworkEngine: Sendable {
         req.httpBody = body
 
         logRequest(req)
-        let (data, response) = try await BaseNetworkEngine.requestSession.data(for: req)
+        let (data, response) = try await requestSession.data(for: req)
         logResponse(response, data: data)
         try interceptResponse(response, data: data)
 
@@ -254,7 +289,7 @@ final class BaseNetworkEngine: Sendable {
         req.httpBody = body
 
         logRequest(req)
-        let (data, response) = try await BaseNetworkEngine.requestSession.data(for: req)
+        let (data, response) = try await requestSession.data(for: req)
         logResponse(response, data: data)
         try interceptResponse(response, data: data)
     }
@@ -278,7 +313,7 @@ final class BaseNetworkEngine: Sendable {
         req.httpBody = body
 
         logRequest(req)
-        let (data, response) = try await BaseNetworkEngine.requestSession.data(for: req)
+        let (data, response) = try await requestSession.data(for: req)
         logResponse(response, data: data)
         try interceptResponse(response, data: data)
         return data
@@ -349,6 +384,33 @@ final class InsecureTrustDelegate: NSObject, URLSessionDelegate {
             completionHandler(.useCredential, URLCredential(trust: trust))
         } else {
             completionHandler(.performDefaultHandling, nil)
+        }
+    }
+}
+
+/// Standard TLS validation — rejects self-signed / expired / mismatched certificates.
+/// Used when `allowSelfSigned = false` on the service instance.
+final class SecureTrustDelegate: NSObject, URLSessionDelegate {
+    func urlSession(
+        _ session: URLSession,
+        didReceive challenge: URLAuthenticationChallenge,
+        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+    ) {
+        let protectionSpace = challenge.protectionSpace
+        guard let serverTrust = protectionSpace.serverTrust else {
+            completionHandler(.cancelAuthenticationChallenge, nil)
+            return
+        }
+
+        // Evaluate the server trust using the default system SecTrust evaluation
+        var error: CFError?
+        let trustResult = SecTrustEvaluateWithError(serverTrust, &error)
+
+        if trustResult {
+            completionHandler(.useCredential, URLCredential(trust: serverTrust))
+        } else {
+            // Certificate is invalid (self-signed, expired, wrong host, etc.)
+            completionHandler(.cancelAuthenticationChallenge, nil)
         }
     }
 }

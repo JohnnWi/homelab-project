@@ -285,7 +285,9 @@ struct PangolinSnapshot: Sendable {
 actor PangolinAPIClient {
     private static let dashboardResourceLimit = 8
 
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var apiKey: String = ""
@@ -294,14 +296,20 @@ actor PangolinAPIClient {
     var isOrgScoped: Bool { !scopedOrgId.isEmpty }
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .pangolin, instanceId: instanceId)
     }
 
-    func configure(url: String, apiKey: String, fallbackUrl: String? = nil, orgId: String? = nil) {
+    func configure(url: String, apiKey: String, fallbackUrl: String? = nil, orgId: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.apiKey = Self.cleanToken(apiKey)
         self.scopedOrgId = orgId?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .pangolin, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     func ping() async -> Bool {
@@ -732,24 +740,43 @@ actor PangolinAPIClient {
     }
 
     func aggregateSummary() async throws -> (sites: Int, resources: Int, clients: Int) {
-        let orgs = try await listOrgs()
+        let allOrgs = try await listOrgs()
+        // Limit to the first 5 orgs to avoid excessive API calls.
+        // The aggregate summary is used for dashboard stats, not for precise reporting.
+        let orgs = Array(allOrgs.prefix(5))
         var sites = 0
         var resources = 0
         var clients = 0
 
-        for org in orgs {
-            async let orgSites = listSites(orgId: org.orgId)
-            async let orgSiteResources = listSiteResources(orgId: org.orgId)
-            async let orgResources = listResources(orgId: org.orgId)
-            async let orgClients = listClients(orgId: org.orgId)
-            async let orgUserDevices = listUserDevices(orgId: org.orgId)
+        let results = try await withThrowingTaskGroup(of: (Int, Int, Int).self) { group in
+            for org in orgs {
+                group.addTask {
+                    async let orgSites = self.listSites(orgId: org.orgId)
+                    async let orgSiteResources = self.listSiteResources(orgId: org.orgId)
+                    async let orgResources = self.listResources(orgId: org.orgId)
+                    async let orgClients = self.listClients(orgId: org.orgId)
+                    async let orgUserDevices = self.listUserDevices(orgId: org.orgId)
 
-            sites += try await orgSites.count
-            resources += try await orgResources.count
-            resources += try await orgSiteResources.count
-            clients += try await orgClients.count
-            clients += try await orgUserDevices.count
+                    let s = try await orgSites.count
+                    let r = try await orgResources.count + (try await orgSiteResources.count)
+                    let c = try await orgClients.count + (try await orgUserDevices.count)
+                    return (s, r, c)
+                }
+            }
+            var totalSites = 0
+            var totalResources = 0
+            var totalClients = 0
+            for try await (s, r, c) in group {
+                totalSites += s
+                totalResources += r
+                totalClients += c
+            }
+            return (totalSites, totalResources, totalClients)
         }
+
+        sites = results.0
+        resources = results.1
+        clients = results.2
 
         return (sites, resources, clients)
     }

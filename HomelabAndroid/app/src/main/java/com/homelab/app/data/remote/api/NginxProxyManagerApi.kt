@@ -28,6 +28,7 @@ interface NginxProxyManagerApi {
         @Url url: String,
         @Header("X-Homelab-Service") service: String = "NginxProxyManager",
         @Header("X-Homelab-Bypass") bypass: String = "true",
+        @Header("X-Homelab-Allow-Self-Signed") allowSelfSigned: String = "false",
         @Body credentials: Map<String, String>
     ): retrofit2.Response<NpmTokenResult>
 

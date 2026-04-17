@@ -74,6 +74,11 @@ struct Translations {
     let serviceNpmDesc: String
     let servicePatchmonDesc: String
     let serviceJellystatDesc: String
+    let serviceTechnitiumDesc: String
+    let serviceLinuxUpdateDesc: String
+    let serviceDockhandDesc: String
+    let servicePangolinDesc: String
+    let pangolinSitesClientsLabel: String
     let servicePlex: String
     let serviceRadarr: String
     let serviceSonarr: String
@@ -124,6 +129,8 @@ struct Translations {
     let loginHintPatchmon: String
     let loginHintJellystat: String
     let loginHintPlex: String
+    let loginHintPangolin: String
+    let loginPangolinOrgIdPlaceholder: String
     let loginHintGluetun: String
     let loginHintFlaresolverr: String
     let loginHintWakapi: String
@@ -267,6 +274,7 @@ struct Translations {
     let linuxUpdateActionUpgrade: String
     let linuxUpdateActionFullUpgrade: String
     let linuxUpdateActionPackageUpgrade: String
+    let linuxUpdateAvailableUpdates: String
     let linuxUpdateHiddenUpdates: String
     let linuxUpdateNoHiddenUpdates: String
     let linuxUpdateKeptBack: String
@@ -326,6 +334,8 @@ struct Translations {
     let healthchecksChannels: String
     let healthchecksPings: String
     let healthchecksFlips: String
+    let healthchecksLoadMorePings: String
+    let healthchecksLoadMoreFlips: String
     let healthchecksEditCheck: String
     let healthchecksCreateCheck: String
     let healthchecksDeleteCheck: String
@@ -648,6 +658,7 @@ struct Translations {
     let patchmonUpdatesOnly: String
     let patchmonShowAllPackages: String
     let patchmonNoPackages: String
+    let patchmonNoUpdatesAvailable: String
     let patchmonNoReports: String
     let patchmonNoJobs: String
     let patchmonNoNotes: String
@@ -807,6 +818,9 @@ struct Translations {
     let settingsDisconnectMessage: String
     let settingsAbout: String
     let settingsVersion: String
+    let settingsCheckForUpdates: String
+    let settingsCheckForUpdatesDesc: String
+    let settingsCheckForUpdatesNow: String
     let settingsUpdateBannerTitle: String
     let settingsUpdateBannerBody: String
     let settingsUpdateAction: String
@@ -854,6 +868,7 @@ struct Translations {
     let debugLogsErrorTitle: String
     let debugLogsOpenSettings: String
     let debugLogsSearchPlaceholder: String
+    let debugLogsAuthMessage: String
     let debugLogsFilterSource: String
     let debugLogsNoResults: String
     let actionEdit: String
@@ -1087,6 +1102,377 @@ struct Translations {
     let backupSelectionSelectedCount: String
     let backupRememberSelectionTitle: String
     let backupRememberSelectionSubtitle: String
+
+    // Proxmox
+    let serviceProxmox: String
+    let serviceProxmoxDesc: String
+    let loginHintProxmox: String
+    let loginAllowSelfSigned: String
+    let loginRequireValidTLS: String
+    let loginTLSDesc: String
+    let proxmoxCredentialsHint: String
+    let proxmoxApiTokenRecommendedHint: String
+    let proxmoxConsoleCredentialsOnly: String
+    let proxmoxOtpRecoveryHint: String
+    let proxmoxApiTokenStructuredMode: String
+    let proxmoxApiTokenPasteMode: String
+    let proxmoxApiUser: String
+    let proxmoxApiTokenId: String
+    let proxmoxApiTokenSecret: String
+    let proxmoxCustomRealmHint: String
+    let proxmoxInvalidApiToken: String
+    let proxmoxDashboard: String
+    let proxmoxCreateGuest: String
+    let proxmoxProvisioning: String
+    let proxmoxNodes: String
+    let proxmoxNode: String
+    let proxmoxVMs: String
+    let proxmoxContainers: String
+    let proxmoxStorage: String
+    let proxmoxTasks: String
+    let proxmoxOverview: String
+    let proxmoxRunning: String
+    let proxmoxStopped: String
+    let proxmoxNodeOnline: String
+    let proxmoxNodeOffline: String
+    let proxmoxUptime: String
+    let proxmoxKernel: String
+    let proxmoxSystemInfo: String
+    let proxmoxResources: String
+    let proxmoxCpuLabel: String
+    let proxmoxRamLabel: String
+    let proxmoxIsoImages: String
+    let proxmoxOsLabel: String
+    let proxmoxBiosLabel: String
+    let proxmoxScsiLabel: String
+    let proxmoxIpv6Label: String
+    let proxmoxIpv6GatewayLabel: String
+    let proxmoxDnsLabel: String
+    let proxmoxCidrLabel: String
+    let proxmoxNetmaskLabel: String
+    let proxmoxClusterLabel: String
+    let proxmoxDirectionLabel: String
+    let proxmoxProtocolLabel: String
+    let proxmoxNoneLabel: String
+    let proxmoxSizeLabel: String
+    let proxmoxFullLabel: String
+    let proxmoxNearFullLabel: String
+    let proxmoxMonitoringLabel: String
+    let proxmoxOsdLabel: String
+    let proxmoxPgLabel: String
+    let proxmoxMonsLabel: String
+    let proxmoxCrushWeight: String
+    let proxmoxReweight: String
+    let proxmoxTcpUdpIcmp: String
+    let proxmoxDestPortPlaceholder: String
+    let proxmoxInLabel: String
+    let proxmoxOutLabel: String
+    let proxmoxZstdLabel: String
+    let proxmoxLzoLabel: String
+    let proxmoxGzipLabel: String
+    let proxmoxVmidLabel: String
+    let proxmoxHaLabel: String
+    let proxmoxPveLabel: String
+    let proxmoxSwapLabel: String
+    let proxmoxActions: String
+    let proxmoxConfiguration: String
+    let proxmoxSnapshots: String
+    let proxmoxCreateSnapshot: String
+    let proxmoxNoSnapshots: String
+    let proxmoxSnapshotName: String
+    let proxmoxSnapshotDescription: String
+    let proxmoxIncludeRAM: String
+    let proxmoxConsole: String
+    let proxmoxOpenConsole: String
+    let proxmoxConsoleLoading: String
+    let proxmoxRetry: String
+    let proxmoxConsoleCookieError: String
+    let proxmoxConsoleAuthError: String
+    let proxmoxConsoleCertError: String
+    let proxmoxConsoleGenericError: String
+    let proxmoxConfirmAction: String
+    let proxmoxConfirmMessage: String
+    let proxmoxAuthMode: String
+    let proxmoxCredentialsMode: String
+    let proxmoxApiTokenMode: String
+    let proxmoxApiTokenPlaceholder: String
+    let proxmoxApiTokenHint: String
+    let proxmoxRealm: String
+    let proxmoxGuestsRunning: String
+    let proxmoxGuestOverview: String
+    let proxmoxGuestName: String
+    let proxmoxHostname: String
+    let proxmoxAgentVersion: String
+    let proxmoxDisks: String
+    let proxmoxDisk: String
+    let proxmoxDescription: String
+    let proxmoxTags: String
+    let proxmoxCpuType: String
+    let proxmoxCpuCores: String
+    let proxmoxSockets: String
+    let proxmoxDiskSize: String
+    let proxmoxRootDisk: String
+    let proxmoxSwap: String
+    let proxmoxAgent: String
+    let proxmoxGuestUsers: String
+    let proxmoxNoGuestUsers: String
+    let proxmoxGuestFilesystems: String
+    let proxmoxNoGuestFilesystems: String
+    let proxmoxGuestTimezone: String
+    let proxmoxGuestCommands: String
+    let proxmoxNoGuestCommands: String
+    let proxmoxLoginTime: String
+    let proxmoxType: String
+    let proxmoxBallooning: String
+    let proxmoxStartupPolicy: String
+    let proxmoxBootOrder: String
+    let proxmoxMachine: String
+    let proxmoxBootOnStart: String
+    let proxmoxProtection: String
+    let proxmoxPaused: String
+    let proxmoxUnknown: String
+    let proxmoxOk: String
+    let proxmoxServices: String
+    let proxmoxNetwork: String
+    let proxmoxSelectNode: String
+    let proxmoxAddressing: String
+    let proxmoxDhcp: String
+    let proxmoxStaticAddress: String
+    let proxmoxManual: String
+    let proxmoxIPv4Address: String
+    let proxmoxCeph: String
+    let proxmoxPools: String
+    let proxmoxPoolMembers: String
+    let proxmoxCpu: String
+    let proxmoxOs: String
+    let proxmoxBios: String
+    let proxmoxScsi: String
+    let proxmoxIpv6: String
+    let proxmoxDns: String
+    let proxmoxCidr: String
+    let proxmoxNetmask: String
+    let proxmoxCluster: String
+    let proxmoxNone: String
+    let proxmoxSize: String
+    let proxmoxFull: String
+    let proxmoxNearFull: String
+    let proxmoxMonitoring: String
+    let proxmoxMon: String
+    let proxmoxOsd: String
+    let proxmoxLoadAverage: String
+    let proxmoxPlacementGroup: String
+    let proxmoxDeletePool: String
+    let proxmoxDeletePoolMessage: String
+    let proxmoxNoPoolMembers: String
+    let proxmoxEditComment: String
+    let proxmoxNoComment: String
+    let proxmoxSearchPrompt: String
+    let proxmoxNoSearchResults: String
+    let proxmoxGuests: String
+    let proxmoxFirewall: String
+    let proxmoxFirewallRules: String
+    let proxmoxFirewallStatus: String
+    let proxmoxFirewallToggle: String
+    let proxmoxFirewallEnableConfirm: String
+    let proxmoxFirewallDisableConfirm: String
+    let proxmoxRules: String
+    let proxmoxAddRule: String
+    let proxmoxNoRules: String
+    let proxmoxDirection: String
+    let proxmoxIn: String
+    let proxmoxOut: String
+    let proxmoxProtocol: String
+    let proxmoxDestinationPort: String
+    let proxmoxAddresses: String
+    let proxmoxOptions: String
+    let proxmoxComment: String
+    let proxmoxSource: String
+    let proxmoxDestination: String
+    let proxmoxEnabled: String
+    let proxmoxDisabled: String
+    let proxmoxActive: String
+    let proxmoxTotal: String
+    let proxmoxInactive: String
+    let proxmoxAutostart: String
+    let proxmoxSearchDomain: String
+    let proxmoxInterfaces: String
+    let proxmoxNoNetworkInterfaces: String
+    let proxmoxAddress: String
+    let proxmoxGateway: String
+    let proxmoxBridge: String
+    let proxmoxVlanTag: String
+    let proxmoxMacAddress: String
+    let proxmoxRateLimit: String
+    let proxmoxMountPoint: String
+    let proxmoxBridgePorts: String
+    let proxmoxBondSlaves: String
+    let proxmoxBondMode: String
+    let proxmoxAvailableUpdates: String
+    let proxmoxUnknownPackage: String
+    let proxmoxSystemServices: String
+    let proxmoxNoServices: String
+    let proxmoxReload: String
+    let proxmoxNoContent: String
+    let proxmoxItems: String
+    let proxmoxDeleteVolume: String
+    let proxmoxDeleteVolumeMessage: String
+    let proxmoxClusterHealth: String
+    let proxmoxClusterInfo: String
+    let proxmoxStorageUsage: String
+    let proxmoxAllItems: String
+    let proxmoxImages: String
+    let proxmoxBackups: String
+    let proxmoxSnippets: String
+    let proxmoxPerformance: String
+    let proxmoxUtilization: String
+    let proxmoxTraffic: String
+    let proxmoxDiskActivity: String
+    let proxmoxNoMetricsAvailable: String
+    let proxmoxLastHour: String
+    let proxmoxLastDay: String
+    let proxmoxLastWeek: String
+    let proxmoxAvailable: String
+    let proxmoxRead: String
+    let proxmoxWrite: String
+    let proxmoxReadIops: String
+    let proxmoxWriteIops: String
+    let proxmoxCrushRule: String
+    let proxmoxHealth: String
+    let proxmoxRawConfiguration: String
+    let proxmoxNoDevices: String
+    let proxmoxTemplate: String
+    let proxmoxTemplates: String
+    let proxmoxLocked: String
+    let proxmoxTemplateGuestHint: String
+    let proxmoxLockedGuestHint: String
+    let proxmoxBackupJobs: String
+    let proxmoxScheduledJobs: String
+    let proxmoxNoBackupJobs: String
+    let proxmoxTotalJobs: String
+    let proxmoxHaReplication: String
+    let proxmoxHaResources: String
+    let proxmoxHaGroups: String
+    let proxmoxReplicationJobs: String
+    let proxmoxRestricted: String
+    let proxmoxNoFailback: String
+    let proxmoxLogOutput: String
+    let proxmoxShowAllLogs: String
+    let proxmoxNoLogData: String
+    let proxmoxFailedLoadLog: String
+    let proxmoxUser: String
+    let proxmoxStartTime: String
+    let proxmoxDuration: String
+    let proxmoxExitStatus: String
+    let proxmoxStartBackup: String
+    let proxmoxCreateClone: String
+    let proxmoxStartMigration: String
+    let proxmoxSnapshotMode: String
+    let proxmoxCurrentSnapshot: String
+    let proxmoxRestore: String
+    let proxmoxRestoreBackup: String
+    let proxmoxRestoreAsUnique: String
+    let proxmoxForceOverwrite: String
+    let proxmoxRestoreGuestType: String
+    let proxmoxRestoreSourceVmid: String
+    let proxmoxBackupArchive: String
+    let proxmoxMode: String
+    let proxmoxCompression: String
+    let proxmoxPassword: String
+    let proxmoxPasswordOptional: String
+    let proxmoxTargetNode: String
+    let proxmoxSourceNode: String
+    let proxmoxRam: String
+    let proxmoxTimeframe: String
+    let proxmoxHotplug: String
+    let proxmoxNuma: String
+    let proxmoxDiscard: String
+    let proxmoxSsd: String
+    let proxmoxIpv6Gateway: String
+    let proxmoxGuestTypeQemu: String
+    let proxmoxGuestTypeLxc: String
+    let proxmoxOnlineMigration: String
+    let proxmoxFullClone: String
+    let proxmoxNewVmid: String
+    let proxmoxOptionalName: String
+    let proxmoxNoBackupStorage: String
+    let proxmoxNoTargetNodes: String
+    let proxmoxRestart: String
+    let proxmoxShutdown: String
+    let proxmoxSuspend: String
+    let proxmoxResume: String
+    let proxmoxClone: String
+    let proxmoxMigrate: String
+    let proxmoxCurrentOperation: String
+    let proxmoxTaskIdentifier: String
+    let proxmoxLastUpdate: String
+    let proxmoxOpenTaskLog: String
+    let proxmoxRollbackSnapshot: String
+    let proxmoxDeleteSnapshot: String
+    let proxmoxTaskLog: String
+    let proxmoxClientNotConfigured: String
+    let proxmoxNotify: String
+    let proxmoxScope: String
+    let proxmoxAllGuests: String
+    let proxmoxPool: String
+    let proxmoxCompress: String
+    let proxmoxNoneValue: String
+    let proxmoxOtherValue: String
+    let proxmoxInstallSource: String
+    let proxmoxBlankDisk: String
+    let proxmoxIsoImage: String
+    let proxmoxContainerTemplate: String
+    let proxmoxSourceTemplate: String
+    let proxmoxNoTemplatesAvailable: String
+    let proxmoxUseSourceDefault: String
+    let proxmoxRefreshVmid: String
+    let proxmoxSuggestedVmid: String
+    let proxmoxCompleteRequiredFields: String
+    let proxmoxCreateVM: String
+    let proxmoxCreateContainer: String
+    let proxmoxCreateTemplate: String
+    let proxmoxDeployTemplate: String
+    let proxmoxDeployFromTemplate: String
+    let proxmoxOpenCreatedGuest: String
+    let proxmoxNewVMDescription: String
+    let proxmoxNewContainerDescription: String
+    let proxmoxTemplateCloneDescription: String
+    let proxmoxProvisionNoIso: String
+    let proxmoxProvisionNoContainerTemplates: String
+    let proxmoxProvisionNoBridges: String
+    let proxmoxUnprivileged: String
+    let proxmoxConvertToTemplate: String
+    let proxmoxConvertToTemplateAfterCreate: String
+    let proxmoxClusterResources: String
+    let proxmoxClusterSummary: String
+    let proxmoxTotalNodes: String
+    let proxmoxRunningVMs: String
+    let proxmoxRunningLXCs: String
+    let proxmoxStorageUsed: String
+    let proxmoxFilterAll: String
+    let proxmoxFilterNodes: String
+    let proxmoxFilterVMs: String
+    let proxmoxFilterLXCs: String
+    let proxmoxFilterStorage: String
+    let proxmoxFilterRunning: String
+    let proxmoxFilterStopped: String
+    let proxmoxNoResources: String
+    let proxmoxNoResourcesDescription: String
+    let proxmoxResourceType: String
+    let proxmoxPoolMemberDetail: String
+    let proxmoxEditConfig: String
+    let proxmoxConfigEditName: String
+    let proxmoxConfigEditDesc: String
+    let proxmoxConfigEditCores: String
+    let proxmoxConfigEditSockets: String
+    let proxmoxConfigEditMemory: String
+    let proxmoxConfigEditBalloon: String
+    let proxmoxConfigEditOnBoot: String
+    let proxmoxConfigEditProtection: String
+    let proxmoxConfigSaved: String
+    let proxmoxConfigSaveError: String
+
+    let debugLogsEmpty: String
+    let securityLockoutMessage: String
 }
 
 // MARK: - Factory
@@ -1114,13 +1500,55 @@ extension Translations {
 
 // MARK: - Localizer (accessed via environment)
 
+@dynamicMemberLookup
+@MainActor
+final class TranslationCatalog {
+    private var translations: Translations
+
+    init(_ translations: Translations) {
+        self.translations = translations
+    }
+
+    subscript<T>(dynamicMember keyPath: KeyPath<Translations, T>) -> T {
+        translations[keyPath: keyPath]
+    }
+
+    var snapshot: Translations {
+        translations
+    }
+
+    func update(_ translations: Translations) {
+        self.translations = translations
+    }
+}
+
 @Observable
 @MainActor
 final class Localizer {
     static let shared = Localizer()
-    var language: Language = .en
+    @ObservationIgnored private let catalog: TranslationCatalog
+    var language: Language {
+        didSet {
+            guard language != oldValue else { return }
+            catalog.update(Translations.forLanguage(language))
+        }
+    }
 
-    var t: Translations { Translations.forLanguage(language) }
+    init(language: Language? = nil) {
+        let resolvedLanguage = language ?? {
+            let systemLang = Locale.preferredLanguages.first.flatMap { code -> Language? in
+                Language(rawValue: String(code.prefix(2)).lowercased())
+            } ?? .en
+            let savedLang = UserDefaults.standard.string(forKey: "homelab_language") ?? systemLang.rawValue
+            return Language(rawValue: savedLang) ?? systemLang
+        }()
+
+        self.language = resolvedLanguage
+        self.catalog = TranslationCatalog(Translations.forLanguage(resolvedLanguage))
+    }
+
+    var t: TranslationCatalog { catalog }
+    var translations: Translations { catalog.snapshot }
 
     func greetingKey() -> String {
         let hour = Calendar.current.component(.hour, from: Date())

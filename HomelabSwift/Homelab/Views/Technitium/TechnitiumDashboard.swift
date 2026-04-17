@@ -389,18 +389,21 @@ struct TechnitiumDashboard: View {
                                 let allowed = chart.allowedValues[idx]
                                 let blocked = chart.blockedValues[idx]
 
+                                // Allowed bar (bottom)
                                 BarMark(
                                     x: .value("Time", idx),
-                                    y: .value("Allowed", allowed),
-                                    width: .fixed(6)
+                                    y: .value("Queries", allowed),
+                                    width: .fixed(8)
                                 )
-                                .foregroundStyle(AppTheme.running.opacity(0.68))
+                                .foregroundStyle(AppTheme.running.opacity(0.72))
 
+                                // Blocked bar stacked on top
                                 if blocked > 0 {
                                     BarMark(
                                         x: .value("Time", idx),
-                                        y: .value("Blocked", blocked),
-                                        width: .fixed(6)
+                                        yStart: .value("Allowed", allowed),
+                                        yEnd: .value("Total", allowed + blocked),
+                                        width: .fixed(8)
                                     )
                                     .foregroundStyle(AppTheme.stopped.opacity(0.82))
                                 }

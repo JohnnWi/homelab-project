@@ -1,6 +1,7 @@
 package com.homelab.app.data.repository
 
 import com.homelab.app.data.remote.api.TechnitiumApi
+import com.homelab.app.data.remote.TlsClientSelector
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +21,6 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import okhttp3.OkHttpClient
 import okhttp3.Request
 
 enum class TechnitiumStatsRange(val apiValue: String) {
@@ -106,8 +106,8 @@ private class TechnitiumInvalidTokenException : IllegalStateException("Session t
 @Singleton
 class TechnitiumRepository @Inject constructor(
     private val api: TechnitiumApi,
-    private val okHttpClient: OkHttpClient,
-    private val serviceInstancesRepository: ServiceInstancesRepository
+    private val serviceInstancesRepository: ServiceInstancesRepository,
+    private val tlsClientSelector: TlsClientSelector
 ) {
 
     private val json = Json {
@@ -121,7 +121,8 @@ class TechnitiumRepository @Inject constructor(
         username: String,
         password: String,
         totp: String = "",
-        fallbackUrl: String? = null
+        fallbackUrl: String? = null,
+        allowSelfSigned: Boolean = false
     ): String {
         val cleanUrl = cleanUrl(url)
         val cleanFallback = cleanOptionalUrl(fallbackUrl)
@@ -137,7 +138,7 @@ class TechnitiumRepository @Inject constructor(
 
             for (base in candidates) {
                 try {
-                    return@withContext authenticateAgainst(base, user, pass, totp)
+                    return@withContext authenticateAgainst(base, user, pass, totp, allowSelfSigned)
                 } catch (error: Exception) {
                     lastError = error
                 }
@@ -430,7 +431,8 @@ class TechnitiumRepository @Inject constructor(
                 username = username,
                 password = password,
                 totp = "",
-                fallbackUrl = instance.fallbackUrl
+                fallbackUrl = instance.fallbackUrl,
+                allowSelfSigned = instance.allowSelfSigned
             )
 
             serviceInstancesRepository.saveInstance(
@@ -454,11 +456,11 @@ class TechnitiumRepository @Inject constructor(
         throw IllegalStateException("Technitium session token missing")
     }
 
-    private fun authenticateAgainst(baseUrl: String, username: String, password: String, totp: String): String {
+    private fun authenticateAgainst(baseUrl: String, username: String, password: String, totp: String, allowSelfSigned: Boolean): String {
         val url = buildLoginUrl(baseUrl, username, password, totp)
         val request = Request.Builder().url(url).get().build()
 
-        okHttpClient.newCall(request).execute().use { response ->
+        tlsClientSelector.forAllowSelfSigned(allowSelfSigned).newCall(request).execute().use { response ->
             val body = response.body?.string().orEmpty()
             val root = parseObject(body)
             val status = root.string("status").lowercase()

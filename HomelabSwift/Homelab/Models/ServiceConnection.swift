@@ -5,6 +5,107 @@ enum PiHoleAuthMode: String, Codable, Equatable {
     case legacy
 }
 
+enum ProxmoxAuthMode: String, Codable, Equatable {
+    case credentials
+    case apiToken
+}
+
+struct ProxmoxAPITokenParts: Equatable, Hashable {
+    let user: String
+    let realm: String
+    let tokenID: String
+    let secret: String
+
+    /// Parses a raw Proxmox API token string in the format `user@realm!tokenID=secret`.
+    /// Uses a two-pass approach: first tries positional parsing, then falls back
+    /// to regex for robustness against edge cases.
+    init?(rawValue: String) {
+        let trimmed = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Primary: positional parsing (fast, handles standard format)
+        if let parts = Self.parsePositional(trimmed) {
+            self = parts
+            return
+        }
+
+        // Fallback: regex-based parsing (handles edge cases like special chars in secret)
+        if let parts = Self.parseRegex(trimmed) {
+            self = parts
+            return
+        }
+
+        return nil
+    }
+
+    /// Parse using positional indices: last `=`, then last `!` before `=`, then last `@` before `!`.
+    private static func parsePositional(_ trimmed: String) -> ProxmoxAPITokenParts? {
+        guard
+            let equalsIndex = trimmed.lastIndex(of: "="),
+            let bangIndex = trimmed[..<equalsIndex].lastIndex(of: "!"),
+            let atIndex = trimmed[..<bangIndex].lastIndex(of: "@")
+        else {
+            return nil
+        }
+
+        let user = String(trimmed[..<atIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let realm = String(trimmed[trimmed.index(after: atIndex)..<bangIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let tokenID = String(trimmed[trimmed.index(after: bangIndex)..<equalsIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let secret = String(trimmed[trimmed.index(after: equalsIndex)...]).trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !user.isEmpty, !realm.isEmpty, !tokenID.isEmpty, !secret.isEmpty else {
+            return nil
+        }
+
+        return ProxmoxAPITokenParts(user: user, realm: realm, tokenID: tokenID, secret: secret)
+    }
+
+    /// Parse using regex as fallback for tokens with unusual characters.
+    private static func parseRegex(_ trimmed: String) -> ProxmoxAPITokenParts? {
+        // Pattern: everything up to first @ = user, then everything up to first ! = realm,
+        // then everything up to first = = tokenID, rest = secret.
+        let pattern = #"^(.+?)@(.+?)!(.+?)=(.+)$"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+            return nil
+        }
+        let nsRange = NSRange(trimmed.startIndex..., in: trimmed)
+        guard let match = regex.firstMatch(in: trimmed, options: [], range: nsRange),
+              match.numberOfRanges == 5 else {
+            return nil
+        }
+
+        let user = (Range(match.range(at: 1), in: trimmed).map { String(trimmed[$0]) })?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let realm = (Range(match.range(at: 2), in: trimmed).map { String(trimmed[$0]) })?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let tokenID = (Range(match.range(at: 3), in: trimmed).map { String(trimmed[$0]) })?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let secret = (Range(match.range(at: 4), in: trimmed).map { String(trimmed[$0]) })?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        guard !user.isEmpty, !realm.isEmpty, !tokenID.isEmpty, !secret.isEmpty else {
+            return nil
+        }
+
+        return ProxmoxAPITokenParts(user: user, realm: realm, tokenID: tokenID, secret: secret)
+    }
+
+    init?(user: String, realm: String, tokenID: String, secret: String) {
+        let user = user.trimmingCharacters(in: .whitespacesAndNewlines)
+        let realm = realm.trimmingCharacters(in: .whitespacesAndNewlines)
+        let tokenID = tokenID.trimmingCharacters(in: .whitespacesAndNewlines)
+        let secret = secret.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !user.isEmpty, !realm.isEmpty, !tokenID.isEmpty, !secret.isEmpty else {
+            return nil
+        }
+
+        self.user = user
+        self.realm = realm
+        self.tokenID = tokenID
+        self.secret = secret
+    }
+
+    var rawValue: String {
+        "\(user)@\(realm)!\(tokenID)=\(secret)"
+    }
+}
+
 struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
     let id: UUID
     let type: ServiceType
@@ -15,6 +116,9 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
     var apiKey: String?
     var piholePassword: String?
     var piholeAuthMode: PiHoleAuthMode?
+    var proxmoxAuthMode: ProxmoxAuthMode?
+    var proxmoxRealm: String?
+    var proxmoxOTP: String?
     var fallbackUrl: String?
     var allowSelfSigned: Bool
     var password: String?
@@ -29,6 +133,9 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
         apiKey: String? = nil,
         piholePassword: String? = nil,
         piholeAuthMode: PiHoleAuthMode? = nil,
+        proxmoxAuthMode: ProxmoxAuthMode? = nil,
+        proxmoxRealm: String? = nil,
+        proxmoxOTP: String? = nil,
         fallbackUrl: String? = nil,
         allowSelfSigned: Bool = false,
         password: String? = nil
@@ -42,6 +149,9 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
         self.apiKey = apiKey?.trimmedNilIfEmpty
         self.piholePassword = piholePassword?.trimmedNilIfEmpty
         self.piholeAuthMode = piholeAuthMode
+        self.proxmoxAuthMode = proxmoxAuthMode
+        self.proxmoxRealm = proxmoxRealm?.trimmedNilIfEmpty
+        self.proxmoxOTP = proxmoxOTP?.trimmedNilIfEmpty
         self.fallbackUrl = Self.cleanOptionalURL(fallbackUrl)
         self.allowSelfSigned = allowSelfSigned
         self.password = password?.trimmedNilIfEmpty
@@ -73,7 +183,11 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
             apiKey: apiKey,
             piholePassword: migratedPiHolePassword,
             piholeAuthMode: piholeAuthMode ?? self.piholeAuthMode,
+            proxmoxAuthMode: proxmoxAuthMode,
+            proxmoxRealm: proxmoxRealm,
+            proxmoxOTP: proxmoxOTP,
             fallbackUrl: fallbackUrl,
+            allowSelfSigned: allowSelfSigned,
             password: password
         )
     }
@@ -86,6 +200,9 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
         apiKey: String? = nil,
         piholePassword: String? = nil,
         piholeAuthMode: PiHoleAuthMode? = nil,
+        proxmoxAuthMode: ProxmoxAuthMode? = nil,
+        proxmoxRealm: String? = nil,
+        proxmoxOTP: String? = nil,
         fallbackUrl: String? = nil,
         allowSelfSigned: Bool? = nil,
         password: String? = nil
@@ -100,6 +217,9 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
             apiKey: apiKey ?? self.apiKey,
             piholePassword: piholePassword ?? self.piholePassword,
             piholeAuthMode: piholeAuthMode ?? self.piholeAuthMode,
+            proxmoxAuthMode: proxmoxAuthMode ?? self.proxmoxAuthMode,
+            proxmoxRealm: proxmoxRealm ?? self.proxmoxRealm,
+            proxmoxOTP: proxmoxOTP ?? self.proxmoxOTP,
             fallbackUrl: fallbackUrl ?? self.fallbackUrl,
             allowSelfSigned: allowSelfSigned ?? self.allowSelfSigned,
             password: password ?? self.password
@@ -128,6 +248,9 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
         case apiKey
         case piholePassword
         case piholeAuthMode
+        case proxmoxAuthMode
+        case proxmoxRealm
+        case proxmoxOTP
         case fallbackUrl
         case allowSelfSigned
         case password
@@ -145,6 +268,9 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
             apiKey: try container.decodeIfPresent(String.self, forKey: .apiKey),
             piholePassword: try container.decodeIfPresent(String.self, forKey: .piholePassword),
             piholeAuthMode: try container.decodeIfPresent(PiHoleAuthMode.self, forKey: .piholeAuthMode),
+            proxmoxAuthMode: try container.decodeIfPresent(ProxmoxAuthMode.self, forKey: .proxmoxAuthMode),
+            proxmoxRealm: try container.decodeIfPresent(String.self, forKey: .proxmoxRealm),
+            proxmoxOTP: try container.decodeIfPresent(String.self, forKey: .proxmoxOTP),
             fallbackUrl: try container.decodeIfPresent(String.self, forKey: .fallbackUrl),
             allowSelfSigned: try container.decodeIfPresent(Bool.self, forKey: .allowSelfSigned) ?? false,
             password: try container.decodeIfPresent(String.self, forKey: .password)
@@ -168,6 +294,8 @@ struct ServiceConnection: Codable, Identifiable, Equatable {
     var apiKey: String?
     var piholePassword: String?
     var piholeAuthMode: PiHoleAuthMode?
+    var proxmoxAuthMode: ProxmoxAuthMode?
+    var proxmoxRealm: String?
     var fallbackUrl: String?
     var allowSelfSigned: Bool
 
@@ -179,6 +307,8 @@ struct ServiceConnection: Codable, Identifiable, Equatable {
         apiKey: String? = nil,
         piholePassword: String? = nil,
         piholeAuthMode: PiHoleAuthMode? = nil,
+        proxmoxAuthMode: ProxmoxAuthMode? = nil,
+        proxmoxRealm: String? = nil,
         fallbackUrl: String? = nil,
         allowSelfSigned: Bool = false
     ) {
@@ -189,6 +319,8 @@ struct ServiceConnection: Codable, Identifiable, Equatable {
         self.apiKey = apiKey
         self.piholePassword = piholePassword
         self.piholeAuthMode = piholeAuthMode
+        self.proxmoxAuthMode = proxmoxAuthMode
+        self.proxmoxRealm = proxmoxRealm?.trimmedNilIfEmpty
         self.fallbackUrl = fallbackUrl?.isEmpty == true ? nil : fallbackUrl
         self.allowSelfSigned = allowSelfSigned
     }
@@ -213,6 +345,8 @@ struct ServiceConnection: Codable, Identifiable, Equatable {
             apiKey: apiKey,
             piholePassword: migratedPiHolePassword,
             piholeAuthMode: piholeAuthMode ?? self.piholeAuthMode,
+            proxmoxAuthMode: proxmoxAuthMode,
+            proxmoxRealm: proxmoxRealm,
             fallbackUrl: fallbackUrl,
             allowSelfSigned: allowSelfSigned
         )
@@ -229,6 +363,8 @@ struct ServiceConnection: Codable, Identifiable, Equatable {
             apiKey: apiKey,
             piholePassword: type == .pihole ? piHoleStoredSecret : piholePassword,
             piholeAuthMode: piholeAuthMode,
+            proxmoxAuthMode: proxmoxAuthMode,
+            proxmoxRealm: proxmoxRealm,
             fallbackUrl: fallbackUrl,
             allowSelfSigned: allowSelfSigned
         )
@@ -242,6 +378,8 @@ struct ServiceConnection: Codable, Identifiable, Equatable {
         case apiKey
         case piholePassword
         case piholeAuthMode
+        case proxmoxAuthMode
+        case proxmoxRealm
         case fallbackUrl
         case allowSelfSigned
     }
@@ -256,6 +394,8 @@ struct ServiceConnection: Codable, Identifiable, Equatable {
             apiKey: try container.decodeIfPresent(String.self, forKey: .apiKey),
             piholePassword: try container.decodeIfPresent(String.self, forKey: .piholePassword),
             piholeAuthMode: try container.decodeIfPresent(PiHoleAuthMode.self, forKey: .piholeAuthMode),
+            proxmoxAuthMode: try container.decodeIfPresent(ProxmoxAuthMode.self, forKey: .proxmoxAuthMode),
+            proxmoxRealm: try container.decodeIfPresent(String.self, forKey: .proxmoxRealm),
             fallbackUrl: try container.decodeIfPresent(String.self, forKey: .fallbackUrl),
             allowSelfSigned: try container.decodeIfPresent(Bool.self, forKey: .allowSelfSigned) ?? false
         )

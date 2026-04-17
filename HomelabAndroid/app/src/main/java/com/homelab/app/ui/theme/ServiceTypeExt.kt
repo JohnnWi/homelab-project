@@ -35,6 +35,7 @@ val ServiceType.primaryColor: Color
         ServiceType.ADGUARD_HOME -> Color(0xFF34C759)
         ServiceType.TECHNITIUM -> Color(0xFF2D9CDB)
         ServiceType.PLEX -> Color(0xFFE5A00D)
+        ServiceType.PROXMOX -> Color(0xFFFF6600)
         ServiceType.JELLYSTAT -> Color(0xFFC93DF6)
         ServiceType.BESZEL -> Color(0xFF8B5CF6)
         ServiceType.GITEA -> Color(0xFF609926)
@@ -65,6 +66,7 @@ val ServiceType.backgroundColor: Color
         ServiceType.PIHOLE -> Color(0xFFCD2326).copy(alpha = 0.12f)
         ServiceType.ADGUARD_HOME -> Color(0xFF34C759).copy(alpha = 0.12f)
         ServiceType.TECHNITIUM -> Color(0xFF2D9CDB).copy(alpha = 0.12f)
+        ServiceType.PROXMOX -> Color(0xFFFF6600).copy(alpha = 0.12f)
         ServiceType.PLEX -> Color(0xFFE5A00D).copy(alpha = 0.12f)
         ServiceType.JELLYSTAT -> Color(0xFFC93DF6).copy(alpha = 0.12f)
         ServiceType.BESZEL -> Color(0xFF8B5CF6).copy(alpha = 0.12f)
@@ -95,6 +97,7 @@ val ServiceType.iconUrl: String
         ServiceType.PIHOLE -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/pi-hole.png"
         ServiceType.ADGUARD_HOME -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/adguard-home.png"
         ServiceType.TECHNITIUM -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/technitium.png"
+        ServiceType.PROXMOX -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/proxmox.png"
         ServiceType.PLEX -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/plex.png"
         ServiceType.JELLYSTAT -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/jellystat.png"
         ServiceType.BESZEL -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/beszel.png"
@@ -178,6 +181,7 @@ val ServiceType.fallbackIcon: ImageVector
         ServiceType.BAZARR -> Icons.Default.Subtitles
         ServiceType.GLUETUN -> Icons.Default.VpnLock
         ServiceType.FLARESOLVERR -> Icons.Default.LocalFireDepartment
-        ServiceType.WAKAPI -> Icons.Default.CheckCircle // Usually Android fallback doesn't matter too much if there is a primary icon, we can use Watch or similar, but CheckCircle is fine if missing others. Need an imported icon. Icons.Default.Storage
+        ServiceType.WAKAPI -> Icons.Default.CheckCircle
+        ServiceType.PROXMOX -> Icons.Default.Dns
         ServiceType.UNKNOWN -> Icons.Default.Widgets
     }

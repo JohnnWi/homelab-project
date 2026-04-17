@@ -1,7 +1,9 @@
 import Foundation
 
 actor BeszelAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var token: String = ""
@@ -11,17 +13,23 @@ actor BeszelAPIClient {
     private var onTokenRefreshed: (@Sendable (String) -> Void)?
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .beszel, instanceId: instanceId)
     }
 
     // MARK: - Configuration
 
-    func configure(url: String, token: String, fallbackUrl: String? = nil, email: String? = nil, password: String? = nil) {
+    func configure(url: String, token: String, fallbackUrl: String? = nil, email: String? = nil, password: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.token = token
         if let email, !email.isEmpty { self.email = email }
         if let password, !password.isEmpty { self.storedPassword = password }
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .beszel, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     /// Set a callback invoked after successful token refresh so the store can persist it
@@ -65,7 +73,7 @@ actor BeszelAPIClient {
     private func isAuthError(_ error: Error) -> Bool {
         guard let apiError = error as? APIError else { return false }
         switch apiError {
-        case .httpError(let code, _): return code == 400 || code == 401
+        case .httpError(let code, _): return code == 401
         case .unauthorized: return true
         case .bothURLsFailed(let primary, let fallback):
             return isAuthError(primary) || isAuthError(fallback)
@@ -86,9 +94,19 @@ actor BeszelAPIClient {
 
     // MARK: - Authentication (PocketBase)
 
-    func authenticate(url: String, email: String, password: String) async throws -> String {
+    func authenticate(url: String, email: String, password: String, fallbackUrl: String? = nil) async throws -> String {
         let cleanURL = Self.cleanURL(url)
-        guard let authURL = URL(string: "\(cleanURL)/api/collections/users/auth-with-password") else {
+        do {
+            return try await authenticateAgainst(url: cleanURL, email: email, password: password)
+        } catch {
+            let cleanFallback = Self.cleanURL(fallbackUrl ?? "")
+            guard !cleanFallback.isEmpty, cleanFallback != cleanURL else { throw error }
+            return try await authenticateAgainst(url: cleanFallback, email: email, password: password)
+        }
+    }
+
+    private func authenticateAgainst(url: String, email: String, password: String) async throws -> String {
+        guard let authURL = URL(string: "\(url)/api/collections/users/auth-with-password") else {
             throw APIError.invalidURL
         }
 
@@ -99,7 +117,8 @@ actor BeszelAPIClient {
         req.httpBody = body
         req.timeoutInterval = 8
 
-        let (data, resp) = try await URLSession.shared.data(for: req)
+        let session = BaseNetworkEngine.authSession(allowSelfSigned: storedAllowSelfSigned, timeout: 8)
+        let (data, resp) = try await session.data(for: req)
         guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else {
             throw APIError.custom("Authentication failed. Check your credentials and URL.")
         }

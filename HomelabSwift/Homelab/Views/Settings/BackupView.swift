@@ -475,6 +475,7 @@ struct BackupView: View {
         case .gluetun: return localizer.t.serviceGluetun
         case .flaresolverr: return localizer.t.serviceFlaresolverr
         case .wakapi: return localizer.t.serviceWakapi
+        case .proxmox: return localizer.t.serviceProxmox
         }
     }
 
@@ -791,9 +792,14 @@ struct BackupView: View {
         let selectedTypes = selectedImportTypes
 
         Task {
-            let imported = await manager.applyBackup(preview.envelope, includedTypes: selectedTypes)
-            importedCount = imported
-            withAnimation { showImportSuccess = true }
+            let result = await manager.applyBackup(preview.envelope, includedTypes: selectedTypes)
+            switch result {
+            case .success(let count):
+                importedCount = count
+                withAnimation { showImportSuccess = true }
+            case .failure(let message):
+                importError = message
+            }
             isImporting = false
             resetImportState()
         }

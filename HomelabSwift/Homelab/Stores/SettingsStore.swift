@@ -127,6 +127,7 @@ final class SettingsStore {
         static let dismissedPopupVersion = "homelab_dismissed_popup_version"
         static let backupRememberSelectionEnabled = "homelab_backup_remember_selection_enabled"
         static let backupSelectedServiceTypes = "homelab_backup_selected_service_types"
+        static let checkForUpdatesEnabled = "homelab_check_updates_enabled"
     }
 
     private static let updateFeedURL = URL(string: "https://raw.githubusercontent.com/JohnnWi/homelab-project/main/app-version.json")
@@ -275,7 +276,13 @@ final class SettingsStore {
         }
     }
 
+    var checkForUpdatesEnabled: Bool {
+        get { UserDefaults.standard.object(forKey: Keys.checkForUpdatesEnabled) as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.checkForUpdatesEnabled) }
+    }
+
     func checkForUpdatesIfNeeded(force: Bool = false) async {
+        guard force || checkForUpdatesEnabled else { return }
         if !force, let lastUpdateCheckAt, Date().timeIntervalSince(lastUpdateCheckAt) < Self.updateCheckInterval {
             return
         }

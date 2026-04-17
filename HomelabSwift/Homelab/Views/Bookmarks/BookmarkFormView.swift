@@ -2,9 +2,9 @@ import SwiftUI
 
 struct BookmarkFormView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(BookmarksStore.self) private var store
     @Environment(Localizer.self) private var localizer
-    
+    @Bindable private var bookmarkManager = BookmarkManager.shared
+
     var bookmarkToEdit: Bookmark?
     
     @State private var title: String = ""
@@ -32,12 +32,12 @@ struct BookmarkFormView: View {
                 }
                 
                 Section {
-                    if store.categories.isEmpty {
+                    if bookmarkManager.categories.isEmpty {
                         Text(localizer.t.categoryEmpty)
                             .foregroundStyle(.secondary)
                     } else {
                         Picker(localizer.t.bookmarkCategory, selection: $categoryId) {
-                            ForEach(store.categories) { category in
+                            ForEach(bookmarkManager.categories) { category in
                                 Text(category.name).tag(category.id as UUID?)
                             }
                         }
@@ -77,8 +77,8 @@ struct BookmarkFormView: View {
                     if bm.iconType == .systemSymbol {
                         iconValue = bm.iconValue
                     }
-                } else if !store.categories.isEmpty {
-                    categoryId = store.categories.first?.id
+                } else if !bookmarkManager.categories.isEmpty {
+                    categoryId = bookmarkManager.categories.first?.id
                 }
             }
         }
@@ -89,27 +89,12 @@ struct BookmarkFormView: View {
         
         let type: BookmarkIconType = useFavicon ? .favicon : .systemSymbol
         let val: String = useFavicon ? "" : iconValue
-        
+        let tags: [String] = []
+
         if let bm = bookmarkToEdit {
-            var updated = bm
-            updated.title = title
-            updated.url = url
-            updated.description = description.isEmpty ? nil : description
-            updated.categoryId = catId
-            updated.iconType = type
-            updated.iconValue = val
-            store.updateBookmark(updated)
+            bookmarkManager.updateBookmark(bm, newTitle: title, newDescription: description.isEmpty ? nil : description, newUrl: url, newCategoryId: catId, newIconType: type, newIconValue: val, newTags: tags)
         } else {
-            let newBm = Bookmark(
-                categoryId: catId,
-                title: title,
-                description: description.isEmpty ? nil : description,
-                url: url,
-                iconType: type,
-                iconValue: val,
-                sortOrder: 0 // Handled in store
-            )
-            store.addBookmark(newBm)
+            bookmarkManager.addBookmark(title: title, description: description.isEmpty ? nil : description, url: url, categoryId: catId, iconType: type, iconValue: val, tags: tags)
         }
         dismiss()
     }

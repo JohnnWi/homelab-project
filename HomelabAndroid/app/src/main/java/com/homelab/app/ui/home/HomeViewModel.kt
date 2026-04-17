@@ -15,6 +15,7 @@ import com.homelab.app.data.repository.HealthchecksRepository
 import com.homelab.app.data.repository.PatchmonRepository
 import com.homelab.app.data.repository.PangolinRepository
 import com.homelab.app.data.repository.PlexRepository
+import com.homelab.app.data.repository.ProxmoxRepository
 import com.homelab.app.data.repository.AdGuardHomeRepository
 import com.homelab.app.data.repository.PiholeRepository
 import com.homelab.app.data.repository.PortainerRepository
@@ -56,27 +57,11 @@ class HomeViewModel @Inject constructor(
     private val healthchecksRepository: HealthchecksRepository,
     private val patchmonRepository: PatchmonRepository,
     private val plexRepository: PlexRepository,
+    private val proxmoxRepository: ProxmoxRepository,
     private val pangolinRepository: PangolinRepository,
     private val wakapiRepository: com.homelab.app.data.repository.WakapiRepository,
     private val localPreferencesRepository: LocalPreferencesRepository
 ) : ViewModel() {
-
-    data class PortainerSummary(val running: Int, val total: Int)
-    data class PiholeSummary(val totalQueries: Int)
-    data class AdGuardSummary(val totalQueries: Long)
-    data class JellystatSummary(val watchedHours: Double, val totalViews: Int)
-    data class BeszelSummary(val online: Int, val total: Int)
-    data class GiteaSummary(val totalRepos: Int)
-    data class LinuxUpdateSummary(val upToDate: Int, val total: Int)
-    data class TechnitiumSummary(val blocked: Int, val total: Int)
-    data class DockhandSummary(val running: Int, val total: Int)
-    data class CraftySummary(val running: Int, val total: Int)
-    data class NpmSummary(val proxyHosts: Int, val total: Int)
-    data class PangolinSummary(val sites: Int, val resources: Int, val clients: Int)
-    data class HealthchecksSummary(val up: Int, val total: Int)
-    data class PatchmonSummary(val active: Int, val total: Int)
-    data class PlexSummary(val sessions: Int, val totalItems: Int)
-    data class WakapiSummary(val totalCoding: String)
 
     /** Summary info for a single instance card. */
     data class InstanceSummary(val value: String, val subValue: String?, val label: String)
@@ -110,64 +95,12 @@ class HomeViewModel @Inject constructor(
     val hiddenServices: StateFlow<Set<String>> = localPreferencesRepository.hiddenServices
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
-
-
-
     val serviceOrder: StateFlow<List<ServiceType>> = localPreferencesRepository.serviceOrder
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
             ServiceType.entries.filter { it != ServiceType.UNKNOWN }
         )
-
-    // Legacy per-type summaries (kept for old DashboardSummary if still referenced)
-    private val _portainerSummary = MutableStateFlow<PortainerSummary?>(null)
-    val portainerSummary: StateFlow<PortainerSummary?> = _portainerSummary
-
-    private val _piholeSummary = MutableStateFlow<PiholeSummary?>(null)
-    val piholeSummary: StateFlow<PiholeSummary?> = _piholeSummary
-
-    private val _adguardSummary = MutableStateFlow<AdGuardSummary?>(null)
-    val adguardSummary: StateFlow<AdGuardSummary?> = _adguardSummary
-
-    private val _jellystatSummary = MutableStateFlow<JellystatSummary?>(null)
-    val jellystatSummary: StateFlow<JellystatSummary?> = _jellystatSummary
-
-    private val _beszelSummary = MutableStateFlow<BeszelSummary?>(null)
-    val beszelSummary: StateFlow<BeszelSummary?> = _beszelSummary
-
-    private val _giteaSummary = MutableStateFlow<GiteaSummary?>(null)
-    val giteaSummary: StateFlow<GiteaSummary?> = _giteaSummary
-
-    private val _linuxUpdateSummary = MutableStateFlow<LinuxUpdateSummary?>(null)
-    val linuxUpdateSummary: StateFlow<LinuxUpdateSummary?> = _linuxUpdateSummary
-
-    private val _technitiumSummary = MutableStateFlow<TechnitiumSummary?>(null)
-    val technitiumSummary: StateFlow<TechnitiumSummary?> = _technitiumSummary
-
-    private val _dockhandSummary = MutableStateFlow<DockhandSummary?>(null)
-    val dockhandSummary: StateFlow<DockhandSummary?> = _dockhandSummary
-
-    private val _craftySummary = MutableStateFlow<CraftySummary?>(null)
-    val craftySummary: StateFlow<CraftySummary?> = _craftySummary
-
-    private val _npmSummary = MutableStateFlow<NpmSummary?>(null)
-    val npmSummary: StateFlow<NpmSummary?> = _npmSummary
-
-    private val _pangolinSummary = MutableStateFlow<PangolinSummary?>(null)
-    val pangolinSummary: StateFlow<PangolinSummary?> = _pangolinSummary
-
-    private val _healthchecksSummary = MutableStateFlow<HealthchecksSummary?>(null)
-    val healthchecksSummary: StateFlow<HealthchecksSummary?> = _healthchecksSummary
-
-    private val _patchmonSummary = MutableStateFlow<PatchmonSummary?>(null)
-    val patchmonSummary: StateFlow<PatchmonSummary?> = _patchmonSummary
-
-    private val _plexSummary = MutableStateFlow<PlexSummary?>(null)
-    val plexSummary: StateFlow<PlexSummary?> = _plexSummary
-
-    private val _wakapiSummary = MutableStateFlow<WakapiSummary?>(null)
-    val wakapiSummary: StateFlow<WakapiSummary?> = _wakapiSummary
 
     /** Per-instance summary data, keyed by instance ID. */
     private val _instanceSummaries = MutableStateFlow<Map<String, InstanceSummary>>(emptyMap())
@@ -282,12 +215,6 @@ class HomeViewModel @Inject constructor(
 
             val newSummaries = summaryResults.toMap()
             _instanceSummaries.value = newSummaries
-
-            val preferredIds = preferredInstanceIdByType.value
-            for (type in ServiceType.homeTypes) {
-                val prefId = preferredIds[type] ?: instancesMap[type]?.firstOrNull()?.id ?: continue
-                updateLegacySummary(type, prefId, instancesMap)
-            }
         } finally {
             _summaryLoadingIds.value = _summaryLoadingIds.value - targetIds
         }
@@ -298,64 +225,60 @@ class HomeViewModel @Inject constructor(
         return when (type) {
             ServiceType.PORTAINER -> {
                 val endpoints = portainerRepository.getEndpoints(instanceId)
-                val first = endpoints.firstOrNull() ?: return InstanceSummary("0", "/ 0", "containers")
-                val containers = portainerRepository.getContainers(instanceId, first.id)
-                val running = containers.count { it.state == "running" || it.status.contains("Up") }
-                _portainerSummary.value = PortainerSummary(running, containers.size)
-                InstanceSummary("$running", "/ ${containers.size}", "containers")
+                if (endpoints.isEmpty()) return InstanceSummary("0", "/ 0", "containers")
+                var running = 0
+                var total = 0
+                endpoints.forEach { endpoint ->
+                    val containers = runCatching { portainerRepository.getContainers(instanceId, endpoint.id) }
+                        .getOrDefault(emptyList())
+                    total += containers.size
+                    running += containers.count { it.state == "running" || it.status.contains("Up") }
+                }
+                InstanceSummary("$running", "/ $total", "containers")
             }
             ServiceType.PIHOLE -> {
                 val stats = piholeRepository.getStats(instanceId)
-                _piholeSummary.value = PiholeSummary(stats.queries.total)
                 val formatted = java.text.NumberFormat.getInstance().format(stats.queries.total)
                 InstanceSummary(formatted, null, "total_queries")
             }
             ServiceType.ADGUARD_HOME -> {
                 val stats = adGuardHomeRepository.getStats(instanceId)
-                _adguardSummary.value = AdGuardSummary(stats.numDnsQueries)
                 val formatted = java.text.NumberFormat.getInstance().format(stats.numDnsQueries)
                 InstanceSummary(formatted, null, "adguard_total_queries")
             }
             ServiceType.JELLYSTAT -> {
                 val summary = jellystatRepository.getWatchSummary(instanceId, 7)
-                _jellystatSummary.value = JellystatSummary(summary.totalHours, summary.totalViews)
                 InstanceSummary(formatHours(summary.totalHours), null, "jellystat_watch_time")
             }
             ServiceType.BESZEL -> {
                 val systems = beszelRepository.getSystems(instanceId)
                 val online = systems.count { it.isOnline }
-                _beszelSummary.value = BeszelSummary(online, systems.size)
                 InstanceSummary("$online", "/ ${systems.size}", "systems_online")
             }
             ServiceType.GITEA -> {
-                val repos = giteaRepository.getUserRepos(instanceId, 1, 100)
-                _giteaSummary.value = GiteaSummary(repos.size)
-                InstanceSummary("${repos.size}", null, "repos")
+                val pageSize = 100
+                var page = 1
+                var total = 0
+                while (true) {
+                    val repos = giteaRepository.getUserRepos(instanceId, page, pageSize)
+                    total += repos.size
+                    if (repos.size < pageSize) break
+                    page += 1
+                }
+                InstanceSummary("$total", null, "repos")
             }
             ServiceType.LINUX_UPDATE -> {
                 val stats = linuxUpdateRepository.getDashboardStats(instanceId)
-                _linuxUpdateSummary.value = LinuxUpdateSummary(
-                    upToDate = stats.upToDate,
-                    total = stats.total
-                )
                 InstanceSummary("${stats.upToDate}", "/ ${stats.total}", "linux_update_systems_up_to_date")
             }
             ServiceType.TECHNITIUM -> {
                 val overview = technitiumRepository.getOverview(instanceId)
-                _technitiumSummary.value = TechnitiumSummary(
-                    blocked = overview.totalBlocked,
-                    total = overview.totalQueries
-                )
                 val formattedBlocked = java.text.NumberFormat.getInstance().format(overview.totalBlocked)
                 val formattedTotal = java.text.NumberFormat.getInstance().format(overview.totalQueries)
                 InstanceSummary(formattedBlocked, "/ $formattedTotal", "technitium_blocked_queries")
             }
             ServiceType.DOCKHAND -> {
                 val data = dockhandRepository.getDashboard(instanceId = instanceId, env = null)
-                _dockhandSummary.value = DockhandSummary(
-                    running = data.stats.runningContainers,
-                    total = data.stats.totalContainers
-                )
                 InstanceSummary("${data.stats.runningContainers}", "/ ${data.stats.totalContainers}", "dockhand_containers")
             }
             ServiceType.CRAFTY_CONTROLLER -> {
@@ -364,30 +287,25 @@ class HomeViewModel @Inject constructor(
                     runCatching { craftyRepository.getServerStats(instanceId, server.serverId) }.getOrNull()
                 }
                 val running = stats.count { it.running }
-                _craftySummary.value = CraftySummary(running = running, total = servers.size)
                 InstanceSummary("$running", "/ ${servers.size}", "crafty_running_servers")
             }
             ServiceType.NGINX_PROXY_MANAGER -> {
                 val report = nginxProxyManagerRepository.getHostReport(instanceId)
-                _npmSummary.value = NpmSummary(report.proxy, report.total)
                 InstanceSummary("${report.proxy}", "/ ${report.total}", "proxy_hosts")
             }
             ServiceType.PANGOLIN -> {
                 val scopedOrgId = instance.username?.takeIf { it.isNotBlank() }
                 val (sites, resources, clients) = pangolinRepository.getAggregateSummary(instanceId, scopedOrgId)
-                _pangolinSummary.value = PangolinSummary(sites, resources, clients)
                 InstanceSummary("$sites", "/ $clients", "pangolin_sites_clients")
             }
             ServiceType.HEALTHCHECKS -> {
                 val checks = healthchecksRepository.listChecks(instanceId)
-                val up = checks.count { it.status == "up" }
-                _healthchecksSummary.value = HealthchecksSummary(up, checks.size)
+                val up = checks.count { it.status == "up" || it.status == "grace" }
                 InstanceSummary("$up", "/ ${checks.size}", "checks")
             }
             ServiceType.PATCHMON -> {
                 val hosts = patchmonRepository.getHosts(instanceId).hosts
                 val active = hosts.count { it.status.equals("active", ignoreCase = true) }
-                _patchmonSummary.value = PatchmonSummary(active, hosts.size)
                 InstanceSummary("$active", "/ ${hosts.size}", "hosts")
             }
             ServiceType.WAKAPI -> {
@@ -397,29 +315,31 @@ class HomeViewModel @Inject constructor(
                     null
                 } ?: return null
                 val grandTotal = summary.effectiveGrandTotal()
-                val time = if (grandTotal.resolvedHours > 0) {
-                    "${grandTotal.resolvedHours}h ${grandTotal.resolvedMinutes}m"
-                } else {
-                    "${grandTotal.resolvedMinutes}m"
-                }
-                _wakapiSummary.value = WakapiSummary(time)
+                val totalSeconds = grandTotal.totalSeconds ?: summary.inferredTotalSeconds()
+                val totalHours = totalSeconds / 3600.0
+                val time = formatHours(totalHours)
                 InstanceSummary(time, null, "coded_today")
             }
             ServiceType.PLEX -> {
                 val dashboard = plexRepository.getDashboard(instanceId)
-                val activeSessions = dashboard.activeSessions.size
-                _plexSummary.value = PlexSummary(activeSessions, dashboard.stats.totalItems)
-                
                 val formattedItems = java.text.NumberFormat.getInstance().format(dashboard.stats.totalItems)
                 InstanceSummary(formattedItems, null, "plex_total_items")
             }
+            ServiceType.PROXMOX -> {
+                val nodes = proxmoxRepository.getNodes(instanceId)
+                val onlineNodes = nodes.filter { it.isOnline }
+                var totalRunning = 0
+                var totalGuests = 0
+                for (node in onlineNodes) {
+                    val vms = runCatching { proxmoxRepository.getVMs(instanceId, node.node) }.getOrDefault(emptyList())
+                    val lxcs = runCatching { proxmoxRepository.getLXCs(instanceId, node.node) }.getOrDefault(emptyList())
+                    totalGuests += vms.size + lxcs.size
+                    totalRunning += vms.count { it.isRunning } + lxcs.count { it.isRunning }
+                }
+                InstanceSummary("$totalRunning", "/ $totalGuests", "proxmox_guests_running")
+            }
             else -> null
         }
-    }
-
-    private suspend fun updateLegacySummary(type: ServiceType, prefId: String, instancesMap: Map<ServiceType, List<ServiceInstance>>) {
-        // Legacy summaries already updated inside fetchInstanceSummary
-        // This is a no-op placeholder for compatibility
     }
 
     private fun formatHours(value: Double): String {

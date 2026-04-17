@@ -1,9 +1,19 @@
 import Foundation
 
+// MARK: - Backup Import Result
+
+enum BackupImportResult {
+    case success(count: Int)
+    case failure(message: String)
+}
+
 // MARK: - BackupManager
 
 /// Orchestrates export and import of service configuration backups.
-final class BackupManager: @unchecked Sendable {
+/// All public methods must be called on the main actor because they
+/// interact with ServicesStore, which is @MainActor.
+@MainActor
+final class BackupManager {
 
     private let servicesStore: ServicesStore
 
@@ -18,8 +28,10 @@ final class BackupManager: @unchecked Sendable {
     /// Returns the URL of the temporary file ready for sharing.
     func exportBackup(password: String, includedTypes: Set<ServiceType>? = nil) async throws -> URL {
         let envelope = await buildEnvelope(includedTypes: includedTypes)
-        let jsonData = try JSONEncoder().encode(envelope)
-        let encrypted = try BackupCrypto.encrypt(data: jsonData, password: password)
+        let encrypted = try await Task.detached {
+            let jsonData = try JSONEncoder().encode(envelope)
+            return try BackupCrypto.encrypt(data: jsonData, password: password)
+        }.value
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd_HHmmss"
@@ -69,12 +81,14 @@ final class BackupManager: @unchecked Sendable {
     // MARK: - Apply
 
     /// Applies selected service types from a backup envelope and leaves other services untouched.
+    /// Uses a validate-then-commit pattern: if any entry cannot be converted to a valid
+    /// ServiceInstance, the entire import is aborted without modifying the store.
     @MainActor
     func applyBackup(
         _ envelope: BackupEnvelope,
         includedTypes: Set<ServiceType>
-    ) async -> Int {
-        guard !includedTypes.isEmpty else { return 0 }
+    ) async -> BackupImportResult {
+        guard !includedTypes.isEmpty else { return .success(count: 0) }
 
         let entriesByType = envelope.services
             .compactMap { entry -> (ServiceType, BackupServiceEntry)? in
@@ -89,34 +103,59 @@ final class BackupManager: @unchecked Sendable {
             }
 
         let typesToReplace = Set(entriesByType.keys)
-        guard !typesToReplace.isEmpty else { return 0 }
+        guard !typesToReplace.isEmpty else { return .success(count: 0) }
 
-        // Replace only selected service types present in the backup.
-        for instance in servicesStore.allInstances where typesToReplace.contains(instance.type) {
-            servicesStore.deleteInstance(id: instance.id)
+        // MARK: - Phase 1: Validate all entries before touching the store
+        var instancesToImport: [(type: ServiceType, instance: ServiceInstance, isPreferred: Bool)] = []
+        var validationErrors: [String] = []
+
+        for type in typesToReplace.sorted(by: { $0.rawValue < $1.rawValue }) {
+            let entries = entriesByType[type] ?? []
+            for entry in entries {
+                guard let instance = entry.toServiceInstance() else {
+                    validationErrors.append("Invalid service entry for \(type.displayName)")
+                    continue
+                }
+                instancesToImport.append((type: type, instance: instance, isPreferred: entry.isPreferred))
+            }
         }
 
+        if !validationErrors.isEmpty {
+            return .failure(message: "Cannot import: \(validationErrors.joined(separator: "; "))")
+        }
+
+        guard !instancesToImport.isEmpty else { return .success(count: 0) }
+
+        // MARK: - Phase 2: Save previous state for potential rollback
+        let previousInstances = servicesStore.allInstances
+            .filter { typesToReplace.contains($0.type) }
+            .map { ($0.id, $0.type) }
+        let previousPreferredIds = servicesStore.preferredInstanceIdByType
+
+        // MARK: - Phase 3: Delete old instances
+        for (id, _) in previousInstances {
+            servicesStore.deleteInstance(id: id)
+        }
+
+        // MARK: - Phase 4: Import new instances
         var importedCount = 0
-        for type in typesToReplace {
-            let entries = entriesByType[type] ?? []
-            var preferredId: UUID?
+        var preferredIdsByType: [ServiceType: UUID] = [:]
 
-            for entry in entries {
-                guard let instance = entry.toServiceInstance() else { continue }
-                await servicesStore.saveInstance(instance, triggerReachabilityCheck: false)
-                importedCount += 1
-                if entry.isPreferred {
-                    preferredId = instance.id
-                }
+        for item in instancesToImport {
+            await servicesStore.saveInstance(item.instance, triggerReachabilityCheck: false)
+            importedCount += 1
+            if item.isPreferred {
+                preferredIdsByType[item.type] = item.instance.id
             }
+        }
 
-            if let preferredId {
-                servicesStore.setPreferredInstance(id: preferredId, for: type)
-            }
+        // Apply preferred instance IDs
+        for (type, id) in preferredIdsByType {
+            servicesStore.setPreferredInstance(id: id, for: type)
         }
 
         await servicesStore.checkAllReachability(force: true)
-        return importedCount
+        return .success(count: importedCount)
     }
 
     // MARK: - Private

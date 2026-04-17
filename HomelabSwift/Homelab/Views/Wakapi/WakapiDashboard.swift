@@ -261,7 +261,7 @@ struct WakapiDashboard: View {
                             selectedInterval = interval
                         }
                     } label: {
-                        Text(interval.label(using: localizer.t))
+                        Text(interval.label(using: localizer.translations))
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(selectedInterval == interval ? .white : AppTheme.textSecondary)
                             .padding(.horizontal, 12)
@@ -318,6 +318,7 @@ struct WakapiDashboard: View {
 
     private func overviewCard(_ summary: WakapiSummary) -> some View {
         let total = summary.effectiveGrandTotal
+        let hasActivity = total.totalSeconds ?? 0 > 0
 
         return VStack(alignment: .leading, spacing: 14) {
             HStack {
@@ -327,25 +328,32 @@ struct WakapiDashboard: View {
                         .foregroundStyle(AppTheme.textMuted)
                         .textCase(.uppercase)
 
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text("\(total.hours ?? 0)")
-                            .font(.system(size: 38, weight: .bold))
-                            .foregroundStyle(wakapiColor)
-                        Text(localizer.t.unitHours)
-                            .font(.headline)
-                            .foregroundStyle(AppTheme.textSecondary)
-                        Text("\(total.minutes ?? 0)")
-                            .font(.system(size: 38, weight: .bold))
-                            .foregroundStyle(wakapiColor)
-                        Text(localizer.t.unitMinutes)
-                            .font(.headline)
-                            .foregroundStyle(AppTheme.textSecondary)
-                    }
+                    if hasActivity {
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text("\(total.hours ?? 0)")
+                                .font(.system(size: 38, weight: .bold))
+                                .foregroundStyle(wakapiColor)
+                            Text(localizer.t.unitHours)
+                                .font(.headline)
+                                .foregroundStyle(AppTheme.textSecondary)
+                            Text("\(total.minutes ?? 0)")
+                                .font(.system(size: 38, weight: .bold))
+                                .foregroundStyle(wakapiColor)
+                            Text(localizer.t.unitMinutes)
+                                .font(.headline)
+                                .foregroundStyle(AppTheme.textSecondary)
+                        }
 
-                    if let text = total.text ?? total.digital {
-                        Text(text)
-                            .font(.subheadline)
-                            .foregroundStyle(AppTheme.textSecondary)
+                        if let text = total.text ?? total.digital {
+                            Text(text)
+                                .font(.subheadline)
+                                .foregroundStyle(AppTheme.textSecondary)
+                        }
+                    } else {
+                        Text(localizer.t.wakapiNoRecentActivity)
+                            .font(.title3)
+                            .foregroundStyle(AppTheme.textMuted)
+                            .padding(.vertical, 8)
                     }
                 }
 
@@ -361,7 +369,7 @@ struct WakapiDashboard: View {
             HStack(spacing: 10) {
                 summaryPill(
                     title: localizer.t.wakapiIntervalLabel,
-                    value: selectedInterval.label(using: localizer.t)
+                    value: selectedInterval.label(using: localizer.translations)
                 )
 
                 if let activeFilter {
@@ -443,7 +451,7 @@ struct WakapiDashboard: View {
                 activityMetricCard(
                     title: localizer.t.jellystatActiveDays,
                     value: "\(snapshot.activeDays)",
-                    caption: WakapiActivityCaptionFormatter.recentWindowLabel(days: snapshot.recentPoints.count, using: localizer.t)
+                    caption: WakapiActivityCaptionFormatter.recentWindowLabel(days: snapshot.recentPoints.count, using: localizer.translations)
                 )
                 activityMetricCard(
                     title: localizer.t.wakapiBestDay,
@@ -470,45 +478,40 @@ struct WakapiDashboard: View {
 
             let cellSize: CGFloat = 12
             let cellSpacing: CGFloat = 3
-            let gridWidth = CGFloat(snapshot.heatmapWeeks.count) * cellSize + CGFloat(max(snapshot.heatmapWeeks.count - 1, 0)) * cellSpacing
             let gridHeight = CGFloat(7) * cellSize + CGFloat(6) * cellSpacing
             let legendWidth: CGFloat = 34
 
-            GeometryReader { proxy in
-                let availableWidth = max(proxy.size.width - legendWidth - 12, 0)
-                HStack(alignment: .top, spacing: 12) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(alignment: .top, spacing: cellSpacing) {
-                            ForEach(Array(snapshot.heatmapWeeks.enumerated()), id: \.offset) { _, week in
-                                VStack(spacing: cellSpacing) {
-                                    ForEach(Array(week.enumerated()), id: \.offset) { _, day in
-                                        RoundedRectangle(cornerRadius: 3, style: .continuous)
-                                            .fill(colors[day.level])
-                                            .frame(width: cellSize, height: cellSize)
-                                    }
+            // Simplified layout without GeometryReader to avoid layout instability.
+            HStack(alignment: .top, spacing: 12) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: cellSpacing) {
+                        ForEach(snapshot.heatmapWeeks.indices, id: \.self) { weekIdx in
+                            VStack(spacing: cellSpacing) {
+                                ForEach(snapshot.heatmapWeeks[weekIdx].indices, id: \.self) { dayIdx in
+                                    RoundedRectangle(cornerRadius: 3, style: .continuous)
+                                        .fill(colors[snapshot.heatmapWeeks[weekIdx][dayIdx].level])
+                                        .frame(width: cellSize, height: cellSize)
                                 }
                             }
                         }
-                        .frame(width: max(gridWidth, availableWidth), alignment: .center)
                     }
-                    .frame(height: gridHeight)
-                    .frame(maxWidth: availableWidth, alignment: .leading)
-
-                    VStack(spacing: 4) {
-                        Text(localizer.t.giteaLessActive)
-                        ForEach(Array(colors.enumerated()), id: \.offset) { _, color in
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(color)
-                                .frame(width: 12, height: 12)
-                        }
-                        Text(localizer.t.giteaMoreActive)
-                    }
-                    .font(.system(size: 10))
-                    .foregroundStyle(AppTheme.textMuted)
-                    .frame(width: legendWidth)
+                    .padding(.vertical, 4)
                 }
+                .frame(height: gridHeight)
+
+                VStack(spacing: 4) {
+                    Text(localizer.t.giteaLessActive)
+                    ForEach(colors.indices, id: \.self) { idx in
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(colors[idx])
+                            .frame(width: 12, height: 12)
+                    }
+                    Text(localizer.t.giteaMoreActive)
+                }
+                .font(.system(size: 10))
+                .foregroundStyle(AppTheme.textMuted)
+                .frame(width: legendWidth)
             }
-            .frame(height: gridHeight)
         }
         .padding(18)
         .glassCard()

@@ -26,6 +26,7 @@ data class BackupServiceEntry(
     val label: String,
     val url: String,
     val token: String? = null,
+    val proxmoxCsrfToken: String? = null,
     val username: String? = null,
     val apiKey: String? = null,
     val piholePassword: String? = null,
@@ -68,6 +69,7 @@ object BackupServiceTypeMapper {
             ServiceType.GLUETUN -> "gluetun"
             ServiceType.FLARESOLVERR -> "flaresolverr"
             ServiceType.WAKAPI -> "wakapi"
+            ServiceType.PROXMOX -> "proxmox"
             ServiceType.UNKNOWN -> "unknown"
         }
     }
@@ -101,6 +103,7 @@ object BackupServiceTypeMapper {
             "flaresolverr" -> ServiceType.FLARESOLVERR
             "wakapi" -> ServiceType.WAKAPI
             "crafty_controller", "crafty" -> ServiceType.CRAFTY_CONTROLLER
+            "proxmox" -> ServiceType.PROXMOX
             else -> null
         }
     }
@@ -131,6 +134,7 @@ fun ServiceInstance.toBackupEntry(isPreferred: Boolean): BackupServiceEntry {
         label = label, // in iOS it was displayLabel, here label is equivalent
         url = url,
         token = token.ifBlank { null },
+        proxmoxCsrfToken = proxmoxCsrfToken,
         username = username,
         apiKey = apiKey,
         piholePassword = piholePassword,
@@ -150,6 +154,7 @@ fun BackupServiceEntry.toServiceInstance(): ServiceInstance? {
         label = label,
         url = url,
         token = token ?: "",
+        proxmoxCsrfToken = proxmoxCsrfToken,
         username = username,
         apiKey = apiKey,
         piholePassword = piholePassword,

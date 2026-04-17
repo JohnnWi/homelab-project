@@ -1,7 +1,9 @@
 import Foundation
 
 actor PortainerAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var jwt: String = ""
@@ -9,25 +11,36 @@ actor PortainerAPIClient {
     private var useApiKey: Bool = false
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .portainer, instanceId: instanceId)
     }
 
     // MARK: - Configuration
 
-    func configure(url: String, jwt: String, fallbackUrl: String? = nil) {
+    func configure(url: String, jwt: String, fallbackUrl: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.jwt = jwt
         self.apiKey = ""
         self.useApiKey = false
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .portainer, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
-    func configureWithApiKey(url: String, apiKey: String, fallbackUrl: String? = nil) {
+    func configureWithApiKey(url: String, apiKey: String, fallbackUrl: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.apiKey = apiKey
         self.jwt = ""
         self.useApiKey = true
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .portainer, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     func isUsingApiKey() -> Bool { useApiKey }
@@ -59,9 +72,19 @@ actor PortainerAPIClient {
 
     // MARK: - Authentication
 
-    func authenticate(url: String, username: String, password: String) async throws -> String {
+    func authenticate(url: String, username: String, password: String, fallbackUrl: String? = nil) async throws -> String {
         let cleanURL = Self.cleanURL(url)
-        let authURL = "\(cleanURL)/api/auth"
+        do {
+            return try await authenticateAgainst(url: cleanURL, username: username, password: password)
+        } catch {
+            let cleanFallback = Self.cleanURL(fallbackUrl ?? "")
+            guard !cleanFallback.isEmpty, cleanFallback != cleanURL else { throw error }
+            return try await authenticateAgainst(url: cleanFallback, username: username, password: password)
+        }
+    }
+
+    private func authenticateAgainst(url: String, username: String, password: String) async throws -> String {
+        let authURL = "\(url)/api/auth"
         guard let url = URL(string: authURL) else { throw APIError.invalidURL }
 
         // Try lowercase keys first (modern Portainer)
@@ -72,9 +95,7 @@ actor PortainerAPIClient {
         req.httpBody = body1
         req.timeoutInterval = 8
 
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 8
-        let session = URLSession(configuration: config, delegate: BaseNetworkEngine.insecureDelegateForPortainerAuth, delegateQueue: nil)
+        let session = BaseNetworkEngine.authSession(allowSelfSigned: storedAllowSelfSigned, timeout: 8)
         let (data1, resp1) = try await session.data(for: req)
 
         if let http = resp1 as? HTTPURLResponse, http.statusCode == 200 {

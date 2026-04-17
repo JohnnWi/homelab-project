@@ -2,16 +2,10 @@ package com.homelab.app.ui.home
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import java.text.NumberFormat
-import java.util.Locale
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,25 +28,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Source
-import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
@@ -73,17 +60,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -99,13 +80,10 @@ import com.homelab.app.R
 import com.homelab.app.domain.model.ServiceInstance
 import com.homelab.app.ui.theme.StatusGreen
 import com.homelab.app.ui.components.ServiceIcon
-import com.homelab.app.ui.theme.backgroundColor
-import com.homelab.app.ui.theme.fallbackIcon
 import com.homelab.app.ui.theme.primaryColor
 import com.homelab.app.util.ServiceType
 import coil3.compose.SubcomposeAsyncImage
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -258,9 +236,7 @@ fun HomeScreen(
                     items(instances, key = { it.id }) { instance ->
                         InstanceCard(
                             type = type,
-    
                             instance = instance,
-                            isPreferred = instance.id == preferredInstanceIds[type],
                             isReachable = reachability[instance.id],
                             isPinging = pinging[instance.id] == true,
                             summary = instanceSummaries[instance.id],
@@ -303,7 +279,6 @@ fun HomeScreen(
 private fun InstanceCard(
     type: ServiceType,
     instance: ServiceInstance,
-    isPreferred: Boolean,
     isReachable: Boolean?,
     isPinging: Boolean,
     summary: HomeViewModel.InstanceSummary?,
@@ -356,8 +331,9 @@ private fun InstanceCard(
             "hosts" -> stringResource(R.string.patchmon_hosts)
             "plex_total_items" -> stringResource(R.string.plex_total_items)
             "coded_today" -> stringResource(R.string.wakapi_coded_today)
-            else -> s.label
-        }.lowercase()
+            "proxmox_guests_running" -> stringResource(R.string.proxmox_guests_running)
+            else -> s.label.lowercase()
+        }
     }
 
     Surface(
@@ -665,228 +641,6 @@ fun TailscaleCard(isConnected: Boolean) {
 
 
 @Composable
-fun DashboardSummary(viewModel: HomeViewModel) {
-    val portainer by viewModel.portainerSummary.collectAsStateWithLifecycle()
-    val pihole by viewModel.piholeSummary.collectAsStateWithLifecycle()
-    val adguard by viewModel.adguardSummary.collectAsStateWithLifecycle()
-    val beszel by viewModel.beszelSummary.collectAsStateWithLifecycle()
-    val gitea by viewModel.giteaSummary.collectAsStateWithLifecycle()
-    val linuxUpdate by viewModel.linuxUpdateSummary.collectAsStateWithLifecycle()
-    val healthchecks by viewModel.healthchecksSummary.collectAsStateWithLifecycle()
-    val connectionStatus by viewModel.connectionStatus.collectAsStateWithLifecycle()
-
-    val hasAny = connectionStatus.values.any { it }
-
-    if (hasAny) {
-        Spacer(modifier = Modifier.height(32.dp))
-        Text(stringResource(R.string.home_summary_title), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Column(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            if (connectionStatus[ServiceType.PORTAINER] == true) {
-                SummaryRow(title = stringResource(R.string.portainer_containers), value = portainer?.running?.toString() ?: "—", subValue = portainer?.let { "/ ${it.total}" }, icon = Icons.Default.Widgets, color = ServiceType.PORTAINER.primaryColor)
-            }
-            if (connectionStatus[ServiceType.PIHOLE] == true) {
-                val q = pihole?.totalQueries
-                val formattedStr = if(q != null) NumberFormat.getInstance(Locale.ITALY).format(q) else "—"
-                SummaryRow(title = stringResource(R.string.pihole_total_queries), value = formattedStr, subValue = null, icon = Icons.Default.Security, color = ServiceType.PIHOLE.primaryColor)
-            }
-            if (connectionStatus[ServiceType.ADGUARD_HOME] == true) {
-                val q = adguard?.totalQueries
-                val formattedStr = if (q != null) NumberFormat.getInstance(Locale.ITALY).format(q) else "—"
-                SummaryRow(title = stringResource(R.string.adguard_total_queries), value = formattedStr, subValue = null, icon = Icons.Default.Security, color = ServiceType.ADGUARD_HOME.primaryColor)
-            }
-            if (connectionStatus[ServiceType.BESZEL] == true) {
-                SummaryRow(title = stringResource(R.string.beszel_systems_online), value = beszel?.online?.toString() ?: "—", subValue = beszel?.let { "/ ${it.total}" }, icon = Icons.Default.Storage, color = ServiceType.BESZEL.primaryColor)
-            }
-            if (connectionStatus[ServiceType.GITEA] == true) {
-                SummaryRow(title = stringResource(R.string.gitea_repos), value = gitea?.totalRepos?.toString() ?: "—", subValue = null, icon = Icons.Default.Source, color = ServiceType.GITEA.primaryColor)
-            }
-            if (connectionStatus[ServiceType.LINUX_UPDATE] == true) {
-                SummaryRow(
-                    title = stringResource(R.string.linux_update_systems_up_to_date),
-                    value = linuxUpdate?.upToDate?.toString() ?: "—",
-                    subValue = linuxUpdate?.let { "/ ${it.total}" },
-                    icon = Icons.Default.CheckCircle,
-                    color = ServiceType.LINUX_UPDATE.primaryColor
-                )
-            }
-            if (connectionStatus[ServiceType.HEALTHCHECKS] == true) {
-                SummaryRow(title = stringResource(R.string.healthchecks_checks), value = healthchecks?.up?.toString() ?: "—", subValue = healthchecks?.let { "/ ${it.total}" }, icon = Icons.Default.CheckCircle, color = ServiceType.HEALTHCHECKS.primaryColor)
-            }
-        }
-    }
-}
-
-@Composable
-fun SummaryRow(title: String, value: String, subValue: String?, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Surface(shape = RoundedCornerShape(12.dp), color = color.copy(alpha = 0.15f), modifier = Modifier.size(42.dp)) {
-            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.padding(10.dp))
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
-                if (subValue != null) {
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(subValue, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 2.dp))
-                }
-            }
-            Text(title, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
-}
-
-@Composable
-fun ServiceCard(
-    type: ServiceType,
-    isConnected: Boolean,
-    isReachable: Boolean?,
-    isPinging: Boolean,
-    onClick: () -> Unit,
-    onRefresh: () -> Unit
-) {
-    // M3 Expressive Spring animation state
-    var isPressed by remember { mutableStateOf(false) }
-    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "card_bounce"
-    )
-
-    // Base colors based on type (simulating iOS theme)
-    val cardBgColor = MaterialTheme.colorScheme.surfaceContainerLow
-    val iconColor = type.primaryColor
-    val iconBgColor = iconColor.copy(alpha = 0.15f)
-
-    val serviceIcon = type.fallbackIcon
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(130.dp)
-            .scale(scale)
-            .clip(RoundedCornerShape(24.dp))
-            .pointerInput(onClick) {
-                detectTapGestures(
-                    onPress = {
-                        isPressed = true
-                        val success = tryAwaitRelease()
-                        isPressed = false
-                        if (success) {
-                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                            onClick()
-                        }
-                    }
-                )
-            }
-        ,
-        color = cardBgColor,
-        shape = RoundedCornerShape(24.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Surface(
-                    color = iconBgColor,
-                    shape = RoundedCornerShape(18.dp),
-                    modifier = Modifier.size(50.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = serviceIcon,
-                            contentDescription = type.displayName,
-                            tint = iconColor,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                }
-
-                if (isPinging) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                } else {
-                    IconButton(onClick = onRefresh, modifier = Modifier.size(28.dp)) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = stringResource(R.string.refresh),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = type.displayName,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            val statusText = when {
-                isConnected && isReachable == false -> stringResource(R.string.error_server_unreachable)
-                isConnected -> stringResource(R.string.home_status_online)
-                else -> stringResource(R.string.home_status_offline)
-            }
-
-            val statusColor = when {
-                isConnected && isReachable == false -> MaterialTheme.colorScheme.error
-                isConnected -> StatusGreen
-                else -> MaterialTheme.colorScheme.onSurfaceVariant
-            }
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(statusColor, CircleShape)
-                )
-                Text(
-                    text = statusText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = statusColor,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                contentDescription = type.displayName,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.End)
-            )
-        }
-    }
-}
-
-@Composable
 private fun ServiceOrderDialog(
     serviceOrder: List<ServiceType>,
     hiddenServices: Set<String>,
@@ -969,181 +723,3 @@ private fun ServiceOrderDialog(
     )
 }
 
-@Composable
-private fun DashboardSummary(
-    serviceOrder: List<ServiceType>,
-    portainer: HomeViewModel.PortainerSummary?,
-    pihole: HomeViewModel.PiholeSummary?,
-    adguard: HomeViewModel.AdGuardSummary?,
-    beszel: HomeViewModel.BeszelSummary?,
-    gitea: HomeViewModel.GiteaSummary?,
-    npm: HomeViewModel.NpmSummary?
-) {
-    // Don't show if no services are defined in order
-    if (serviceOrder.isEmpty()) return
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = stringResource(R.string.home_summary_title),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // We only show summaries for services that are actually in the service order
-        val availableSummaries = serviceOrder.map { type ->
-            val summary = when (type) {
-                ServiceType.PORTAINER -> portainer
-                ServiceType.PIHOLE -> pihole
-                ServiceType.ADGUARD_HOME -> adguard
-                ServiceType.BESZEL -> beszel
-                ServiceType.GITEA -> gitea
-                ServiceType.NGINX_PROXY_MANAGER -> npm
-                else -> null
-            }
-            type to summary
-        }
-
-        availableSummaries.chunked(2).forEach { rowItems ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                rowItems.forEach { (type, summary) ->
-                    Box(modifier = Modifier.weight(1f)) {
-                        if (summary != null) {
-                            when (type) {
-                                ServiceType.PORTAINER -> {
-                                    val s = summary as HomeViewModel.PortainerSummary
-                                    DashboardSummaryCard(
-                                        type = type,
-                                        value = "${s.running}/${s.total}",
-                                        label = stringResource(R.string.portainer_containers)
-                                    )
-                                }
-                                ServiceType.PIHOLE -> {
-                                    val s = summary as HomeViewModel.PiholeSummary
-                                    DashboardSummaryCard(
-                                        type = type,
-                                        value = s.totalQueries.toString(),
-                                        label = stringResource(R.string.pihole_total_queries)
-                                    )
-                                }
-                                ServiceType.ADGUARD_HOME -> {
-                                    val s = summary as HomeViewModel.AdGuardSummary
-                                    DashboardSummaryCard(
-                                        type = type,
-                                        value = s.totalQueries.toString(),
-                                        label = stringResource(R.string.adguard_total_queries)
-                                    )
-                                }
-                                ServiceType.BESZEL -> {
-                                    val s = summary as HomeViewModel.BeszelSummary
-                                    DashboardSummaryCard(
-                                        type = type,
-                                        value = "${s.online}/${s.total}",
-                                        label = stringResource(R.string.beszel_systems_online)
-                                    )
-                                }
-                                ServiceType.GITEA -> {
-                                    val s = summary as HomeViewModel.GiteaSummary
-                                    DashboardSummaryCard(
-                                        type = type,
-                                        value = s.totalRepos.toString(),
-                                        label = pluralStringResource(R.plurals.home_summary_gitea, s.totalRepos, s.totalRepos)
-                                    )
-                                }
-                                ServiceType.NGINX_PROXY_MANAGER -> {
-                                    val s = summary as HomeViewModel.NpmSummary
-                                    DashboardSummaryCard(
-                                        type = type,
-                                        value = "${s.proxyHosts}/${s.total}",
-                                        label = stringResource(R.string.npm_proxy_hosts)
-                                    )
-                                }
-                                else -> {}
-                            }
-                        } else {
-                            // Placeholder while loading
-                            DashboardSummaryCard(
-                                type = type,
-                                value = "...",
-                                label = ""
-                            )
-                        }
-                    }
-                }
-                if (rowItems.size == 1) {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DashboardSummaryCard(
-    type: ServiceType,
-    value: String,
-    label: String
-) {
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            ServiceIcon(
-                type = type,
-                size = 56.dp,
-                iconSize = 36.dp,
-                cornerRadius = 14.dp
-            )
-
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SummaryRow(
-    title: String,
-    value: String
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}

@@ -1,5 +1,6 @@
 package com.homelab.app.data.repository
 
+import com.homelab.app.data.remote.TlsClientSelector
 import com.homelab.app.data.remote.api.JellystatApi
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -29,8 +30,8 @@ class JellystatRepositoryTest {
     @Test
     fun `getWatchSummary parses payload and aggregates correctly`() = runTest {
         val api = mockk<JellystatApi>()
-        val okHttpClient = mockk<OkHttpClient>(relaxed = true)
-        val repository = JellystatRepository(api, okHttpClient)
+        val tlsClientSelector = mockk<TlsClientSelector>(relaxed = true)
+        val repository = JellystatRepository(api, tlsClientSelector)
 
         coEvery { api.getViewsByLibraryType(instanceId = "instance-1", days = 1) } returns JsonObject(
             mapOf(
@@ -97,8 +98,8 @@ class JellystatRepositoryTest {
     @Test
     fun `getWatchSummary clamps days to max limit`() = runTest {
         val api = mockk<JellystatApi>()
-        val okHttpClient = mockk<OkHttpClient>(relaxed = true)
-        val repository = JellystatRepository(api, okHttpClient)
+        val tlsClientSelector = mockk<TlsClientSelector>(relaxed = true)
+        val repository = JellystatRepository(api, tlsClientSelector)
 
         coEvery { api.getViewsByLibraryType(instanceId = "instance-2", days = 3650) } returns JsonObject(
             mapOf(
@@ -123,10 +124,12 @@ class JellystatRepositoryTest {
     fun `authenticate sends token header to jellystat endpoint`() = runTest {
         val api = mockk<JellystatApi>(relaxed = true)
         val okHttpClient = mockk<OkHttpClient>()
+        val tlsClientSelector = mockk<TlsClientSelector>()
         val call = mockk<Call>()
         val requestSlot = slot<Request>()
-        val repository = JellystatRepository(api, okHttpClient)
+        val repository = JellystatRepository(api, tlsClientSelector)
 
+        every { tlsClientSelector.forAllowSelfSigned(false) } returns okHttpClient
         every { okHttpClient.newCall(capture(requestSlot)) } returns call
         every { call.execute() } answers { response(requestSlot.captured, 200) }
 
@@ -144,10 +147,12 @@ class JellystatRepositoryTest {
     fun `authenticate throws for non successful response`() = runTest {
         val api = mockk<JellystatApi>(relaxed = true)
         val okHttpClient = mockk<OkHttpClient>()
+        val tlsClientSelector = mockk<TlsClientSelector>()
         val call = mockk<Call>()
         val requestSlot = slot<Request>()
-        val repository = JellystatRepository(api, okHttpClient)
+        val repository = JellystatRepository(api, tlsClientSelector)
 
+        every { tlsClientSelector.forAllowSelfSigned(false) } returns okHttpClient
         every { okHttpClient.newCall(capture(requestSlot)) } returns call
         every { call.execute() } answers { response(requestSlot.captured, 401) }
 
@@ -169,4 +174,3 @@ class JellystatRepositoryTest {
             .build()
     }
 }
-

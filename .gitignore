@@ -26,6 +26,7 @@ secrets.json
 
 # IDE / Editor
 .claude/
+.qwen/
 .idea/
 .vscode/
 .gradle/
@@ -63,6 +64,16 @@ HomelabSwift/.swiftpm/
 HomelabSwift/Packages/
 HomelabSwift/**/*.resolved
 HomelabSwift/Config/Signing.xcconfig
+
+# XcodeGen generated files (safe to regenerate)
+HomelabSwift/Homelab.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Swift linting / formatting
+.swiftlint.yml
+.swiftpm/
+
+# Gitea / CI artifacts
+.gitea/
 
 # ----------------------------
 # Android / Kotlin (HomelabAndroid)

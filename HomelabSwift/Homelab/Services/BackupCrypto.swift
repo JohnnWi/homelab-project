@@ -33,9 +33,9 @@ enum BackupCrypto {
 
         var errorDescription: String? {
             switch self {
-            case .invalidFileFormat:   return "Invalid backup file format."
+            case .invalidFileFormat:   return "Invalid backup file format. The file may be corrupted."
             case .unsupportedVersion:  return "Unsupported backup file version."
-            case .decryptionFailed:    return "Decryption failed. Wrong password?"
+            case .decryptionFailed:    return "Decryption failed. Check your password and verify the file is not corrupted."
             case .keyDerivationFailed: return "Key derivation failed."
             }
         }

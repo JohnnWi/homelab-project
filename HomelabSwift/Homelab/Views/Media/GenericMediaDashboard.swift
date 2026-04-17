@@ -136,7 +136,7 @@ struct GenericMediaDashboard: View {
                 Text(serviceType.displayName)
                     .font(.title.bold())
 
-                Text(serviceType.description)
+                Text(serviceType.localizedDescription(using: localizer.translations))
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.textSecondary)
                     .multilineTextAlignment(.center)
@@ -969,7 +969,12 @@ struct GenericMediaDashboard: View {
         defer { isRunningServiceAction = false }
 
         let client = GenericAPIClient(serviceType: .prowlarr, instanceId: instanceId)
-        await client.configure(url: current.url, fallbackUrl: current.fallbackUrl, apiKey: current.apiKey)
+        await client.configure(
+            url: current.url,
+            fallbackUrl: current.fallbackUrl,
+            apiKey: current.apiKey,
+            allowSelfSigned: current.allowSelfSigned
+        )
 
         do {
             switch action {
@@ -1003,7 +1008,12 @@ struct GenericMediaDashboard: View {
         defer { isRunningServiceAction = false }
 
         let client = GenericAPIClient(serviceType: .jellyseerr, instanceId: instanceId)
-        await client.configure(url: current.url, fallbackUrl: current.fallbackUrl, apiKey: current.apiKey)
+        await client.configure(
+            url: current.url,
+            fallbackUrl: current.fallbackUrl,
+            apiKey: current.apiKey,
+            allowSelfSigned: current.allowSelfSigned
+        )
 
         do {
             switch action {
@@ -1055,7 +1065,12 @@ struct GenericMediaDashboard: View {
         contentSearchError = nil
 
         let client = GenericAPIClient(serviceType: serviceType, instanceId: instanceId)
-        await client.configure(url: current.url, fallbackUrl: current.fallbackUrl, apiKey: current.apiKey)
+        await client.configure(
+            url: current.url,
+            fallbackUrl: current.fallbackUrl,
+            apiKey: current.apiKey,
+            allowSelfSigned: current.allowSelfSigned
+        )
 
         do {
             contentSearchResults = try await client.searchContent(query: term, limit: 20)
@@ -1099,7 +1114,12 @@ struct GenericMediaDashboard: View {
         defer { pendingContentRequestIds.remove(result.id) }
 
         let client = GenericAPIClient(serviceType: .jellyseerr, instanceId: instanceId)
-        await client.configure(url: current.url, fallbackUrl: current.fallbackUrl, apiKey: current.apiKey)
+        await client.configure(
+            url: current.url,
+            fallbackUrl: current.fallbackUrl,
+            apiKey: current.apiKey,
+            allowSelfSigned: current.allowSelfSigned
+        )
 
         do {
             try await client.requestJellyseerrContent(mediaType: mediaType, mediaId: mediaId)
@@ -1125,7 +1145,12 @@ struct GenericMediaDashboard: View {
         defer { isRunningServiceAction = false }
 
         let client = GenericAPIClient(serviceType: .gluetun, instanceId: instanceId)
-        await client.configure(url: current.url, fallbackUrl: current.fallbackUrl, apiKey: current.apiKey)
+        await client.configure(
+            url: current.url,
+            fallbackUrl: current.fallbackUrl,
+            apiKey: current.apiKey,
+            allowSelfSigned: current.allowSelfSigned
+        )
 
         do {
             try await client.triggerGluetunRestart()
@@ -1150,7 +1175,12 @@ struct GenericMediaDashboard: View {
         defer { isRunningServiceAction = false }
 
         let client = GenericAPIClient(serviceType: .flaresolverr, instanceId: instanceId)
-        await client.configure(url: current.url, fallbackUrl: current.fallbackUrl, apiKey: current.apiKey)
+        await client.configure(
+            url: current.url,
+            fallbackUrl: current.fallbackUrl,
+            apiKey: current.apiKey,
+            allowSelfSigned: current.allowSelfSigned
+        )
 
         do {
             let sessionId = try await client.createFlaresolverrSession()
@@ -1175,7 +1205,12 @@ struct GenericMediaDashboard: View {
         defer { pendingSessionDeletions.remove(session) }
 
         let client = GenericAPIClient(serviceType: .flaresolverr, instanceId: instanceId)
-        await client.configure(url: current.url, fallbackUrl: current.fallbackUrl, apiKey: current.apiKey)
+        await client.configure(
+            url: current.url,
+            fallbackUrl: current.fallbackUrl,
+            apiKey: current.apiKey,
+            allowSelfSigned: current.allowSelfSigned
+        )
 
         do {
             try await client.destroyFlaresolverrSession(session)
@@ -1230,7 +1265,12 @@ struct GenericMediaDashboard: View {
         defer { isLoadingDetails = false }
 
         let client = GenericAPIClient(serviceType: serviceType, instanceId: instanceId)
-        await client.configure(url: current.url, fallbackUrl: current.fallbackUrl, apiKey: current.apiKey)
+        await client.configure(
+            url: current.url,
+            fallbackUrl: current.fallbackUrl,
+            apiKey: current.apiKey,
+            allowSelfSigned: current.allowSelfSigned
+        )
 
         let shouldRefreshDetails = !silent || silentDetailsSkips >= 1
         if shouldRefreshDetails {
@@ -1258,7 +1298,12 @@ struct GenericMediaDashboard: View {
         defer { pendingRequestActions.remove(requestId) }
 
         let client = GenericAPIClient(serviceType: .jellyseerr, instanceId: instanceId)
-        await client.configure(url: current.url, fallbackUrl: current.fallbackUrl, apiKey: current.apiKey)
+        await client.configure(
+            url: current.url,
+            fallbackUrl: current.fallbackUrl,
+            apiKey: current.apiKey,
+            allowSelfSigned: current.allowSelfSigned
+        )
 
         do {
             if approve {

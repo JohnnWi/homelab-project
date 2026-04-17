@@ -1,7 +1,9 @@
 import Foundation
 
 actor PiHoleAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var sid: String = ""
@@ -11,17 +13,23 @@ actor PiHoleAPIClient {
     private var onTokenRefreshed: (@Sendable (String, PiHoleAuthMode) -> Void)?
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .pihole, instanceId: instanceId)
     }
 
     // MARK: - Configuration
 
-    func configure(url: String, sid: String, authMode: PiHoleAuthMode? = nil, fallbackUrl: String? = nil, password: String? = nil) {
+    func configure(url: String, sid: String, authMode: PiHoleAuthMode? = nil, fallbackUrl: String? = nil, password: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.sid = sid
         self.authMode = authMode
         if let password, !password.isEmpty { self.storedPassword = password }
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .pihole, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     /// Set a callback invoked after successful token refresh so the store can persist it
@@ -84,7 +92,7 @@ actor PiHoleAPIClient {
         }
         guard !sid.isEmpty, !path.contains("auth=") else { return path }
         let separator = path.contains("?") ? "&" : "?"
-        let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
+        let encodedSid = encodeSIDForQuery()
         return "\(path)\(separator)auth=\(encodedSid)"
     }
 
@@ -216,7 +224,7 @@ actor PiHoleAPIClient {
                 return response.domains
             } catch {
                 // Legacy fallback (Pi-hole v5)
-                let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
+                let encodedSid = encodeSIDForQuery()
                 let data = try await engine.requestData(
                     baseURL: baseURL,
                     fallbackURL: fallbackURL,
@@ -248,7 +256,7 @@ actor PiHoleAPIClient {
             } catch {
                 // Legacy fallback (Pi-hole v5)
                 let encodedDomain = domain.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? domain
-                let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
+                let encodedSid = encodeSIDForQuery()
                 let listParam = list == .allow ? "white" : "black"
                 let path = "/admin/api.php?list=\(listParam)&add=\(encodedDomain)&auth=\(encodedSid)"
                 _ = try await engine.requestData(baseURL: baseURL, fallbackURL: fallbackURL, path: path, headers: authHeaders())
@@ -272,7 +280,7 @@ actor PiHoleAPIClient {
             } catch {
                 // Legacy fallback (Pi-hole v5)
                 let queryDomain = domain.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? domain
-                let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
+                let encodedSid = encodeSIDForQuery()
                 let listParam = list == .allow ? "white" : "black"
                 let path = "/admin/api.php?list=\(listParam)&sub=\(queryDomain)&auth=\(encodedSid)"
                 _ = try await engine.requestData(baseURL: baseURL, fallbackURL: fallbackURL, path: path, headers: authHeaders())
@@ -354,7 +362,7 @@ actor PiHoleAPIClient {
                 // Continue with legacy fallback.
             }
 
-            let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
+            let encodedSid = encodeSIDForQuery()
             let legacyPath = "/admin/api.php?getAllQueriesRaw&from=\(fromTs)&until=\(untilTs)&auth=\(encodedSid)"
             let any = try await requestAny(path: legacyPath)
             return parseQueryEntries(from: any).sorted { $0.timestamp > $1.timestamp }
@@ -383,7 +391,7 @@ actor PiHoleAPIClient {
     }
 
     private func validateLegacyAuth(baseURL: String, fallbackURL: String, secret: String) async throws -> Bool {
-        let encodedSecret = secret.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? secret
+        let encodedSecret = Self.encodeForLegacyQuery(secret)
         let path = "/admin/api.php?summaryRaw&auth=\(encodedSecret)"
         do {
             let data = try await engine.requestData(
@@ -622,8 +630,21 @@ actor PiHoleAPIClient {
         url.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "/+$", with: "", options: .regularExpression)
     }
 
+    /// Encodes the session token for use in URL query parameters.
+    /// Uses a strict character set that encodes `+`, `=`, `&` to prevent
+    /// legacy PiHole v5 from misinterpreting the token value.
+    private func encodeSIDForQuery() -> String {
+        // Encode everything except alphanumerics, `-`, `_`, `.`, `~`
+        return sid.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? sid
+    }
+
+    /// Encodes an arbitrary value for legacy PiHole v5 query parameters.
+    private static func encodeForLegacyQuery(_ value: String) -> String {
+        value.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? value
+    }
+
     private func legacyAuthPath(_ basePath: String) -> String {
-        let encodedSid = sid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sid
+        let encodedSid = encodeSIDForQuery()
         guard !encodedSid.isEmpty else { return basePath }
         let separator = basePath.contains("?") ? "&" : "?"
         return "\(basePath)\(separator)auth=\(encodedSid)"

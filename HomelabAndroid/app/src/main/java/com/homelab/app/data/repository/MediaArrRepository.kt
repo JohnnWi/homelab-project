@@ -1,6 +1,7 @@
 package com.homelab.app.data.repository
 
 import android.net.Uri
+import com.homelab.app.data.remote.TlsClientSelector
 import com.homelab.app.domain.model.ServiceInstance
 import com.homelab.app.util.ServiceType
 import java.text.SimpleDateFormat
@@ -10,10 +11,12 @@ import java.util.TimeZone
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
@@ -207,14 +210,15 @@ class MediaArrRequestConfigurationRequiredException(
 @Singleton
 class MediaArrRepository @Inject constructor(
     private val serviceInstancesRepository: ServiceInstancesRepository,
-    private val okHttpClient: OkHttpClient
+    private val tlsClientSelector: TlsClientSelector
 ) {
 
     suspend fun authenticateWithApiKey(
         url: String,
         serviceType: ServiceType,
         apiKey: String,
-        fallbackUrl: String? = null
+        fallbackUrl: String? = null,
+        allowSelfSigned: Boolean = false
     ) = withContext(Dispatchers.IO) {
         val path = when (serviceType) {
             ServiceType.RADARR, ServiceType.SONARR -> "/api/v3/system/status"
@@ -256,6 +260,8 @@ class MediaArrRepository @Inject constructor(
                     method = "GET",
                     headers = headers,
                     bypass = true
+                    ,
+                    allowSelfSigned = allowSelfSigned
                 )
                 return@withContext
             } catch (error: Throwable) {
@@ -270,7 +276,8 @@ class MediaArrRepository @Inject constructor(
         url: String,
         username: String,
         password: String,
-        fallbackUrl: String? = null
+        fallbackUrl: String? = null,
+        allowSelfSigned: Boolean = false
     ): String {
         return withContext(Dispatchers.IO) {
             val baseCandidates = listOf(url, fallbackUrl)
@@ -290,7 +297,7 @@ class MediaArrRepository @Inject constructor(
                     .build()
 
                 try {
-                    okHttpClient.newCall(request).execute().use { response ->
+                    tlsClientSelector.forAllowSelfSigned(allowSelfSigned).newCall(request).execute().use { response ->
                         if (!response.isSuccessful) {
                             throw IllegalStateException("qBittorrent authentication failed")
                         }
@@ -740,10 +747,10 @@ class MediaArrRepository @Inject constructor(
         )
     }
 
-    private fun arrV3CardPreview(instance: ServiceInstance): MediaArrCardPreview {
-        val status = requestInstance(instance, "/api/v3/system/status").asJsonObject ?: JSONObject()
-        val queue = requestInstance(instance, "/api/v3/queue?page=1&pageSize=1&sortDirection=descending").asJsonObject ?: JSONObject()
-        val healthRows = requestInstance(instance, "/api/v3/health").asJsonArray ?: JSONArray()
+    private suspend fun arrV3CardPreview(instance: ServiceInstance): MediaArrCardPreview = coroutineScope {
+        val statusDeferred = async { requestInstance(instance, "/api/v3/system/status").asJsonObject ?: JSONObject() }
+        val queueDeferred = async { requestInstance(instance, "/api/v3/queue?page=1&pageSize=1&sortDirection=descending").asJsonObject ?: JSONObject() }
+        val healthDeferred = async { requestInstance(instance, "/api/v3/health").asJsonArray ?: JSONArray() }
 
         val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("UTC")
@@ -751,7 +758,12 @@ class MediaArrRepository @Inject constructor(
         val now = Date()
         val end = Date(now.time + 14L * 24L * 60L * 60L * 1000L)
         val calendarPath = "/api/v3/calendar?start=${dateFormatter.format(now)}&end=${dateFormatter.format(end)}"
-        val upcoming = requestInstance(instance, calendarPath).asJsonArray ?: JSONArray()
+        val upcomingDeferred = async { requestInstance(instance, calendarPath).asJsonArray ?: JSONArray() }
+
+        val status = statusDeferred.await()
+        val queue = queueDeferred.await()
+        val healthRows = healthDeferred.await()
+        val upcoming = upcomingDeferred.await()
 
         val queueTotal = queue.optInt("totalRecords", queue.optInt("recordsTotal", queue.optInt("total", 0)))
         val headline = listOfNotNull(
@@ -759,7 +771,7 @@ class MediaArrRepository @Inject constructor(
             status.optString("branch").takeIf { it.isNotBlank() }?.replaceFirstChar { it.uppercase() }
         ).joinToString(" • ").ifBlank { null }
 
-        return MediaArrCardPreview(
+        MediaArrCardPreview(
             serviceType = instance.type,
             headline = headline,
             metrics = listOf(
@@ -770,17 +782,23 @@ class MediaArrRepository @Inject constructor(
         )
     }
 
-    private fun lidarrCardPreview(instance: ServiceInstance): MediaArrCardPreview {
-        val status = requestInstance(instance, "/api/v1/system/status").asJsonObject ?: JSONObject()
-        val queue = requestInstance(instance, "/api/v1/queue?page=1&pageSize=1&sortDirection=descending").asJsonObject ?: JSONObject()
-        val healthRows = requestInstance(instance, "/api/v1/health").asJsonArray ?: JSONArray()
+    private suspend fun lidarrCardPreview(instance: ServiceInstance): MediaArrCardPreview = coroutineScope {
+        val statusDeferred = async { requestInstance(instance, "/api/v1/system/status").asJsonObject ?: JSONObject() }
+        val queueDeferred = async { requestInstance(instance, "/api/v1/queue?page=1&pageSize=1&sortDirection=descending").asJsonObject ?: JSONObject() }
+        val healthDeferred = async { requestInstance(instance, "/api/v1/health").asJsonArray ?: JSONArray() }
+
         val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }
         val now = Date()
         val end = Date(now.time + 14L * 24L * 60L * 60L * 1000L)
         val calendarPath = "/api/v1/calendar?start=${dateFormatter.format(now)}&end=${dateFormatter.format(end)}"
-        val upcoming = requestInstance(instance, calendarPath).asJsonArray ?: JSONArray()
+        val upcomingDeferred = async { requestInstance(instance, calendarPath).asJsonArray ?: JSONArray() }
+
+        val status = statusDeferred.await()
+        val queue = queueDeferred.await()
+        val healthRows = healthDeferred.await()
+        val upcoming = upcomingDeferred.await()
 
         val queueTotal = queue.optInt("totalRecords", queue.optInt("recordsTotal", queue.optInt("total", 0)))
         val headline = listOfNotNull(
@@ -788,7 +806,7 @@ class MediaArrRepository @Inject constructor(
             status.optString("branch").takeIf { it.isNotBlank() }?.replaceFirstChar { it.uppercase() }
         ).joinToString(" • ").ifBlank { null }
 
-        return MediaArrCardPreview(
+        MediaArrCardPreview(
             serviceType = instance.type,
             headline = headline,
             metrics = listOf(
@@ -2941,7 +2959,8 @@ class MediaArrRepository @Inject constructor(
         headers: Map<String, String>,
         body: String? = null,
         bypass: Boolean,
-        expectJson: Boolean = true
+        expectJson: Boolean = true,
+        allowSelfSigned: Boolean? = null
     ): RawResponse {
         val cleanBase = cleanUrl(baseUrl)
         val targetPath = if (path.startsWith("/")) path else "/$path"
@@ -2973,7 +2992,14 @@ class MediaArrRepository @Inject constructor(
             else -> requestBuilder.method(requestMethod, requestBody).build()
         }
 
-        okHttpClient.newCall(request).execute().use { response ->
+        val instanceId = headers["X-Homelab-Instance-Id"]
+        val client = when {
+            allowSelfSigned != null -> tlsClientSelector.forAllowSelfSigned(allowSelfSigned)
+            instanceId != null -> kotlinx.coroutines.runBlocking { tlsClientSelector.forInstance(instanceId) }
+            else -> tlsClientSelector.forAllowSelfSigned(false)
+        }
+
+        client.newCall(request).execute().use { response ->
             val responseBody = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
                 throw IllegalStateException("${response.code}: ${response.message}")

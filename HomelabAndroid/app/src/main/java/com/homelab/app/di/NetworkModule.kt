@@ -5,6 +5,7 @@ import com.homelab.app.data.remote.AuthInterceptor
 import com.homelab.app.data.remote.DebugLoggingInterceptor
 import com.homelab.app.data.remote.HtmlDetectionInterceptor
 import com.homelab.app.data.remote.SmartFallbackInterceptor
+import com.homelab.app.data.remote.TlsRoutingCallFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -43,19 +44,6 @@ object NetworkModule {
         debugLoggingInterceptor: DebugLoggingInterceptor,
         htmlDetectionInterceptor: HtmlDetectionInterceptor
     ): OkHttpClient {
-        val trustAllCerts = arrayOf<TrustManager>(
-            object : X509TrustManager {
-                override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-                override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-                override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
-            }
-        )
-
-        val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(null, trustAllCerts, SecureRandom())
-        val sslSocketFactory = sslContext.socketFactory
-        val trustManager = trustAllCerts.first() as X509TrustManager
-
         val builder = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
@@ -69,10 +57,7 @@ object NetworkModule {
 
         builder.addInterceptor(htmlDetectionInterceptor)
 
-        return builder
-            .sslSocketFactory(sslSocketFactory, trustManager)
-            .hostnameVerifier { _, _ -> true }
-            .build()
+        return builder.build()
     }
 
     @Provides
@@ -118,10 +103,10 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit {
+    fun provideRetrofit(callFactory: TlsRoutingCallFactory, json: Json): Retrofit {
         return Retrofit.Builder()
             .baseUrl("https://placeholder.local/")
-            .client(okHttpClient)
+            .callFactory(callFactory)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
     }
@@ -143,7 +128,7 @@ object NetworkModule {
     @Provides
     @Singleton
     fun providePortainerApi(
-        @Named("insecure") retrofit: Retrofit
+        retrofit: Retrofit
     ): com.homelab.app.data.remote.api.PortainerApi {
         return retrofit.create(com.homelab.app.data.remote.api.PortainerApi::class.java)
     }
@@ -236,5 +221,11 @@ object NetworkModule {
     @Singleton
     fun provideWakapiApi(retrofit: Retrofit): com.homelab.app.data.remote.api.WakapiApi {
         return retrofit.create(com.homelab.app.data.remote.api.WakapiApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideProxmoxApi(retrofit: Retrofit): com.homelab.app.data.remote.api.ProxmoxApi {
+        return retrofit.create(com.homelab.app.data.remote.api.ProxmoxApi::class.java)
     }
 }

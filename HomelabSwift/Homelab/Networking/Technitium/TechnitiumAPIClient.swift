@@ -89,7 +89,9 @@ struct TechnitiumActionOutcome: Sendable {
 }
 
 actor TechnitiumAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var sessionToken: String = ""
@@ -98,6 +100,7 @@ actor TechnitiumAPIClient {
     private var tokenRefreshCallback: (@Sendable (String) -> Void)?
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .technitium, instanceId: instanceId)
     }
 
@@ -107,7 +110,7 @@ actor TechnitiumAPIClient {
         fallbackUrl: String? = nil,
         username: String? = nil,
         password: String? = nil
-    ) {
+    , allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.sessionToken = token.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -117,6 +120,11 @@ actor TechnitiumAPIClient {
         if let password {
             self.storedPassword = password
         }
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .technitium, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     func setTokenRefreshCallback(_ callback: (@Sendable (String) -> Void)?) {

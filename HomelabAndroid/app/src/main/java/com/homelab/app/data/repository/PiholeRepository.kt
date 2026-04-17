@@ -32,7 +32,7 @@ class PiholeRepository @Inject constructor(
 
     private suspend fun refreshAuth(instance: ServiceInstance): String? {
         val secret = instance.piHoleStoredSecret ?: return instance.token.takeIf { it.isNotBlank() }
-        val refreshed = authenticate(url = instance.url, password = secret)
+        val refreshed = authenticate(url = instance.url, password = secret, allowSelfSigned = instance.allowSelfSigned)
         val mode = if (refreshed == secret) PiHoleAuthMode.LEGACY else PiHoleAuthMode.SESSION
         val updated = instance.updatingToken(refreshed, mode).copy(
             piholePassword = instance.piholePassword ?: secret
@@ -67,12 +67,13 @@ class PiholeRepository @Inject constructor(
         }
     }
 
-    suspend fun authenticate(url: String, password: String): String {
+    suspend fun authenticate(url: String, password: String, allowSelfSigned: Boolean = false): String {
         val cleanUrl = url.trimEnd('/') + "/api/auth"
         var authFailure: Exception? = null
         try {
             val response = api.authenticate(
-                url = cleanUrl, 
+                url = cleanUrl,
+                allowSelfSigned = allowSelfSigned.toString(),
                 credentials = mapOf("password" to password)
             )
             return response.session.sid
@@ -83,7 +84,7 @@ class PiholeRepository @Inject constructor(
         val encodedSecret = java.net.URLEncoder.encode(password, Charsets.UTF_8.name())
         val legacyUrl = "${url.trimEnd('/')}/admin/api.php?summaryRaw&auth=$encodedSecret"
         val legacyValid = try {
-            when (val response = api.validateLegacyAuth(url = legacyUrl)) {
+            when (val response = api.validateLegacyAuth(url = legacyUrl, allowSelfSigned = allowSelfSigned.toString())) {
                 is JsonObject -> response.isNotEmpty()
                 is JsonArray -> response.isNotEmpty()
                 else -> false

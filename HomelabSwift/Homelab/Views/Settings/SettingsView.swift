@@ -18,6 +18,9 @@ struct SettingsView: View {
     @State private var confirmPinInput = ""
     @State private var changePinError: String? = nil
     @State private var showDebugLogs = false
+    @State private var showDebugAuthPin = false
+    @State private var debugAuthPin = ""
+    @State private var debugAuthError: String? = nil
     private let cryptoAddress = "0x649641868e6876c2c1f04584a95679e01c1aaf0d"
 
     var body: some View {
@@ -74,6 +77,30 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showDebugLogs) {
             DebugLogsView()
+        }
+        .alert(localizer.t.securityEnterPin, isPresented: $showDebugAuthPin) {
+            SecureField(localizer.t.securityEnterPinDesc, text: $debugAuthPin)
+                .keyboardType(.numberPad)
+            Button(localizer.t.cancel, role: .cancel) {
+                debugAuthPin = ""
+                debugAuthError = nil
+            }
+            Button(localizer.t.confirm) {
+                if settingsStore.verifyPin(debugAuthPin) {
+                    showDebugAuthPin = false
+                    debugAuthPin = ""
+                    debugAuthError = nil
+                    showDebugLogs = true
+                } else {
+                    debugAuthError = localizer.t.securityWrongPin
+                    debugAuthPin = ""
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        debugAuthError = nil
+                    }
+                }
+            }
+        } message: {
+            Text(debugAuthError ?? localizer.t.debugLogsAuthMessage)
         }
         .overlay(alignment: .bottom) {
             if showCopiedToast {
@@ -402,6 +429,7 @@ struct SettingsView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .glassCard(tint: AppTheme.accent.opacity(0.05))
+
         }
     }
 
@@ -465,7 +493,12 @@ struct SettingsView: View {
 
             VStack(spacing: 0) {
                 Button {
-                    showDebugLogs = true
+                    HapticManager.light()
+                    if settingsStore.isPinSet {
+                        showDebugAuthPin = true
+                    } else {
+                        showDebugLogs = true
+                    }
                 } label: {
                     HStack(spacing: 16) {
                         Image(systemName: "terminal.fill")
@@ -975,7 +1008,7 @@ struct DebugLogsView: View {
                             Image(systemName: "doc.text.magnifyingglass")
                                 .font(.system(size: 40, weight: .light))
                                 .foregroundStyle(AppTheme.textMuted)
-                            Text("No logs yet")
+                            Text(localizer.t.debugLogsEmpty)
                                 .font(.subheadline)
                                 .foregroundStyle(AppTheme.textSecondary)
                         }
@@ -1252,6 +1285,7 @@ struct DebugLogsView: View {
         case .debug: return .secondary
         case .info: return .blue
         case .warn: return .orange
+        case .error: return .red
         case .network: return .purple
         }
     }

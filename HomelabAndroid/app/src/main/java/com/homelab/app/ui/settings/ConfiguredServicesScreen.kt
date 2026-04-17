@@ -417,6 +417,7 @@ internal fun serviceDisplayNameForSettings(type: ServiceType): String {
         ServiceType.GLUETUN -> stringResource(R.string.service_gluetun)
         ServiceType.FLARESOLVERR -> stringResource(R.string.service_flaresolverr)
         ServiceType.WAKAPI -> stringResource(R.string.service_wakapi)
+        ServiceType.PROXMOX -> stringResource(R.string.service_proxmox)
         ServiceType.UNKNOWN -> type.displayName
     }
 }

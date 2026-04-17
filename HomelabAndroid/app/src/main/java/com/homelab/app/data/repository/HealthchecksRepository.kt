@@ -1,10 +1,10 @@
 package com.homelab.app.data.repository
 
 import com.homelab.app.data.remote.api.HealthchecksApi
+import com.homelab.app.data.remote.TlsClientSelector
 import com.homelab.app.data.remote.dto.healthchecks.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -12,16 +12,16 @@ import javax.inject.Singleton
 @Singleton
 class HealthchecksRepository @Inject constructor(
     private val api: HealthchecksApi,
-    private val okHttpClient: OkHttpClient
+    private val tlsClientSelector: TlsClientSelector
 ) {
-    suspend fun validateApiKey(url: String, apiKey: String) {
+    suspend fun validateApiKey(url: String, apiKey: String, allowSelfSigned: Boolean = false) {
         withContext(Dispatchers.IO) {
             val clean = url.trimEnd('/')
             val request = Request.Builder()
                 .url("$clean/api/v3/checks/")
                 .addHeader("X-Api-Key", apiKey)
                 .build()
-            okHttpClient.newCall(request).execute().use { response ->
+            tlsClientSelector.forAllowSelfSigned(allowSelfSigned).newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     throw IllegalStateException("Healthchecks authentication failed")
                 }

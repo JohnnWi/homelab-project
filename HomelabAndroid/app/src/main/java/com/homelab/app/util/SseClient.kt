@@ -47,6 +47,7 @@ class SseClient @Inject constructor(
                 ServiceType.FLARESOLVERR -> "Flaresolverr"
                 ServiceType.WAKAPI -> "Wakapi"
                 ServiceType.CRAFTY_CONTROLLER -> "Crafty Controller"
+                ServiceType.PROXMOX -> "Proxmox"
                 ServiceType.UNKNOWN -> "Unknown"
             })
             .build()

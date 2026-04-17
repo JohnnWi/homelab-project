@@ -84,7 +84,8 @@ struct SecurityKeychainBackend: KeychainBackend {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: account
+            kSecAttrAccount as String: account,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked
         ]
         SecItemDelete(query as CFDictionary)
 
@@ -98,6 +99,7 @@ struct SecurityKeychainBackend: KeychainBackend {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
@@ -112,7 +114,8 @@ struct SecurityKeychainBackend: KeychainBackend {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: account
+            kSecAttrAccount as String: account,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked
         ]
         SecItemDelete(query as CFDictionary)
     }

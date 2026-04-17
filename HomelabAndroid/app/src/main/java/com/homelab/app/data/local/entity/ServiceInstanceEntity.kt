@@ -11,6 +11,8 @@ data class ServiceInstanceEntity(
     val label: String,
     val url: String,
     val token: String,
+    val proxmoxCsrfToken: String? = null,
+    val proxmoxOtp: String? = null,
     val username: String?,
     val apiKey: String?,
     val piholePassword: String?,

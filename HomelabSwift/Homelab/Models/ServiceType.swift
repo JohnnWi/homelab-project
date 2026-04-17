@@ -26,6 +26,7 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
     case gluetun
     case flaresolverr
     case wakapi
+    case proxmox
 
     public var id: String { rawValue }
 
@@ -56,6 +57,8 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
             return .pangolin
         case "crafty", "crafty_controller":
             return .craftyController
+        case "proxmox", "proxmox_ve", "proxmoxve", "pve":
+            return .proxmox
         default:
             return nil
         }
@@ -125,25 +128,24 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .gluetun:            return "Gluetun"
         case .flaresolverr:       return "FlareSolverr"
         case .wakapi:             return "Wakapi"
+        case .proxmox:            return "Proxmox VE"
         }
     }
 
-    @MainActor
-    public var description: String {
-        let t = Localizer.shared.t
+    func localizedDescription(using t: Translations) -> String {
         switch self {
         case .portainer:          return t.servicePortainerDesc
         case .pihole:             return t.servicePiholeDesc
         case .adguardHome:        return t.serviceAdguardDesc
-        case .technitium:         return "Technitium DNS dashboard"
+        case .technitium:         return t.serviceTechnitiumDesc
         case .beszel:             return t.serviceBeszelDesc
         case .healthchecks:       return t.serviceHealthchecksDesc
-        case .linuxUpdate:             return "Linux Update dashboard"
-        case .dockhand:                return "Docker management dashboard"
+        case .linuxUpdate:             return t.serviceLinuxUpdateDesc
+        case .dockhand:                return t.serviceDockhandDesc
         case .craftyController:        return t.serviceCraftyControllerDesc
         case .gitea:              return t.serviceGiteaDesc
         case .nginxProxyManager:  return t.serviceNpmDesc
-        case .pangolin:           return PangolinStrings.forLanguage(Localizer.shared.language).serviceDescription
+        case .pangolin:           return t.servicePangolinDesc
         case .patchmon:           return t.servicePatchmonDesc
         case .jellystat:          return t.serviceJellystatDesc
         case .plex:               return t.servicePlexDesc
@@ -157,7 +159,13 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .gluetun:            return t.serviceGluetunDesc
         case .flaresolverr:       return t.serviceFlaresolverrDesc
         case .wakapi:             return t.serviceWakapiDesc
+        case .proxmox:            return t.serviceProxmoxDesc
         }
+    }
+
+    @MainActor
+    public var description: String {
+        localizedDescription(using: Translations.current())
     }
 
     public var symbolName: String {
@@ -173,7 +181,7 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .craftyController:        return "gamecontroller.fill"
         case .gitea:              return "arrow.triangle.branch"
         case .nginxProxyManager:  return "globe"
-        case .pangolin:           return "tunnel.fill"
+        case .pangolin:           return "point.3.connected.trianglepath.dotted"
         case .patchmon:           return "shippingbox.circle.fill"
         case .jellystat:          return "chart.line.uptrend.xyaxis"
         case .plex:               return "play.tv"
@@ -187,6 +195,7 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .gluetun:            return "lock.shield.fill"
         case .flaresolverr:       return "flame.fill"
         case .wakapi:             return "timer"
+        case .proxmox:            return "cpu"
         }
     }
 
@@ -217,6 +226,7 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .gluetun:            return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/gluetun.png"
         case .flaresolverr:       return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/flaresolverr.png"
         case .wakapi:             return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/wakapi.png"
+        case .proxmox:            return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/proxmox.png"
         }
     }
 
@@ -248,6 +258,7 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .gluetun:            slug = "gluetun"
         case .flaresolverr:       slug = "flaresolverr"
         case .wakapi:             slug = "wakapi"
+        case .proxmox:            slug = "proxmox"
         }
         var orderedCandidates: [String] = []
         let primary = iconUrl.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -293,6 +304,7 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .gluetun:            return "service-gluetun"
         case .flaresolverr:       return "service-flaresolverr"
         case .wakapi:             return "service-wakapi"
+        case .proxmox:            return "service-proxmox"
         }
     }
 
@@ -323,6 +335,7 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .gluetun:            return ServiceColorSet(primary: Color(hex: "#06B6D4"), dark: Color(hex: "#0891B2"), bg: Color(hex: "#06B6D4").opacity(0.09))
         case .flaresolverr:       return ServiceColorSet(primary: Color(hex: "#FF4500"), dark: Color(hex: "#CC3700"), bg: Color(hex: "#FF4500").opacity(0.09))
         case .wakapi:             return ServiceColorSet(primary: Color(hex: "#2563EB"), dark: Color(hex: "#1D4ED8"), bg: Color(hex: "#2563EB").opacity(0.09))
+        case .proxmox:            return ServiceColorSet(primary: Color(hex: "#E57000"), dark: Color(hex: "#C45F00"), bg: Color(hex: "#E57000").opacity(0.09))
         }
     }
 }

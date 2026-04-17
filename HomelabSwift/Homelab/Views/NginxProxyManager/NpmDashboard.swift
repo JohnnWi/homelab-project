@@ -429,7 +429,7 @@ struct NpmDashboard: View {
                 auditLogsContent
             }
         }
-        .navigationTitle(tab.title(t: localizer.t))
+        .navigationTitle(tab.title(t: localizer.translations))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { toolbarAddButton(for: tab) }
     }
@@ -515,7 +515,7 @@ struct NpmDashboard: View {
             emptyState(icon: "server.rack", message: localizer.t.npmNoProxyHosts)
         } else {
             ForEach(proxyHosts) { host in
-                NpmProxyHostCard(proxyHost: host, npmColor: npmColor, t: localizer.t)
+                NpmProxyHostCard(proxyHost: host, npmColor: npmColor, t: localizer.translations)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         editingProxyHost = host
@@ -556,7 +556,7 @@ struct NpmDashboard: View {
             emptyState(icon: "arrow.triangle.turn.up.right.diamond", message: localizer.t.npmNoRedirections)
         } else {
             ForEach(redirectionHosts) { host in
-                NpmRedirectionHostCard(host: host, npmColor: npmColor, t: localizer.t)
+                NpmRedirectionHostCard(host: host, npmColor: npmColor, t: localizer.translations)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
                             confirmDelete { await deleteRedirectionHost(id: host.id) }
@@ -583,7 +583,7 @@ struct NpmDashboard: View {
             emptyState(icon: "arrow.left.arrow.right", message: localizer.t.npmNoStreams)
         } else {
             ForEach(streams) { stream in
-                NpmStreamCard(stream: stream, npmColor: npmColor, t: localizer.t)
+                NpmStreamCard(stream: stream, npmColor: npmColor, t: localizer.translations)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
                             confirmDelete { await deleteStream(id: stream.id) }
@@ -610,7 +610,7 @@ struct NpmDashboard: View {
             emptyState(icon: "exclamationmark.triangle", message: localizer.t.npmNoDeadHosts)
         } else {
             ForEach(deadHosts) { host in
-                NpmDeadHostCard(host: host, npmColor: npmColor, t: localizer.t)
+                NpmDeadHostCard(host: host, npmColor: npmColor, t: localizer.translations)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
                             confirmDelete { await deleteDeadHost(id: host.id) }
@@ -644,7 +644,7 @@ struct NpmDashboard: View {
                 NpmCertificateCard(
                     certificate: cert,
                     npmColor: npmColor,
-                    t: localizer.t,
+                    t: localizer.translations,
                     inUse: inUse,
                     onRenew: { Task { await renewCertificate(id: cert.id) } },
                     onDelete: { confirmDelete { await deleteCertificate(id: cert.id) } }
@@ -671,7 +671,7 @@ struct NpmDashboard: View {
                 ZStack(alignment: .topTrailing) {
                     NpmAccessListCard(
                         accessList: list,
-                        t: localizer.t,
+                        t: localizer.translations,
                         onEdit: {
                             editingAccessList = list
                             showingAccessListForm = true

@@ -32,15 +32,15 @@ public struct AppLogger: Sendable {
     public func error(_ message: String, source: String = "App") {
         logger.error("\(message, privacy: .public)")
         Task { @MainActor in
-            LogStore.shared.add(message, level: .warn, source: source)
+            LogStore.shared.add(message, level: .error, source: source)
         }
     }
-    
+
     public func error(_ error: Error, source: String = "App") {
         let msg = "Error: \(error.localizedDescription)"
         logger.error("\(msg, privacy: .public)")
         Task { @MainActor in
-            LogStore.shared.add(msg, level: .warn, source: source)
+            LogStore.shared.add(msg, level: .error, source: source)
         }
     }
 
@@ -106,13 +106,15 @@ public final class LogStore {
         case debug = "DEBUG"
         case info = "INFO"
         case warn = "WARN"
+        case error = "ERROR"
         case network = "NET"
-        
+
         public var icon: String {
             switch self {
             case .debug: return "ladybug.fill"
             case .info: return "info.circle.fill"
             case .warn: return "exclamationmark.circle.fill"
+            case .error: return "xmark.circle.fill"
             case .network: return "network"
             }
         }
@@ -152,7 +154,7 @@ public final class LogStore {
             minInterval = 2.0
         case .debug:
             minInterval = 0.8
-        case .info, .warn:
+        case .info, .warn, .error:
             return false
         }
 

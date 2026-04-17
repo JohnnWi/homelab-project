@@ -17,6 +17,7 @@ interface PiholeApi {
         @Url url: String,
         @Header("X-Homelab-Service") service: String = "Pihole",
         @Header("X-Homelab-Bypass") bypass: String = "true",
+        @Header("X-Homelab-Allow-Self-Signed") allowSelfSigned: String = "false",
         @Body credentials: Map<String, String>
     ): PiholeAuthResponse
 
@@ -24,7 +25,8 @@ interface PiholeApi {
     suspend fun validateLegacyAuth(
         @Url url: String,
         @Header("X-Homelab-Service") service: String = "Pihole",
-        @Header("X-Homelab-Bypass") bypass: String = "true"
+        @Header("X-Homelab-Bypass") bypass: String = "true",
+        @Header("X-Homelab-Allow-Self-Signed") allowSelfSigned: String = "false"
     ): JsonElement
 
     @GET("api/stats/summary")

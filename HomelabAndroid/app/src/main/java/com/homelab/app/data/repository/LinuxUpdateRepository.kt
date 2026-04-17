@@ -1,6 +1,7 @@
 package com.homelab.app.data.repository
 
 import com.homelab.app.data.remote.api.LinuxUpdateApi
+import com.homelab.app.data.remote.TlsClientSelector
 import com.homelab.app.data.remote.dto.linux_update.LinuxUpdateDashboardStats
 import com.homelab.app.data.remote.dto.linux_update.LinuxUpdateHistoryEntry
 import com.homelab.app.data.remote.dto.linux_update.LinuxUpdateJobStartResponse
@@ -19,7 +20,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
@@ -39,10 +39,10 @@ data class LinuxUpdateActionResult(
 @Singleton
 class LinuxUpdateRepository @Inject constructor(
     private val api: LinuxUpdateApi,
-    private val okHttpClient: OkHttpClient
+    private val tlsClientSelector: TlsClientSelector
 ) {
 
-    suspend fun authenticate(url: String, apiKey: String) {
+    suspend fun authenticate(url: String, apiKey: String, allowSelfSigned: Boolean = false) {
         withContext(Dispatchers.IO) {
             val cleanUrl = cleanUrl(url)
             val token = cleanToken(apiKey)
@@ -53,7 +53,7 @@ class LinuxUpdateRepository @Inject constructor(
                 .addHeader("Content-Type", "application/json")
                 .build()
 
-            okHttpClient.newCall(request).execute().use { response ->
+            tlsClientSelector.forAllowSelfSigned(allowSelfSigned).newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     throw IllegalStateException("Linux Update authentication failed")
                 }
@@ -317,7 +317,7 @@ class LinuxUpdateRepository @Inject constructor(
                     .build()
 
                 try {
-                    okHttpClient.newCall(request).execute().use { response ->
+                    tlsClientSelector.forInstance(instanceId).newCall(request).execute().use { response ->
                         val rawBody = response.body?.string().orEmpty()
                         val trimmedBody = rawBody.trim()
 

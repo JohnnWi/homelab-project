@@ -176,8 +176,10 @@ struct HealthchecksDashboard: View {
             .transition(.opacity.combined(with: .move(edge: .top)))
     }
 
+    /// A key is considered read-only when NO check has a writable identifier.
+    /// This covers both `uuid` (standard key) and `unique_key` (read-only API key response).
     private var isReadOnlyKey: Bool {
-        !checks.isEmpty && checks.allSatisfy { $0.uuid == nil }
+        !checks.isEmpty && checks.allSatisfy { $0.uuid == nil && $0.uniqueKey == nil }
     }
 
     private func fetchDashboard(force: Bool) async {
@@ -368,7 +370,15 @@ private struct HealthchecksChecksList: View {
                             }
                         }
                     } else {
+                        // Read-only check: show card with a subtle visual hint.
                         HealthchecksCheckCard(check: check)
+                            .overlay(alignment: .bottomTrailing) {
+                                Image(systemName: "lock.fill")
+                                    .font(.caption2)
+                                    .foregroundStyle(AppTheme.textMuted)
+                                    .padding(8)
+                                    .background(.ultraThinMaterial, in: Capsule())
+                            }
                     }
                 }
             }

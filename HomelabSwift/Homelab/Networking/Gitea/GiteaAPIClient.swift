@@ -1,21 +1,29 @@
 import Foundation
 
 actor GiteaAPIClient {
-    private let engine: BaseNetworkEngine
+    private let instanceId: UUID
+    private var engine: BaseNetworkEngine
+    private var storedAllowSelfSigned = true
     private var baseURL: String = ""
     private var fallbackURL: String = ""
     private var token: String = ""
 
     init(instanceId: UUID) {
+        self.instanceId = instanceId
         self.engine = BaseNetworkEngine(serviceType: .gitea, instanceId: instanceId)
     }
 
     // MARK: - Configuration
 
-    func configure(url: String, token: String, fallbackUrl: String? = nil) {
+    func configure(url: String, token: String, fallbackUrl: String? = nil, allowSelfSigned: Bool? = nil) {
         self.baseURL = Self.cleanURL(url)
         self.fallbackURL = Self.cleanURL(fallbackUrl ?? "")
         self.token = token
+    
+        if let allowSelfSigned {
+            storedAllowSelfSigned = allowSelfSigned
+        }
+        engine = BaseNetworkEngine(serviceType: .gitea, instanceId: self.instanceId, allowSelfSigned: self.storedAllowSelfSigned)
     }
 
     /// Token can be "basic:base64string" or a plain API token
@@ -44,23 +52,34 @@ actor GiteaAPIClient {
 
     // MARK: - Authentication
 
-    func authenticate(url: String, username: String, password: String) async throws -> (token: String, username: String) {
+    func authenticate(url: String, username: String, password: String, fallbackUrl: String? = nil) async throws -> (token: String, username: String) {
         let cleanURL = Self.cleanURL(url)
+        do {
+            return try await authenticateAgainst(url: cleanURL, username: username, password: password)
+        } catch {
+            let cleanFallback = Self.cleanURL(fallbackUrl ?? "")
+            guard !cleanFallback.isEmpty, cleanFallback != cleanURL else { throw error }
+            return try await authenticateAgainst(url: cleanFallback, username: username, password: password)
+        }
+    }
+
+    private func authenticateAgainst(url: String, username: String, password: String) async throws -> (token: String, username: String) {
         let basicAuth = "Basic " + Data("\(username):\(password)".utf8).base64EncodedString()
+        let session = BaseNetworkEngine.authSession(allowSelfSigned: storedAllowSelfSigned, timeout: 8)
 
         // Verify credentials via /user
-        guard let userURL = URL(string: "\(cleanURL)/api/v1/user") else { throw APIError.invalidURL }
+        guard let userURL = URL(string: "\(url)/api/v1/user") else { throw APIError.invalidURL }
         var userReq = URLRequest(url: userURL)
         userReq.setValue(basicAuth, forHTTPHeaderField: "Authorization")
         userReq.timeoutInterval = 8
 
-        let (_, userResp) = try await URLSession.shared.data(for: userReq)
+        let (_, userResp) = try await session.data(for: userReq)
         guard let http = userResp as? HTTPURLResponse, http.statusCode == 200 else {
             throw APIError.custom("Authentication failed. Check your credentials and URL.")
         }
 
         // Try to create a long-lived API token
-        if let tokensURL = URL(string: "\(cleanURL)/api/v1/users/\(username)/tokens") {
+        if let tokensURL = URL(string: "\(url)/api/v1/users/\(username)/tokens") {
             struct TokenBody: Encodable {
                 let name: String
                 let scopes: [String]
@@ -73,7 +92,7 @@ actor GiteaAPIClient {
             tokReq.httpBody = body
             tokReq.timeoutInterval = 8
 
-            if let (tokData, tokResp) = try? await URLSession.shared.data(for: tokReq),
+            if let (tokData, tokResp) = try? await session.data(for: tokReq),
                let tokHttp = tokResp as? HTTPURLResponse,
                tokHttp.statusCode == 201,
                let decoded = try? JSONDecoder().decode(GiteaTokenResponse.self, from: tokData) {

@@ -12,11 +12,15 @@ class AdGuardHomeRepository @Inject constructor(
     private val serviceInstancesRepository: ServiceInstancesRepository
 ) {
 
-    suspend fun authenticate(url: String, username: String, password: String): String {
+    suspend fun authenticate(url: String, username: String, password: String, allowSelfSigned: Boolean = false): String {
         val cleanUrl = normalizeControlStatusUrl(url)
         val creds = "$username:$password"
         val token = java.util.Base64.getEncoder().encodeToString(creds.toByteArray(Charsets.UTF_8))
-        api.authenticate(url = cleanUrl, authorization = "Basic $token")
+        api.authenticate(
+            url = cleanUrl,
+            authorization = "Basic $token",
+            allowSelfSigned = allowSelfSigned.toString()
+        )
         return token
     }
 

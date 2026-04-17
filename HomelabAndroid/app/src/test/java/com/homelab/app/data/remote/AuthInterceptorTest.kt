@@ -2,6 +2,7 @@ package com.homelab.app.data.remote
 
 import com.homelab.app.data.repository.BeszelRepository
 import com.homelab.app.data.repository.NginxProxyManagerRepository
+import com.homelab.app.data.repository.ProxmoxRepository
 import com.homelab.app.data.repository.ServiceInstancesRepository
 import com.homelab.app.domain.model.ServiceInstance
 import com.homelab.app.util.GlobalEventBus
@@ -15,6 +16,7 @@ import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -31,7 +33,9 @@ class AuthInterceptorTest {
         every { beszelRepo.get() } returns mockk()
         val npmRepo = mockk<dagger.Lazy<NginxProxyManagerRepository>>()
         every { npmRepo.get() } returns mockk()
-        return Triple(AuthInterceptor(eventBus, instancesRepository, beszelRepo, npmRepo), eventBus, instancesRepository)
+        val proxmoxRepo = mockk<dagger.Lazy<ProxmoxRepository>>()
+        every { proxmoxRepo.get() } returns mockk()
+        return Triple(AuthInterceptor(eventBus, instancesRepository, beszelRepo, npmRepo, proxmoxRepo), eventBus, instancesRepository)
     }
 
     @Test
@@ -156,6 +160,75 @@ class AuthInterceptorTest {
         assertEquals("jelly-api-key", capturedRequest.captured.header("X-API-Token"))
         assertNull(capturedRequest.captured.header("X-Homelab-Service"))
         assertNull(capturedRequest.captured.header("X-Homelab-Instance-Id"))
+    }
+
+    @Test
+    fun `proxmox adds cookie and csrf header without leaking credentials`() {
+        val eventBus = mockk<GlobalEventBus>(relaxed = true)
+        val instancesRepository = mockk<ServiceInstancesRepository>()
+        val (interceptor) = createInterceptor(eventBus, instancesRepository)
+        val chain = mockk<Interceptor.Chain>()
+        val capturedRequest = slot<Request>()
+        val request = Request.Builder()
+            .url("https://proxmox.local/api2/json/nodes/pve/qemu/100/status/start")
+            .post("{}".toRequestBody("application/json".toMediaType()))
+            .header("X-Homelab-Service", "Proxmox")
+            .header("X-Homelab-Instance-Id", "instance-proxmox")
+            .build()
+
+        coEvery { instancesRepository.getInstance("instance-proxmox") } returns ServiceInstance(
+            id = "instance-proxmox",
+            type = ServiceType.PROXMOX,
+            label = "PVE",
+            url = "https://proxmox.local",
+            token = "ticket-123",
+            proxmoxCsrfToken = "csrf-123",
+            username = "root@pam",
+            password = "secret"
+        )
+        every { chain.request() } returns request
+        every { chain.proceed(capture(capturedRequest)) } answers {
+            response(capturedRequest.captured, 200)
+        }
+
+        interceptor.intercept(chain)
+
+        assertEquals("PVEAuthCookie=ticket-123", capturedRequest.captured.header("Cookie"))
+        assertEquals("csrf-123", capturedRequest.captured.header("CSRFPreventionToken"))
+        assertNull(capturedRequest.captured.header("X-Homelab-Username"))
+        assertNull(capturedRequest.captured.header("X-Homelab-Password"))
+    }
+
+    @Test
+    fun `proxmox api token uses authorization header without cookie`() {
+        val eventBus = mockk<GlobalEventBus>(relaxed = true)
+        val instancesRepository = mockk<ServiceInstancesRepository>()
+        val (interceptor) = createInterceptor(eventBus, instancesRepository)
+        val chain = mockk<Interceptor.Chain>()
+        val capturedRequest = slot<Request>()
+        val request = Request.Builder()
+            .url("https://proxmox.local/api2/json/version")
+            .header("X-Homelab-Service", "Proxmox")
+            .header("X-Homelab-Instance-Id", "instance-proxmox-token")
+            .build()
+
+        coEvery { instancesRepository.getInstance("instance-proxmox-token") } returns ServiceInstance(
+            id = "instance-proxmox-token",
+            type = ServiceType.PROXMOX,
+            label = "PVE Token",
+            url = "https://proxmox.local",
+            apiKey = "root@pam!codex=secret-token"
+        )
+        every { chain.request() } returns request
+        every { chain.proceed(capture(capturedRequest)) } answers {
+            response(capturedRequest.captured, 200)
+        }
+
+        interceptor.intercept(chain)
+
+        assertEquals("PVEAPIToken=root@pam!codex=secret-token", capturedRequest.captured.header("Authorization"))
+        assertNull(capturedRequest.captured.header("Cookie"))
+        assertNull(capturedRequest.captured.header("CSRFPreventionToken"))
     }
 
     private fun response(request: Request, code: Int): Response {

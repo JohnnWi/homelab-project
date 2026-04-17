@@ -21,6 +21,7 @@ interface GiteaApi {
         @Url url: String,
         @Header("X-Homelab-Service") service: String = "Gitea",
         @Header("X-Homelab-Bypass") bypass: String = "true",
+        @Header("X-Homelab-Allow-Self-Signed") allowSelfSigned: String = "false",
         @Header("Authorization") authHeader: String
     ): GiteaUser
 
@@ -29,6 +30,7 @@ interface GiteaApi {
         @Url url: String,
         @Header("X-Homelab-Service") service: String = "Gitea",
         @Header("X-Homelab-Bypass") bypass: String = "true",
+        @Header("X-Homelab-Allow-Self-Signed") allowSelfSigned: String = "false",
         @Header("Authorization") authHeader: String,
         @Body body: GiteaTokenRequest
     ): GiteaTokenResponse
