@@ -45,12 +45,14 @@ struct ServiceLoginView: View {
             || serviceType == .qbittorrent
             || serviceType == .craftyController
             || serviceType == .dockhand
+            || serviceType == .maltrail
     }
 
     private var usesApiKeyAuth: Bool {
         serviceType == .portainer
             || serviceType == .healthchecks
             || serviceType == .linuxUpdate
+            || serviceType == .dockmon
             || serviceType == .pangolin
             || serviceType == .jellystat
             || serviceType == .plex
@@ -61,6 +63,10 @@ struct ServiceLoginView: View {
             || serviceType == .prowlarr
             || serviceType == .bazarr
             || serviceType == .wakapi
+    }
+
+    private var usesKomodoAuth: Bool {
+        serviceType == .komodo
     }
 
     private var supportsCredentiallessAuth: Bool {
@@ -166,7 +172,7 @@ struct ServiceLoginView: View {
                 .font(.title.bold())
                 .foregroundStyle(.primary)
 
-            Text(isEditing ? localizer.t.loginEditSubtitle : localizer.t.loginSubtitle)
+            Text(isEditing ? localizer.t.loginEditSubtitle : (supportsCredentiallessAuth ? localizer.t.loginUrlOnlySubtitle : localizer.t.loginSubtitle))
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textSecondary)
         }
@@ -270,6 +276,27 @@ struct ServiceLoginView: View {
 
             if isProxmox {
                 proxmoxAuthSection
+            } else if usesKomodoAuth {
+                InputField(
+                    icon: "key.fill",
+                    placeholder: localizer.t.loginApiKey,
+                    text: $apiKey,
+                    isSecure: !showPassword,
+                    showToggle: true,
+                    toggleAction: { showPassword.toggle() },
+                    showPassword: showPassword
+                )
+
+                InputField(
+                    icon: "lock.fill",
+                    placeholder: isEditing ? localizer.t.loginPasswordIfChanging : localizer.t.komodoApiSecret,
+                    text: $password,
+                    isSecure: !showPassword,
+                    showToggle: true,
+                    toggleAction: { showPassword.toggle() },
+                    showPassword: showPassword,
+                    onSubmit: handleSave
+                )
             } else if usesApiKeyAuth {
                 InputField(
                     icon: "key.fill",
@@ -388,6 +415,9 @@ struct ServiceLoginView: View {
         case .technitium:        return localizer.t.loginHintTechnitium
         case .linuxUpdate:       return localizer.t.loginHintLinuxUpdate
         case .dockhand:          return localizer.t.loginHintDockhand
+        case .dockmon:           return localizer.t.loginHintDockmon
+        case .komodo:            return localizer.t.loginHintKomodo
+        case .maltrail:          return localizer.t.loginHintMaltrail
         case .craftyController:  return localizer.t.loginHintCraftyController
         case .gitea:             return localizer.t.loginHintGitea2FA
         case .nginxProxyManager: return localizer.t.loginHintNpm
@@ -524,7 +554,7 @@ struct ServiceLoginView: View {
                     proxmoxAuthMode: existing.proxmoxAuthMode,
                     proxmoxRealm: existing.proxmoxRealm,
                     fallbackUrl: fallbackUrl,
-                    allowSelfSigned: existing.allowSelfSigned,
+                    allowSelfSigned: allowSelfSigned,
                     password: existing.password
                 )
             }
@@ -649,6 +679,102 @@ struct ServiceLoginView: View {
                 apiKey: key,
                 fallbackUrl: fallbackUrl,
                 allowSelfSigned: allowSelfSigned
+            )
+
+        case .dockmon:
+            let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
+            guard let key, !key.isEmpty else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+            let client = DockmonAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: url, apiKey: key, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
+            try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .dockmon,
+                label: label,
+                url: url,
+                token: "",
+                username: existingInstance?.username,
+                apiKey: key,
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
+            )
+
+        case .komodo:
+            let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
+            let secret = normalizedOptional(password)
+            guard let key, !key.isEmpty else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+            if existingInstance != nil && (url != existingInstance?.url || key != existingInstance?.apiKey) && secret == nil {
+                throw APIError.custom(localizer.t.loginErrorPasswordRequired)
+            }
+            let resolvedSecret: String
+            if let secret, !secret.isEmpty {
+                resolvedSecret = secret
+            } else if let existingSecret = existingInstance?.password, !existingSecret.isEmpty {
+                resolvedSecret = existingSecret
+            } else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+
+            let client = KomodoAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: url, apiKey: key, apiSecret: resolvedSecret, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
+            try await client.authenticate(url: url, apiKey: key, apiSecret: resolvedSecret, fallbackUrl: fallbackUrl)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .komodo,
+                label: label,
+                url: url,
+                token: "",
+                username: existingInstance?.username,
+                apiKey: key,
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned,
+                password: resolvedSecret
+            )
+
+        case .maltrail:
+            let identity = normalizedOptional(username) ?? existingInstance?.username
+            let client = MaltrailAPIClient(instanceId: existingInstanceId ?? UUID())
+            let secret = normalizedOptional(password)
+            if (identity == nil) != (secret == nil) {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+
+            let resolvedPassword: String?
+            if let secret, !secret.isEmpty {
+                resolvedPassword = secret
+            } else {
+                resolvedPassword = existingInstance?.password
+            }
+
+            await client.configure(
+                url: url,
+                fallbackUrl: fallbackUrl,
+                username: identity,
+                password: resolvedPassword,
+                sessionCookie: existingInstance?.token,
+                allowSelfSigned: allowSelfSigned
+            )
+            let cookie = try await client.authenticate(
+                url: url,
+                username: identity,
+                password: resolvedPassword,
+                fallbackUrl: fallbackUrl
+            )
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .maltrail,
+                label: label,
+                url: url,
+                token: cookie,
+                username: identity,
+                apiKey: existingInstance?.apiKey,
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned,
+                password: resolvedPassword
             )
 
         case .technitium:

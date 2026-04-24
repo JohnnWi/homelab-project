@@ -311,6 +311,9 @@ struct HomeView: View {
         case .healthchecks:      HealthchecksDashboard(instanceId: route.instanceId)
         case .linuxUpdate:            LinuxUpdateDashboard(instanceId: route.instanceId)
         case .dockhand:               DockhandDashboard(instanceId: route.instanceId)
+        case .dockmon:                DockmonDashboard(instanceId: route.instanceId)
+        case .komodo:                 KomodoDashboard(instanceId: route.instanceId)
+        case .maltrail:               MaltrailDashboard(instanceId: route.instanceId)
         case .craftyController:       CraftyDashboard(instanceId: route.instanceId)
         case .gitea:             GiteaDashboard(instanceId: route.instanceId)
         case .nginxProxyManager: NpmDashboard(instanceId: route.instanceId)
@@ -418,6 +421,30 @@ struct HomeView: View {
                     value: "\(overview.runningContainers)",
                     subValue: "/ \(overview.totalContainers)",
                     label: localizer.t.dockhandLiveStats
+                )
+            case .dockmon:
+                guard let client = await servicesStore.dockmonClient(instanceId: instanceId) else { return nil }
+                let summary = try await client.getSummary()
+                return ServiceSummaryInfo(
+                    value: "\(summary.runningContainers)",
+                    subValue: "/ \(summary.totalContainers)",
+                    label: localizer.t.dockmonContainers
+                )
+            case .komodo:
+                guard let client = await servicesStore.komodoClient(instanceId: instanceId) else { return nil }
+                let summary = try await client.getSummary()
+                return ServiceSummaryInfo(
+                    value: "\(summary.runningContainers)",
+                    subValue: "/ \(summary.totalContainers)",
+                    label: localizer.t.komodoContainers
+                )
+            case .maltrail:
+                guard let client = await servicesStore.maltrailClient(instanceId: instanceId) else { return nil }
+                let summary = try await client.getSummary()
+                return ServiceSummaryInfo(
+                    value: Formatters.formatNumber(summary.latestCount),
+                    subValue: summary.latestDayLabel,
+                    label: localizer.t.maltrailFindings
                 )
             case .craftyController:
                 guard let client = await servicesStore.craftyClient(instanceId: instanceId) else { return nil }
@@ -816,19 +843,20 @@ struct ServiceIconView: View {
     private var localAssetName: String { type.localIconAssetName }
 
     var body: some View {
-        ZStack {
-            // Always render a local fallback symbol so icons never appear blank.
-            fallbackView
-
+        Group {
             if let local = UIImage(named: localAssetName) {
                 Image(uiImage: local)
                     .resizable()
                     .renderingMode(.original)
                     .scaledToFit()
             } else {
-                // No local asset — try CDN icons (with privacy trade-off).
-                if let primary = candidates.first {
-                    primaryIconView(primary)
+                ZStack {
+                    // Always render a fallback symbol so remote icons never appear blank.
+                    fallbackView
+
+                    if let primary = candidates.first {
+                        primaryIconView(primary)
+                    }
                 }
             }
         }

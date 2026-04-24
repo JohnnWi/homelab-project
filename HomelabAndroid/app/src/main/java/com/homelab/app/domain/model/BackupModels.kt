@@ -52,6 +52,9 @@ object BackupServiceTypeMapper {
             ServiceType.HEALTHCHECKS -> "healthchecks"
             ServiceType.LINUX_UPDATE -> "linux_update"
             ServiceType.DOCKHAND -> "dockhand"
+            ServiceType.DOCKMON -> "dockmon"
+            ServiceType.KOMODO -> "komodo"
+            ServiceType.MALTRAIL -> "maltrail"
             ServiceType.CRAFTY_CONTROLLER -> "crafty_controller"
             ServiceType.GITEA -> "gitea"
             ServiceType.NGINX_PROXY_MANAGER -> "nginx_proxy_manager"
@@ -86,6 +89,9 @@ object BackupServiceTypeMapper {
             "healthchecks" -> ServiceType.HEALTHCHECKS
             "linux_update", "linuxupdate", "linux-update" -> ServiceType.LINUX_UPDATE
             "dockhand" -> ServiceType.DOCKHAND
+            "dockmon" -> ServiceType.DOCKMON
+            "komodo" -> ServiceType.KOMODO
+            "maltrail" -> ServiceType.MALTRAIL
             "gitea" -> ServiceType.GITEA
             "nginx_proxy_manager", "nginxproxymanager" -> ServiceType.NGINX_PROXY_MANAGER
             "pangolin" -> ServiceType.PANGOLIN

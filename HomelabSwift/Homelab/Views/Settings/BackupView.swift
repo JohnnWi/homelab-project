@@ -458,6 +458,9 @@ struct BackupView: View {
         case .healthchecks: return localizer.t.serviceHealthchecks
         case .linuxUpdate: return ServiceType.linuxUpdate.displayName
         case .dockhand: return ServiceType.dockhand.displayName
+        case .dockmon: return ServiceType.dockmon.displayName
+        case .komodo: return ServiceType.komodo.displayName
+        case .maltrail: return ServiceType.maltrail.displayName
         case .craftyController: return ServiceType.craftyController.displayName
         case .gitea: return localizer.t.serviceGitea
         case .nginxProxyManager: return localizer.t.serviceNpm

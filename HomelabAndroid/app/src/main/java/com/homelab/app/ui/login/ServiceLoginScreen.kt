@@ -151,6 +151,7 @@ fun ServiceLoginScreen(
     }
 
     val isEditing = existingInstance != null
+    val urlOnlyLogin = false
     val submitLabel = if (isEditing) stringResource(R.string.login_save_instance) else stringResource(R.string.login_button)
 
     Scaffold(
@@ -196,7 +197,13 @@ fun ServiceLoginScreen(
             )
 
             Text(
-                text = if (isEditing) stringResource(R.string.login_edit_subtitle) else stringResource(R.string.login_create_subtitle),
+                text = if (isEditing) {
+                    stringResource(R.string.login_edit_subtitle)
+                } else if (urlOnlyLogin) {
+                    stringResource(R.string.login_create_url_subtitle)
+                } else {
+                    stringResource(R.string.login_create_subtitle)
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -214,6 +221,9 @@ fun ServiceLoginScreen(
                 ServiceType.PANGOLIN -> stringResource(R.string.login_hint_pangolin)
                 ServiceType.LINUX_UPDATE -> stringResource(R.string.login_hint_linux_update)
                 ServiceType.DOCKHAND -> stringResource(R.string.login_hint_dockhand)
+                ServiceType.DOCKMON -> stringResource(R.string.login_hint_dockmon)
+                ServiceType.KOMODO -> stringResource(R.string.login_hint_komodo)
+                ServiceType.MALTRAIL -> stringResource(R.string.login_hint_maltrail)
                 ServiceType.CRAFTY_CONTROLLER -> stringResource(R.string.login_hint_crafty_controller)
                 ServiceType.JELLYSTAT -> stringResource(R.string.login_hint_jellystat)
                 ServiceType.PATCHMON -> stringResource(R.string.login_hint_patchmon)
@@ -482,6 +492,8 @@ fun ServiceLoginScreen(
                 serviceType == ServiceType.HEALTHCHECKS ||
                 serviceType == ServiceType.PANGOLIN ||
                 serviceType == ServiceType.LINUX_UPDATE ||
+                serviceType == ServiceType.DOCKMON ||
+                serviceType == ServiceType.KOMODO ||
                 serviceType == ServiceType.JELLYSTAT ||
                 serviceType == ServiceType.PLEX ||
                 serviceType == ServiceType.RADARR ||
@@ -500,6 +512,17 @@ fun ServiceLoginScreen(
                     onToggleSecret = { showSecret = !showSecret }
                 )
 
+                if (serviceType == ServiceType.KOMODO) {
+                    SecretField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = stringResource(R.string.komodo_api_secret),
+                        showSecret = showSecret,
+                        onToggleSecret = { showSecret = !showSecret },
+                        placeholder = if (isEditing) stringResource(R.string.login_keep_secret_placeholder) else null
+                    )
+                }
+
                 if (serviceType == ServiceType.PANGOLIN) {
                     OutlinedTextField(
                         value = username,
@@ -514,6 +537,8 @@ fun ServiceLoginScreen(
                         shape = RoundedCornerShape(14.dp)
                     )
                 }
+            } else if (urlOnlyLogin) {
+                // No-op.
             } else if (
                 serviceType == ServiceType.GLUETUN ||
                 serviceType == ServiceType.FLARESOLVERR

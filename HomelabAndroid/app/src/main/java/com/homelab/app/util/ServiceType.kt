@@ -19,6 +19,9 @@ enum class ServiceType(val displayName: String) {
     HEALTHCHECKS("Healthchecks"),
     LINUX_UPDATE("Linux Update"),
     DOCKHAND("Dockhand"),
+    DOCKMON("DockMon"),
+    KOMODO("Komodo"),
+    MALTRAIL("Maltrail"),
     CRAFTY_CONTROLLER("Crafty Controller"),
     PATCHMON("PatchMon"),
     RADARR("Radarr"),
@@ -60,6 +63,9 @@ enum class ServiceType(val displayName: String) {
                 "TECHNITIUMDNS" -> TECHNITIUM
                 "PANGOLIN" -> PANGOLIN
                 "DOCKHAND" -> DOCKHAND
+                "DOCKMON" -> DOCKMON
+                "KOMODO" -> KOMODO
+                "MALTRAIL" -> MALTRAIL
                 "CRAFTY",
                 "CRAFTY_CONTROLLER" -> CRAFTY_CONTROLLER
                 else -> entries.firstOrNull { it.name == normalized } ?: UNKNOWN

@@ -7,11 +7,14 @@ import androidx.lifecycle.viewModelScope
 import com.homelab.app.R
 import com.homelab.app.data.repository.BeszelRepository
 import com.homelab.app.data.repository.DockhandRepository
+import com.homelab.app.data.repository.DockmonRepository
 import com.homelab.app.data.repository.GiteaRepository
 import com.homelab.app.data.repository.LinuxUpdateRepository
 import com.homelab.app.data.repository.CraftyRepository
 import com.homelab.app.data.repository.HealthchecksRepository
 import com.homelab.app.data.repository.JellystatRepository
+import com.homelab.app.data.repository.KomodoRepository
+import com.homelab.app.data.repository.MaltrailRepository
 import com.homelab.app.data.repository.MediaArrRepository
 import com.homelab.app.data.repository.AdGuardHomeRepository
 import com.homelab.app.data.repository.NginxProxyManagerRepository
@@ -52,6 +55,9 @@ class ServiceLoginViewModel @Inject constructor(
     private val craftyRepository: CraftyRepository,
     private val technitiumRepository: TechnitiumRepository,
     private val dockhandRepository: DockhandRepository,
+    private val dockmonRepository: DockmonRepository,
+    private val komodoRepository: KomodoRepository,
+    private val maltrailRepository: MaltrailRepository,
     private val nginxProxyManagerRepository: NginxProxyManagerRepository,
     private val healthchecksRepository: HealthchecksRepository,
     private val jellystatRepository: JellystatRepository,
@@ -340,6 +346,87 @@ class ServiceLoginViewModel @Inject constructor(
                                 username = trimmedUsername,
                                 password = authPassword,
                                 fallbackUrl = cleanFallbackUrl
+                            )
+                        }
+                        ServiceType.DOCKMON -> {
+                            require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
+                            dockmonRepository.authenticate(
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
+                            )
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl
+                            )
+                        }
+                        ServiceType.KOMODO -> {
+                            require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
+                            val apiSecret = trimmedPassword.ifBlank {
+                                if (existing != null && existing.url == cleanUrl && existing.apiKey == trimmedApiKey) {
+                                    return@ifBlank existing.password.orEmpty()
+                                }
+                                throw IllegalArgumentException(context.getString(R.string.komodo_login_error_api_secret_required))
+                            }
+                            require(apiSecret.isNotBlank()) { context.getString(R.string.komodo_login_error_api_secret_required) }
+
+                            komodoRepository.authenticate(
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                apiSecret = apiSecret,
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
+                            )
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                password = apiSecret,
+                                fallbackUrl = cleanFallbackUrl
+                            )
+                        }
+                        ServiceType.MALTRAIL -> {
+                            if (trimmedUsername.isBlank() != trimmedPassword.isBlank()) {
+                                throw IllegalArgumentException(
+                                    context.getString(
+                                        if (trimmedUsername.isBlank()) {
+                                            R.string.login_error_username_required
+                                        } else {
+                                            R.string.login_error_password_required
+                                        }
+                                    )
+                                )
+                            }
+                            val resolvedUsername = trimmedUsername.ifBlank { existing?.username.orEmpty() }
+                            val resolvedPassword = if (trimmedUsername.isBlank() && trimmedPassword.isBlank()) {
+                                ""
+                            } else {
+                                trimmedPassword.ifBlank { existing?.password.orEmpty() }
+                            }
+                            val sessionCookie = maltrailRepository.authenticate(
+                                url = cleanUrl,
+                                username = resolvedUsername.ifBlank { null },
+                                password = resolvedPassword.ifBlank { null },
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
+                            )
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                token = sessionCookie,
+                                username = resolvedUsername.ifBlank { null },
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned,
+                                password = resolvedPassword.ifBlank { null }
                             )
                         }
                         ServiceType.CRAFTY_CONTROLLER -> {

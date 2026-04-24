@@ -45,6 +45,9 @@ enum BackupServiceTypeMapper {
         case .healthchecks:      return "healthchecks"
         case .linuxUpdate:            return "linux_update"
         case .dockhand:               return "dockhand"
+        case .dockmon:                return "dockmon"
+        case .komodo:                 return "komodo"
+        case .maltrail:               return "maltrail"
         case .craftyController:       return "crafty_controller"
         case .gitea:             return "gitea"
         case .nginxProxyManager: return "nginx_proxy_manager"
@@ -83,6 +86,9 @@ enum BackupServiceTypeMapper {
              "linuxupdate",
              "linux-update":          return .linuxUpdate
         case "dockhand":              return .dockhand
+        case "dockmon":               return .dockmon
+        case "komodo":                return .komodo
+        case "maltrail":              return .maltrail
         case "crafty_controller",
              "crafty-controller",
              "crafty":                return .craftyController

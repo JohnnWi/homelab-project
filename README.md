@@ -17,7 +17,7 @@ Homelab Dashboard is a fully native mobile app for monitoring and managing a sel
 
 ## 🚀 Highlights
 
-- **26 integrated service dashboards** across infrastructure, networking, media automation, observability, and developer tooling.
+- **29 integrated service dashboards** across infrastructure, networking, media automation, observability, and developer tooling.
 - **One app, many instances**: add multiple instances of the same service and switch between them without friction.
 - **Fully native on both platforms**: SwiftUI on iOS, Jetpack Compose on Android.
 - **Practical daily-use features**: encrypted backup and restore, biometric unlock, multilingual UI, alternate icons, and fast in-app update prompts.
@@ -32,6 +32,8 @@ Homelab Dashboard is a fully native mobile app for monitoring and managing a sel
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/portainer.png" width="18" style="vertical-align:middle"> **Portainer**: container overview, quick actions, resource usage.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/proxmox.png" width="18" style="vertical-align:middle"> **Proxmox VE**: nodes, guests, storage, networking, backups, and cluster operations.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/dockhand.png" width="18" style="vertical-align:middle"> **Dockhand**: native container management dashboard.
+- **DockMon**: Docker host and container monitoring with logs, restart, and update actions.
+- <img src="HomelabSwift/Homelab/Assets.xcassets/service-komodo.imageset/komodo.png" width="18" style="vertical-align:middle"> **Komodo**: resource, deployment, stack, and server monitoring.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/beszel.png" width="18" style="vertical-align:middle"> **Beszel**: server monitoring across nodes.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/linux-update-dashboard.png" width="18" style="vertical-align:middle"> **Linux Update**: pending package updates across hosts.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/crafty-controller.png" width="18" style="vertical-align:middle"> **Crafty Controller**: game server management dashboard.
@@ -46,6 +48,7 @@ Homelab Dashboard is a fully native mobile app for monitoring and managing a sel
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/pi-hole.png" width="18" style="vertical-align:middle"> **Pi-hole**: queries, blocked domains, toggles, timers.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/adguard-home.png" width="18" style="vertical-align:middle"> **AdGuard Home**: filters, rewrites, blocked services, query activity.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/technitium.png" width="18" style="vertical-align:middle"> **Technitium DNS**: DNS metrics and health.
+- <img src="HomelabSwift/Homelab/Assets.xcassets/service-maltrail.imageset/icon.png" width="18" style="vertical-align:middle"> **Maltrail**: threat detections, daily findings, and event visibility.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/nginx-proxy-manager.png" width="18" style="vertical-align:middle"> **Nginx Proxy Manager / NPMplus**: proxy hosts, streams, redirects, certificates, access lists.
 
 ### Media & Observability

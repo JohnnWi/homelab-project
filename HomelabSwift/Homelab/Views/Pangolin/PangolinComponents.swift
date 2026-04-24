@@ -114,37 +114,3 @@ struct HeroBadge: View {
             .background(tint.opacity(0.12), in: Capsule())
     }
 }
-
-// MARK: - Glass Stat Card
-
-struct GlassStatCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let iconColor: Color
-    var subtitle: String? = nil
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Image(systemName: icon)
-                .font(.body)
-                .foregroundStyle(iconColor)
-                .frame(width: 34, height: 34)
-                .background(iconColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-            Text(value)
-                .font(.title3.bold())
-                .foregroundStyle(.primary)
-
-            if let subtitle {
-                Text(subtitle)
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(AppTheme.textSecondary)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(minHeight: 104, alignment: .topLeading)
-        .padding(12)
-        .glassCard()
-    }
-}

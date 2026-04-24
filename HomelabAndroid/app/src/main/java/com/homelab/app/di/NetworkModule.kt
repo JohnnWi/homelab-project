@@ -183,6 +183,24 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideDockmonApi(retrofit: Retrofit): com.homelab.app.data.remote.api.DockmonApi {
+        return retrofit.create(com.homelab.app.data.remote.api.DockmonApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideKomodoApi(retrofit: Retrofit): com.homelab.app.data.remote.api.KomodoApi {
+        return retrofit.create(com.homelab.app.data.remote.api.KomodoApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMaltrailApi(retrofit: Retrofit): com.homelab.app.data.remote.api.MaltrailApi {
+        return retrofit.create(com.homelab.app.data.remote.api.MaltrailApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideCraftyApi(retrofit: Retrofit): com.homelab.app.data.remote.api.CraftyApi {
         return retrofit.create(com.homelab.app.data.remote.api.CraftyApi::class.java)
     }

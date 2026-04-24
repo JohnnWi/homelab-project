@@ -11,6 +11,9 @@ private final class ServiceClientManager {
     private var healthchecksClients: [UUID: HealthchecksAPIClient] = [:]
     private var linuxUpdateClients: [UUID: LinuxUpdateAPIClient] = [:]
     private var dockhandClients: [UUID: DockhandAPIClient] = [:]
+    private var dockmonClients: [UUID: DockmonAPIClient] = [:]
+    private var komodoClients: [UUID: KomodoAPIClient] = [:]
+    private var maltrailClients: [UUID: MaltrailAPIClient] = [:]
     private var craftyClients: [UUID: CraftyAPIClient] = [:]
     private var giteaClients: [UUID: GiteaAPIClient] = [:]
     private var npmClients: [UUID: NginxProxyManagerAPIClient] = [:]
@@ -95,6 +98,33 @@ private final class ServiceClientManager {
         }
         let client = DockhandAPIClient(instanceId: id)
         dockhandClients[id] = client
+        return client
+    }
+
+    func dockmonClient(id: UUID) -> DockmonAPIClient {
+        if let client = dockmonClients[id] {
+            return client
+        }
+        let client = DockmonAPIClient(instanceId: id)
+        dockmonClients[id] = client
+        return client
+    }
+
+    func komodoClient(id: UUID) -> KomodoAPIClient {
+        if let client = komodoClients[id] {
+            return client
+        }
+        let client = KomodoAPIClient(instanceId: id)
+        komodoClients[id] = client
+        return client
+    }
+
+    func maltrailClient(id: UUID) -> MaltrailAPIClient {
+        if let client = maltrailClients[id] {
+            return client
+        }
+        let client = MaltrailAPIClient(instanceId: id)
+        maltrailClients[id] = client
         return client
     }
 
@@ -241,6 +271,12 @@ private final class ServiceClientManager {
             linuxUpdateClients.removeValue(forKey: id)
         case .dockhand:
             dockhandClients.removeValue(forKey: id)
+        case .dockmon:
+            dockmonClients.removeValue(forKey: id)
+        case .komodo:
+            komodoClients.removeValue(forKey: id)
+        case .maltrail:
+            maltrailClients.removeValue(forKey: id)
         case .craftyController:
             craftyClients.removeValue(forKey: id)
         case .gitea:
@@ -283,6 +319,9 @@ private final class ServiceClientManager {
         healthchecksClients = healthchecksClients.filter { knownInstanceIds.contains($0.key) }
         linuxUpdateClients = linuxUpdateClients.filter { knownInstanceIds.contains($0.key) }
         dockhandClients = dockhandClients.filter { knownInstanceIds.contains($0.key) }
+        dockmonClients = dockmonClients.filter { knownInstanceIds.contains($0.key) }
+        komodoClients = komodoClients.filter { knownInstanceIds.contains($0.key) }
+        maltrailClients = maltrailClients.filter { knownInstanceIds.contains($0.key) }
         craftyClients = craftyClients.filter { knownInstanceIds.contains($0.key) }
         giteaClients = giteaClients.filter { knownInstanceIds.contains($0.key) }
         npmClients = npmClients.filter { knownInstanceIds.contains($0.key) }
@@ -538,6 +577,21 @@ final class ServicesStore {
         return clientManager.dockhandClient(id: instance.id)
     }
 
+    func dockmonClient(instanceId: UUID) async -> DockmonAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .dockmon else { return nil }
+        return clientManager.dockmonClient(id: instance.id)
+    }
+
+    func komodoClient(instanceId: UUID) async -> KomodoAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .komodo else { return nil }
+        return clientManager.komodoClient(id: instance.id)
+    }
+
+    func maltrailClient(instanceId: UUID) async -> MaltrailAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .maltrail else { return nil }
+        return clientManager.maltrailClient(id: instance.id)
+    }
+
     func craftyClient(instanceId: UUID) async -> CraftyAPIClient? {
         guard let instance = instancesById[instanceId], instance.type == .craftyController else { return nil }
         return clientManager.craftyClient(id: instance.id)
@@ -636,6 +690,12 @@ final class ServicesStore {
             ok = await clientManager.linuxUpdateClient(id: instanceId).ping()
         case .dockhand:
             ok = await clientManager.dockhandClient(id: instanceId).ping()
+        case .dockmon:
+            ok = await clientManager.dockmonClient(id: instanceId).ping()
+        case .komodo:
+            ok = await clientManager.komodoClient(id: instanceId).ping()
+        case .maltrail:
+            ok = await clientManager.maltrailClient(id: instanceId).ping()
         case .craftyController:
             ok = await clientManager.craftyClient(id: instanceId).ping()
         case .gitea:
@@ -955,6 +1015,36 @@ final class ServicesStore {
                 username: instance.username,
                 password: instance.password
             , allowSelfSigned: instance.allowSelfSigned)
+
+        case .dockmon:
+            let client = clientManager.dockmonClient(id: instance.id)
+            await client.configure(
+                url: instance.url,
+                apiKey: instance.apiKey ?? "",
+                fallbackUrl: instance.fallbackUrl,
+                allowSelfSigned: instance.allowSelfSigned
+            )
+
+        case .komodo:
+            let client = clientManager.komodoClient(id: instance.id)
+            await client.configure(
+                url: instance.url,
+                apiKey: instance.apiKey ?? "",
+                apiSecret: instance.password ?? "",
+                fallbackUrl: instance.fallbackUrl,
+                allowSelfSigned: instance.allowSelfSigned
+            )
+
+        case .maltrail:
+            let client = clientManager.maltrailClient(id: instance.id)
+            await client.configure(
+                url: instance.url,
+                fallbackUrl: instance.fallbackUrl,
+                username: instance.username,
+                password: instance.password,
+                sessionCookie: instance.token,
+                allowSelfSigned: instance.allowSelfSigned
+            )
 
         case .craftyController:
             let client = clientManager.craftyClient(id: instance.id)

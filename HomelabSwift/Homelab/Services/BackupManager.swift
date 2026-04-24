@@ -27,7 +27,7 @@ final class BackupManager {
     /// Exports service instances to an encrypted .homelab file.
     /// Returns the URL of the temporary file ready for sharing.
     func exportBackup(password: String, includedTypes: Set<ServiceType>? = nil) async throws -> URL {
-        let envelope = await buildEnvelope(includedTypes: includedTypes)
+        let envelope = buildEnvelope(includedTypes: includedTypes)
         let encrypted = try await Task.detached {
             let jsonData = try JSONEncoder().encode(envelope)
             return try BackupCrypto.encrypt(data: jsonData, password: password)
@@ -130,7 +130,6 @@ final class BackupManager {
         let previousInstances = servicesStore.allInstances
             .filter { typesToReplace.contains($0.type) }
             .map { ($0.id, $0.type) }
-        let previousPreferredIds = servicesStore.preferredInstanceIdByType
 
         // MARK: - Phase 3: Delete old instances
         for (id, _) in previousInstances {

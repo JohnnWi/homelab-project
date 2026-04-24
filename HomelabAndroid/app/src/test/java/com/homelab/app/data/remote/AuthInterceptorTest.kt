@@ -1,6 +1,7 @@
 package com.homelab.app.data.remote
 
 import com.homelab.app.data.repository.BeszelRepository
+import com.homelab.app.data.repository.MaltrailRepository
 import com.homelab.app.data.repository.NginxProxyManagerRepository
 import com.homelab.app.data.repository.ProxmoxRepository
 import com.homelab.app.data.repository.ServiceInstancesRepository
@@ -31,11 +32,13 @@ class AuthInterceptorTest {
     ): Triple<AuthInterceptor, GlobalEventBus, ServiceInstancesRepository> {
         val beszelRepo = mockk<dagger.Lazy<BeszelRepository>>()
         every { beszelRepo.get() } returns mockk()
+        val maltrailRepo = mockk<dagger.Lazy<MaltrailRepository>>()
+        every { maltrailRepo.get() } returns mockk()
         val npmRepo = mockk<dagger.Lazy<NginxProxyManagerRepository>>()
         every { npmRepo.get() } returns mockk()
         val proxmoxRepo = mockk<dagger.Lazy<ProxmoxRepository>>()
         every { proxmoxRepo.get() } returns mockk()
-        return Triple(AuthInterceptor(eventBus, instancesRepository, beszelRepo, npmRepo, proxmoxRepo), eventBus, instancesRepository)
+        return Triple(AuthInterceptor(eventBus, instancesRepository, beszelRepo, maltrailRepo, npmRepo, proxmoxRepo), eventBus, instancesRepository)
     }
 
     @Test

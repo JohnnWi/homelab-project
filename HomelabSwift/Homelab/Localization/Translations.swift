@@ -77,6 +77,9 @@ struct Translations {
     let serviceTechnitiumDesc: String
     let serviceLinuxUpdateDesc: String
     let serviceDockhandDesc: String
+    let serviceDockmonDesc: String
+    let serviceKomodoDesc: String
+    let serviceMaltrailDesc: String
     let servicePangolinDesc: String
     let pangolinSitesClientsLabel: String
     let servicePlex: String
@@ -106,6 +109,7 @@ struct Translations {
     // Login
     let loginTitle: String
     let loginSubtitle: String
+    let loginUrlOnlySubtitle: String
     let loginUrl: String
     let loginUrlPlaceholder: String
     let loginUsername: String
@@ -125,6 +129,9 @@ struct Translations {
     let loginHintTechnitium: String
     let loginHintLinuxUpdate: String
     let loginHintDockhand: String
+    let loginHintDockmon: String
+    let loginHintKomodo: String
+    let loginHintMaltrail: String
     let loginHintHealthchecks: String
     let loginHintPatchmon: String
     let loginHintJellystat: String
@@ -266,6 +273,58 @@ struct Translations {
     let dockhandSystemLabel: String
     let dockhandEnabledLabel: String
     let dockhandRecentRuns: String
+
+    // DockMon
+    let dockmonHosts: String
+    let dockmonAllHosts: String
+    let dockmonContainers: String
+    let dockmonAutoRestart: String
+    let dockmonUpdates: String
+    let dockmonUpdateAvailable: String
+    let dockmonNoHosts: String
+    let dockmonNoContainers: String
+    let dockmonOpenLogs: String
+    let dockmonRestartContainer: String
+    let dockmonUpdateContainer: String
+    let dockmonImagePlaceholder: String
+    let dockmonCurrentImage: String
+    let dockmonLatestImage: String
+    let dockmonHost: String
+    let dockmonActionSuccess: String
+    let dockmonErrorInvalidCredentials: String
+
+    // Komodo
+    let komodoApiSecret: String
+    let komodoResources: String
+    let komodoContainers: String
+    let komodoContainerStates: String
+    let komodoServers: String
+    let komodoDeployments: String
+    let komodoStacks: String
+    let komodoVersion: String
+    let komodoHealthy: String
+    let komodoUnhealthy: String
+    let komodoPaused: String
+    let komodoRestarting: String
+    let komodoUnknown: String
+    let komodoErrorInvalidCredentials: String
+
+    // Maltrail
+    let maltrailFindings: String
+    let maltrailLatestDay: String
+    let maltrailTotalFindings: String
+    let maltrailDailyCounts: String
+    let maltrailEvents: String
+    let maltrailNoCounts: String
+    let maltrailNoEvents: String
+    let maltrailSelectedDate: String
+    let maltrailSource: String
+    let maltrailDestination: String
+    let maltrailTrail: String
+    let maltrailSensor: String
+    let maltrailProtocol: String
+    let maltrailSeverity: String
+    let maltrailEventDetails: String
 
     // Linux Update
     let linuxUpdateActionCheckAll: String

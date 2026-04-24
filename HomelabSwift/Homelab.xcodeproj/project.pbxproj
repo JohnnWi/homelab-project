@@ -28,6 +28,8 @@
 		1FEB8EB133A5749EBE928E1C /* BookmarkFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3565C63ADD375B1D9773CF8B /* BookmarkFormView.swift */; };
 		21BAB7FCB0AECC7133D55F6F /* ServiceConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 334BAFC4A25FD83F52E9CDD0 /* ServiceConnection.swift */; };
 		21E7233E678C07EF2FA629B5 /* EditCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F887B97554253C51BDFD167F /* EditCategoryView.swift */; };
+		22CA57F636BE4C6A5EE09760 /* DockmonAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7398039FD5D5E7D82AF14C76 /* DockmonAPIClient.swift */; };
+		234B9E87E9E44B7898DA5F44 /* KomodoAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 432A679C47684848A0D7647C /* KomodoAPIClient.swift */; };
 		22F17B053E47A71B687C63C5 /* GenericMediaDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D02DC8E1FAB21C2D68A01A6 /* GenericMediaDashboard.swift */; };
 		24AF53A5125B18B4F58D1A21 /* PatchmonAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEA7A42035DBFADEB256C578 /* PatchmonAPIClient.swift */; };
 		253B46BF21904B59477F2E8E /* GiteaDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3491FAD0D71DDB3C25D9D90 /* GiteaDashboard.swift */; };
@@ -64,6 +66,7 @@
 		663F29038479453699652E94 /* AdGuardHomeQueryLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3E11D0571609D7927FCD5A /* AdGuardHomeQueryLogView.swift */; };
 		698E6B77D281367DA484C23B /* WakapiAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C444B827E878BDFFC5BA3C7C /* WakapiAPIClient.swift */; };
 		6B883FF0F9673181B59F8C83 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85D0D2A2905370C31F3A8ADE /* KeychainService.swift */; };
+		6DEEA589BD92BE70DF884F07 /* PangolinComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDB703E4CE642EF44D10991B /* PangolinComponents.swift */; };
 		6E756D41A4E6231DF6AD016E /* LidarrModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A351665E7EFAF8D4A3A05A /* LidarrModels.swift */; };
 		6F0B15FC2525EA13C63611B5 /* PinSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C61051F7EA9F32A6342570D /* PinSetupView.swift */; };
 		703D6379BB37D3F83B0C21D5 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D1604CF631BC4DC369A42A5 /* HomeView.swift */; };
@@ -72,6 +75,7 @@
 		7870DA23D2B10D1CCAC08453 /* BeszelDetailTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CFC214C2A851C7033ABE815 /* BeszelDetailTypes.swift */; };
 		79B7809501B1B8693D60A364 /* HealthchecksComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CFE5B253C47730D40039273 /* HealthchecksComponents.swift */; };
 		7A6EF3A0EB57E1035A0132F2 /* RadarrAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69F4F3A42D23E0520D3EE3D4 /* RadarrAPIClient.swift */; };
+		7D4F9B8A45AF9BC46A6A733F /* DockhandComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B5CCA8C815CB0FB9A9B076 /* DockhandComponents.swift */; };
 		7DB62BE1D28FBF60B6BED884 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1BF1197F8BB03BE213E2995 /* Logger.swift */; };
 		7DD0E2200FD122417D07E97F /* NpmCertificateForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1432776545071E3C10F37827 /* NpmCertificateForm.swift */; };
 		7E78EE55701AD004992579EF /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EBFFF57A15B47F78E81D04 /* Formatters.swift */; };
@@ -86,6 +90,7 @@
 		849DBCF3A98DD307B4221371 /* RadarrDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24417C29BDF77D8FA1C6305A /* RadarrDashboard.swift */; };
 		84F415AFC1217C67B1C8D080 /* ProxmoxGuestConfigEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B224BF42CCCC8D7E73416 /* ProxmoxGuestConfigEditSheet.swift */; };
 		889C2C456E8212B86F6EB9BB /* AdGuardHomeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1911146A0ED528B1D912614C /* AdGuardHomeModels.swift */; };
+		8A663C3AED31DE94C751E17A /* MaltrailDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B08BBF2836A4CDE120732B2E /* MaltrailDashboard.swift */; };
 		8BE00328A6AC68DF3E40F05B /* Translations+Italian.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D8F0162AE327AA60600505 /* Translations+Italian.swift */; };
 		8DD71C55FFF77D4A370735D1 /* PlexAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF3DE80965FEEDE327E3AE34 /* PlexAPIClient.swift */; };
 		8EADC34444DEB43F553D0513 /* SkeletonLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CC9947203975F8072646659 /* SkeletonLoader.swift */; };
@@ -98,6 +103,7 @@
 		91FEB90D9F7C9387B1CD8BA9 /* ConfiguredServicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C831E84A42E73C9A480BE3 /* ConfiguredServicesView.swift */; };
 		928B90DF3E307BB08C536CB9 /* ProxmoxConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 915D9BA2E760A11C22688E74 /* ProxmoxConsoleView.swift */; };
 		94D317107C8A2E613083BE90 /* LidarrAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 720C06DC422C83CEF5E542D0 /* LidarrAPIClient.swift */; };
+		952767CF7AF01E00666D4CF6 /* MaltrailAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0726BE937688EDCEF843DA4A /* MaltrailAPIClient.swift */; };
 		95AC663AE4D3962BC2F4BB2A /* NpmDeadHostForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BAF0C299F88C7BE7B562D3 /* NpmDeadHostForm.swift */; };
 		97254226660E65C1DEC0C2EE /* QbittorrentAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A3B144085A3E0B277808F2 /* QbittorrentAPIClient.swift */; };
 		97C25FD08421A32F71C2B3BD /* NginxProxyManagerAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D740E72A36FA4EDBFEE8A195 /* NginxProxyManagerAPIClient.swift */; };
@@ -124,14 +130,16 @@
 		B75BA3C1B775D95298E0933B /* SyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD5A40912505AFD774ED713 /* SyntaxHighlighter.swift */; };
 		B8698D0D65FAC913F0591434 /* MediaDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 310DA843851C4CF654FD3807 /* MediaDashboardView.swift */; };
 		BAA4219103CC83A339C434BD /* ServicesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258507E3A00D686FDEF7E9CE /* ServicesStore.swift */; };
-		2B362971D0GC58FGBB7CCDDE8C68BG67 /* DockhandComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A251860CFFB47EFAA6BBCCD7B57AF56 /* DockhandComponents.swift */; };
 		BD697C6B1A9C40EE51C53DDF /* DockhandDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EAECCC0BAEE0321A4DC7951 /* DockhandDashboard.swift */; };
 		C10F96F2F46D3979E9B2FC0E /* HealthchecksDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D75CC2B29F70046D68EC15 /* HealthchecksDetail.swift */; };
 		C16864C9507D1F8FCE4858F0 /* ProxmoxAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1474391595DB64C568F77CE2 /* ProxmoxAPIClient.swift */; };
 		C18B23568F81455E4164835D /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 486E817863BA2B5DA5318488 /* GlassCard.swift */; };
 		C1CA20CED17D39FE4A99DADB /* ProxmoxGuestMigrateSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF17CF3A84B88F80A38C82BE /* ProxmoxGuestMigrateSheet.swift */; };
 		C462B63CC5FE35CD624ADFCD /* NpmStreamCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8904009FE0CC197DE3B1492A /* NpmStreamCard.swift */; };
+		C6542378592F0A5E5B44BFB7 /* DockmonDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB334FC7E3B327B41891F806 /* DockmonDashboard.swift */; };
+		C9A29D2FF9EA4DD69503D4E7 /* KomodoDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E77A81341F3543189E51454F /* KomodoDashboard.swift */; };
 		C86FF5E6A543278A18B16E9B /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB95F4E19C7D3082B4D6484C /* APIError.swift */; };
+		CC23054F0C872CC583502288 /* MaltrailModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE4821BAECE125BF5D455F /* MaltrailModels.swift */; };
 		CC2C094024169C94BD06958F /* LinuxUpdateAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC7D0097236C2F692BCAB383 /* LinuxUpdateAPIClient.swift */; };
 		CD29007C4FB0AD271F85673C /* JellystatAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D364FA7AED9BAC9B522C01 /* JellystatAPIClient.swift */; };
 		CE78DBCA639D954A7CCB26D3 /* ServiceErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBB688D017EE8175FB27EC7D /* ServiceErrorView.swift */; };
@@ -148,6 +156,8 @@
 		D84F9D353E2953087A1E5F7D /* ModelDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94D7A0C04FD3A10D46F836A9 /* ModelDecodingTests.swift */; };
 		D99466C32D977BCE5D9A029E /* GiteaAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15D7F6591D7ABB7E8CB96944 /* GiteaAPIClient.swift */; };
 		DDA0B198DFA935B2BF9FCE94 /* BackupModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39AD858A4CEA15DE099AC986 /* BackupModels.swift */; };
+		DE0AF6EEB06542387F08BA08 /* DockmonModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A9F6388FB1B6AA57648FF16 /* DockmonModels.swift */; };
+		D657364AD74B46C996908E54 /* KomodoModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE21903024124F58A20874D5 /* KomodoModels.swift */; };
 		DF86CB1FB4E3E32A79142588 /* BookmarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BCDF60E05C067D5675AB59F /* BookmarksView.swift */; };
 		E41A618C772AD13F86272FB8 /* BackupCrypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7BDBCDBE58A73C0B9AF6CC /* BackupCrypto.swift */; };
 		E41C86CEB570A40EFB82ED17 /* WakapiDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4742ECB110ED743BABA54DEE /* WakapiDashboard.swift */; };
@@ -183,6 +193,8 @@
 
 /* Begin PBXFileReference section */
 		04940FAEDE28A509EB1E0EEB /* NpmAccessListForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmAccessListForm.swift; sourceTree = "<group>"; };
+		04B5CCA8C815CB0FB9A9B076 /* DockhandComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockhandComponents.swift; sourceTree = "<group>"; };
+		0726BE937688EDCEF843DA4A /* MaltrailAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaltrailAPIClient.swift; sourceTree = "<group>"; };
 		0CFC214C2A851C7033ABE815 /* BeszelDetailTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelDetailTypes.swift; sourceTree = "<group>"; };
 		0DB66F8274714A001051F1BE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		0F13CBE9BF5234A3FF34586F /* ServiceIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceIconView.swift; sourceTree = "<group>"; };
@@ -208,7 +220,6 @@
 		2B4E1F3D8C9220951D71974F /* Translations+German.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Translations+German.swift"; sourceTree = "<group>"; };
 		2CB742A0C436A83F92CC1FED /* NpmDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NpmDashboard.swift; sourceTree = "<group>"; };
 		2CD34CC8256D65F58DBD5383 /* LinuxUpdateDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinuxUpdateDashboard.swift; sourceTree = "<group>"; };
-		1A251860CFFB47EFAA6BBCCD7B57AF56 /* DockhandComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockhandComponents.swift; sourceTree = "<group>"; };
 		2EAECCC0BAEE0321A4DC7951 /* DockhandDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockhandDashboard.swift; sourceTree = "<group>"; };
 		30BCF4718684D1491D028063 /* PiHoleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiHoleModels.swift; sourceTree = "<group>"; };
 		30C39BB672913A3C03C2CF06 /* ProxmoxClusterResourcesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxmoxClusterResourcesView.swift; sourceTree = "<group>"; };
@@ -223,12 +234,14 @@
 		38F7AE0005466E2FF260B000 /* Translations+English.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Translations+English.swift"; sourceTree = "<group>"; };
 		39AD858A4CEA15DE099AC986 /* BackupModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupModels.swift; sourceTree = "<group>"; };
 		3A088F5140A5297EA91E3821 /* Homelab.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Homelab.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3A9F6388FB1B6AA57648FF16 /* DockmonModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockmonModels.swift; sourceTree = "<group>"; };
 		3AD1D644D530DE462BB79AA2 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		3B344770A37AF6E6CF0CCB9E /* PatchmonDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchmonDashboard.swift; sourceTree = "<group>"; };
 		3CC9947203975F8072646659 /* SkeletonLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonLoader.swift; sourceTree = "<group>"; };
 		3CFE5B253C47730D40039273 /* HealthchecksComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksComponents.swift; sourceTree = "<group>"; };
 		3F5B6FAE42892F4BEB3097FD /* StatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBadge.swift; sourceTree = "<group>"; };
 		408F0E514FDE46F6A78D0A58 /* BeszelDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelDashboard.swift; sourceTree = "<group>"; };
+		432A679C47684848A0D7647C /* KomodoAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KomodoAPIClient.swift; sourceTree = "<group>"; };
 		4425B283650DDB0057DE0E75 /* HealthchecksDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksDashboard.swift; sourceTree = "<group>"; };
 		44370CC6FB6ADE55FA632A02 /* AdGuardHomeUserRulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeUserRulesView.swift; sourceTree = "<group>"; };
 		44F6D851F1B957C876FD6F0B /* GiteaModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiteaModels.swift; sourceTree = "<group>"; };
@@ -260,6 +273,7 @@
 		6EF6E7AF1CDC6676B7421A7B /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		720C06DC422C83CEF5E542D0 /* LidarrAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LidarrAPIClient.swift; sourceTree = "<group>"; };
 		735477DB04233B4FDA23469D /* GlassStatCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassStatCard.swift; sourceTree = "<group>"; };
+		7398039FD5D5E7D82AF14C76 /* DockmonAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockmonAPIClient.swift; sourceTree = "<group>"; };
 		7432B8C8ACBE47BDF26570DC /* ServiceDashboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceDashboardLayout.swift; sourceTree = "<group>"; };
 		7692F78990DA606D426BA429 /* Translations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Translations.swift; sourceTree = "<group>"; };
 		773865BCB947A8885DA8DF37 /* Bookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmark.swift; sourceTree = "<group>"; };
@@ -301,6 +315,7 @@
 		AB95F4E19C7D3082B4D6484C /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
 		AD139A00611FED93C43C0833 /* HealthchecksModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksModels.swift; sourceTree = "<group>"; };
 		AE1461ABFFED5C380B73195B /* AdGuardHomeFiltersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeFiltersView.swift; sourceTree = "<group>"; };
+		B08BBF2836A4CDE120732B2E /* MaltrailDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaltrailDashboard.swift; sourceTree = "<group>"; };
 		B0D364FA7AED9BAC9B522C01 /* JellystatAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellystatAPIClient.swift; sourceTree = "<group>"; };
 		B0F5CFB96CB606EB9EC34EBB /* AdGuardHomeAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeAPIClient.swift; sourceTree = "<group>"; };
 		B1EBFFF57A15B47F78E81D04 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
@@ -310,12 +325,16 @@
 		B71FF913BD6672FB00EE4BCC /* PangolinAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangolinAPIClient.swift; sourceTree = "<group>"; };
 		B971576BDCC06D4D0F3D9160 /* SonarrModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonarrModels.swift; sourceTree = "<group>"; };
 		BA8931C718CFC9019DCFF462 /* BookmarkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkManager.swift; sourceTree = "<group>"; };
+		BB334FC7E3B327B41891F806 /* DockmonDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockmonDashboard.swift; sourceTree = "<group>"; };
+		E77A81341F3543189E51454F /* KomodoDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KomodoDashboard.swift; sourceTree = "<group>"; };
 		BB3E11D0571609D7927FCD5A /* AdGuardHomeQueryLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeQueryLogView.swift; sourceTree = "<group>"; };
 		BB7A6237B741BF62F16D9F8B /* OfflineBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineBanner.swift; sourceTree = "<group>"; };
 		BE0A64E52150CEEA94E249D7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		BEA7A42035DBFADEB256C578 /* PatchmonAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchmonAPIClient.swift; sourceTree = "<group>"; };
 		BF17CF3A84B88F80A38C82BE /* ProxmoxGuestMigrateSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxmoxGuestMigrateSheet.swift; sourceTree = "<group>"; };
 		BF7BDBCDBE58A73C0B9AF6CC /* BackupCrypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupCrypto.swift; sourceTree = "<group>"; };
+		C0DE4821BAECE125BF5D455F /* MaltrailModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaltrailModels.swift; sourceTree = "<group>"; };
+		EE21903024124F58A20874D5 /* KomodoModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KomodoModels.swift; sourceTree = "<group>"; };
 		C226A2E333FD0452D26FF967 /* PiholeDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiholeDomain.swift; sourceTree = "<group>"; };
 		C24A96461E54B814B66B6815 /* CraftyAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CraftyAPIClient.swift; sourceTree = "<group>"; };
 		C33B224BF42CCCC8D7E73416 /* ProxmoxGuestConfigEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxmoxGuestConfigEditSheet.swift; sourceTree = "<group>"; };
@@ -337,6 +356,7 @@
 		E0D0F063C9B955AB9794F2AF /* BeszelLineGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeszelLineGraph.swift; sourceTree = "<group>"; };
 		E9A3B144085A3E0B277808F2 /* QbittorrentAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QbittorrentAPIClient.swift; sourceTree = "<group>"; };
 		EB16542A93B5FBF0293F8D25 /* ProxmoxFirewallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxmoxFirewallView.swift; sourceTree = "<group>"; };
+		EDB703E4CE642EF44D10991B /* PangolinComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangolinComponents.swift; sourceTree = "<group>"; };
 		EF3DE80965FEEDE327E3AE34 /* PlexAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexAPIClient.swift; sourceTree = "<group>"; };
 		F3116D5544353B573C4C2B0B /* ContainerListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerListView.swift; sourceTree = "<group>"; };
 		F3FB1BDA2DED27825F9D54D0 /* CraftyDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CraftyDashboard.swift; sourceTree = "<group>"; };
@@ -540,6 +560,7 @@
 		4D773C488C27A57846186D6C /* Pangolin */ = {
 			isa = PBXGroup;
 			children = (
+				EDB703E4CE642EF44D10991B /* PangolinComponents.swift */,
 				4881549A11CBCDEFA7DCFB72 /* PangolinDashboard.swift */,
 			);
 			path = Pangolin;
@@ -555,9 +576,12 @@
 				7E6FEE939313E58D34CE4BDB /* ServiceType.swift */,
 				3A1C2051810E696AD09E6C3B /* AdGuardHome */,
 				9C3998846D55F959084051D2 /* Beszel */,
+				A68D8B4B5D526100A0F56D85 /* Dockmon */,
+				A51C3C6205A14998A35D3DBF /* Komodo */,
 				981FC3E8A73DC27EF4792684 /* Gitea */,
 				69A014381BA51401C9862848 /* Healthchecks */,
 				14E1ED932033D48687A9AEFA /* LinuxUpdate */,
+				9296229844E2867993B7CDC5 /* Maltrail */,
 				F3AB0740CCD7B809F06B451A /* NginxProxyManager */,
 				FBC83234CE88E51531A08129 /* Patchmon */,
 				F2BD8B68C5C78ECC6C3C024A /* PiHole */,
@@ -700,6 +724,14 @@
 			path = Stores;
 			sourceTree = "<group>";
 		};
+		7EE465F8B66B567A6A7A2622 /* Maltrail */ = {
+			isa = PBXGroup;
+			children = (
+				0726BE937688EDCEF843DA4A /* MaltrailAPIClient.swift */,
+			);
+			path = Maltrail;
+			sourceTree = "<group>";
+		};
 		845E4EB9D4DE085F19044DDD /* Plex */ = {
 			isa = PBXGroup;
 			children = (
@@ -731,6 +763,14 @@
 				9B16543E222589D62D5DFD50 /* PatchmonHostDetailView.swift */,
 			);
 			path = Patchmon;
+			sourceTree = "<group>";
+		};
+		8A6AA03DA4BF8904504DBDA8 /* Maltrail */ = {
+			isa = PBXGroup;
+			children = (
+				B08BBF2836A4CDE120732B2E /* MaltrailDashboard.swift */,
+			);
+			path = Maltrail;
 			sourceTree = "<group>";
 		};
 		8A7222B61ABE4DC99B26EDA7 /* Crafty */ = {
@@ -769,6 +809,14 @@
 				9D702ABD0D754FC3DEF8A7B4 /* PiholeDomainListView.swift */,
 			);
 			path = PiHole;
+			sourceTree = "<group>";
+		};
+		9296229844E2867993B7CDC5 /* Maltrail */ = {
+			isa = PBXGroup;
+			children = (
+				C0DE4821BAECE125BF5D455F /* MaltrailModels.swift */,
+			);
+			path = Maltrail;
 			sourceTree = "<group>";
 		};
 		95BCC083816D8AA934FDC8F5 /* Proxmox */ = {
@@ -836,6 +884,22 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
+		A68D8B4B5D526100A0F56D85 /* Dockmon */ = {
+			isa = PBXGroup;
+			children = (
+				3A9F6388FB1B6AA57648FF16 /* DockmonModels.swift */,
+			);
+			path = Dockmon;
+			sourceTree = "<group>";
+		};
+		A51C3C6205A14998A35D3DBF /* Komodo */ = {
+			isa = PBXGroup;
+			children = (
+				EE21903024124F58A20874D5 /* KomodoModels.swift */,
+			);
+			path = Komodo;
+			sourceTree = "<group>";
+		};
 		ABC55F19459A78E216C60C0A /* Wakapi */ = {
 			isa = PBXGroup;
 			children = (
@@ -871,12 +935,15 @@
 				5A93214C3BDCB9BEC5FCCD73 /* Components */,
 				766B8D5D15CBF16824D30AD0 /* Crafty */,
 				D544ABDB8DF1FE38D7862D8B /* Dockhand */,
+				F2881EEEFF55D4BF25DA6F20 /* Dockmon */,
+				A52C3C6205A14998A35D3DBF /* Komodo */,
 				48AAFFAA1096205CCB4685B8 /* Gitea */,
 				73413D1CE20FEEB055D5D6DD /* Healthchecks */,
 				873F7F23714AC880CCFDA5BF /* Home */,
 				5C653FDCC31984516D486E0F /* Jellystat */,
 				59689F328ECB35DE4A5FD7C4 /* Lidarr */,
 				922AD3CD77717AA4927E1C6F /* LinuxUpdate */,
+				8A6AA03DA4BF8904504DBDA8 /* Maltrail */,
 				B5B73DED8852F94FA4F1DB7F /* Media */,
 				710B37A9B027F4C732FAA0E0 /* NginxProxyManager */,
 				4D773C488C27A57846186D6C /* Pangolin */,
@@ -940,8 +1007,8 @@
 		D544ABDB8DF1FE38D7862D8B /* Dockhand */ = {
 			isa = PBXGroup;
 			children = (
+				04B5CCA8C815CB0FB9A9B076 /* DockhandComponents.swift */,
 				2EAECCC0BAEE0321A4DC7951 /* DockhandDashboard.swift */,
-				1A251860CFFB47EFAA6BBCCD7B57AF56 /* DockhandComponents.swift */,
 			);
 			path = Dockhand;
 			sourceTree = "<group>";
@@ -979,11 +1046,14 @@
 				0FF3AB848856515A57C1F122 /* AdGuardHome */,
 				D5B24EF44902FCBD35F6D145 /* Beszel */,
 				8A7222B61ABE4DC99B26EDA7 /* Crafty */,
+				E7700DDE3FA87FCC29C7446A /* Dockmon */,
+				A53C3C6205A14998A35D3DBF /* Komodo */,
 				289C5939524BACC32CDCCF25 /* Gitea */,
 				06347246AD362987E7E3A1D3 /* Healthchecks */,
 				4DF24834910915FEAB043587 /* Jellystat */,
 				9B045F71B3B23D93B967B53A /* Lidarr */,
 				4C90EF8FCC9EEF95D9AB014C /* LinuxUpdate */,
+				7EE465F8B66B567A6A7A2622 /* Maltrail */,
 				23AB1F8E0947D3598E65C623 /* NginxProxyManager */,
 				1E129360F625134B518C39D4 /* Pangolin */,
 				AEF3A1B12CFF68006D2F06AF /* Patchmon */,
@@ -1019,6 +1089,22 @@
 				57CF72E451CED741576C2F4D /* ServicesStoreTests.swift */,
 			);
 			path = HomelabTests;
+			sourceTree = "<group>";
+		};
+		E7700DDE3FA87FCC29C7446A /* Dockmon */ = {
+			isa = PBXGroup;
+			children = (
+				7398039FD5D5E7D82AF14C76 /* DockmonAPIClient.swift */,
+			);
+			path = Dockmon;
+			sourceTree = "<group>";
+		};
+		A53C3C6205A14998A35D3DBF /* Komodo */ = {
+			isa = PBXGroup;
+			children = (
+				432A679C47684848A0D7647C /* KomodoAPIClient.swift */,
+			);
+			path = Komodo;
 			sourceTree = "<group>";
 		};
 		EB0C2E8A1FE201A265D4FC4A /* Utilities */ = {
@@ -1066,6 +1152,22 @@
 				141E9B530530A0BF0D52A289 /* BeszelSystemDetail.swift */,
 			);
 			path = Beszel;
+			sourceTree = "<group>";
+		};
+		F2881EEEFF55D4BF25DA6F20 /* Dockmon */ = {
+			isa = PBXGroup;
+			children = (
+				BB334FC7E3B327B41891F806 /* DockmonDashboard.swift */,
+			);
+			path = Dockmon;
+			sourceTree = "<group>";
+		};
+		A52C3C6205A14998A35D3DBF /* Komodo */ = {
+			isa = PBXGroup;
+			children = (
+				E77A81341F3543189E51454F /* KomodoDashboard.swift */,
+			);
+			path = Komodo;
 			sourceTree = "<group>";
 		};
 		F2BD8B68C5C78ECC6C3C024A /* PiHole */ = {
@@ -1226,8 +1328,14 @@
 				9F77F33FFB5F27A3D1A8109E /* ContentView.swift in Sources */,
 				106BBFAAA495E7AEACAEE51B /* CraftyAPIClient.swift in Sources */,
 				29E8185E30D00ACA9B5D0C0F /* CraftyDashboard.swift in Sources */,
+				7D4F9B8A45AF9BC46A6A733F /* DockhandComponents.swift in Sources */,
 				BD697C6B1A9C40EE51C53DDF /* DockhandDashboard.swift in Sources */,
-				2B362971D0GC58FGBB7CCDDE8C68BG67 /* DockhandComponents.swift in Sources */,
+				22CA57F636BE4C6A5EE09760 /* DockmonAPIClient.swift in Sources */,
+				C6542378592F0A5E5B44BFB7 /* DockmonDashboard.swift in Sources */,
+				DE0AF6EEB06542387F08BA08 /* DockmonModels.swift in Sources */,
+				234B9E87E9E44B7898DA5F44 /* KomodoAPIClient.swift in Sources */,
+				C9A29D2FF9EA4DD69503D4E7 /* KomodoDashboard.swift in Sources */,
+				D657364AD74B46C996908E54 /* KomodoModels.swift in Sources */,
 				05260E0A1A5781AC8EAE7011 /* EditBookmarkView.swift in Sources */,
 				21E7233E678C07EF2FA629B5 /* EditCategoryView.swift in Sources */,
 				7E78EE55701AD004992579EF /* Formatters.swift in Sources */,
@@ -1260,6 +1368,9 @@
 				EAE1E1F928E990C7105F76A1 /* LoadableState.swift in Sources */,
 				FCBBD24B21419227C44FCC60 /* LockScreenView.swift in Sources */,
 				7DB62BE1D28FBF60B6BED884 /* Logger.swift in Sources */,
+				952767CF7AF01E00666D4CF6 /* MaltrailAPIClient.swift in Sources */,
+				8A663C3AED31DE94C751E17A /* MaltrailDashboard.swift in Sources */,
+				CC23054F0C872CC583502288 /* MaltrailModels.swift in Sources */,
 				B8698D0D65FAC913F0591434 /* MediaDashboardView.swift in Sources */,
 				97C25FD08421A32F71C2B3BD /* NginxProxyManagerAPIClient.swift in Sources */,
 				EDFF65DD1D2A1F388BF64B2F /* NginxProxyManagerModels.swift in Sources */,
@@ -1279,6 +1390,7 @@
 				CFCDE90DDC7DCF5CB7F4A3A6 /* NpmUserForm.swift in Sources */,
 				EAD085672E3D6DD29C4F51D1 /* OfflineBanner.swift in Sources */,
 				D581A8A08CC0CA3A5DB9F67D /* PangolinAPIClient.swift in Sources */,
+				6DEEA589BD92BE70DF884F07 /* PangolinComponents.swift in Sources */,
 				7095EBE669356384B3B42911 /* PangolinDashboard.swift in Sources */,
 				24AF53A5125B18B4F58D1A21 /* PatchmonAPIClient.swift in Sources */,
 				9037BD60739CD62C84EFCDF1 /* PatchmonDashboard.swift in Sources */,
@@ -1400,11 +1512,9 @@
 		};
 		288CA37930B89C423CA04B4C /* Debug */ = {
 			isa = XCBuildConfiguration;
-				buildSettings = {
-					APP_SHORTCUTS_ENABLE_FLEXIBLE_MATCHING = NO;
-					BUNDLE_LOADER = "$(TEST_HOST)";
-					EXTRACT_APP_INTENTS_METADATA = NO;
-					GENERATE_INFOPLIST_FILE = YES;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1444,11 +1554,9 @@
 		};
 		452C2BF2840EED434A0BD954 /* Release */ = {
 			isa = XCBuildConfiguration;
-				buildSettings = {
-					APP_SHORTCUTS_ENABLE_FLEXIBLE_MATCHING = NO;
-					BUNDLE_LOADER = "$(TEST_HOST)";
-					EXTRACT_APP_INTENTS_METADATA = NO;
-					GENERATE_INFOPLIST_FILE = YES;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1572,7 +1680,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;

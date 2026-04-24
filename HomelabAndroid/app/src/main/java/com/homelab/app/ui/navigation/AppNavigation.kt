@@ -86,6 +86,9 @@ private fun dashboardRoute(type: ServiceType, instanceId: String): String {
         ServiceType.GITEA -> "gitea/$instanceId/dashboard"
         ServiceType.LINUX_UPDATE -> "linux-update/$instanceId/dashboard"
         ServiceType.DOCKHAND -> "dockhand/$instanceId/dashboard"
+        ServiceType.DOCKMON -> "dockmon/$instanceId/dashboard"
+        ServiceType.KOMODO -> "komodo/$instanceId/dashboard"
+        ServiceType.MALTRAIL -> "maltrail/$instanceId/dashboard"
         ServiceType.CRAFTY_CONTROLLER -> "crafty/$instanceId/dashboard"
         ServiceType.NGINX_PROXY_MANAGER -> "nginxpm/$instanceId/dashboard"
         ServiceType.PANGOLIN -> "pangolin/$instanceId/dashboard"
@@ -630,6 +633,57 @@ fun AppNavigation() {
                         if (newInstanceId != instanceId) {
                             navController.navigate(dashboardRoute(ServiceType.DOCKHAND, newInstanceId)) {
                                 popUpTo("dockhand/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "dockmon/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.dockmon.DockmonDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.DOCKMON, newInstanceId)) {
+                                popUpTo("dockmon/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "komodo/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.komodo.KomodoDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.KOMODO, newInstanceId)) {
+                                popUpTo("komodo/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "maltrail/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.maltrail.MaltrailDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.MALTRAIL, newInstanceId)) {
+                                popUpTo("maltrail/$instanceId/dashboard") { inclusive = true }
                             }
                         }
                     }

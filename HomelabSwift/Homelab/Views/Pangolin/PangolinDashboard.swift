@@ -1972,29 +1972,6 @@ private enum PangolinEditorCopy {
     }
 }
 
-private struct FlexiblePillRow: View {
-    let items: [String]
-    let tint: Color
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(items, id: \.self) { item in
-                    Text(item)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(tint)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(tint.opacity(0.12))
-                        )
-                }
-            }
-        }
-    }
-}
-
 struct PangolinStrings {
     let serviceDescription: String
     let loginHint: String

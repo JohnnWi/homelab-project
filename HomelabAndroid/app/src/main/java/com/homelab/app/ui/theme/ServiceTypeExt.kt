@@ -44,6 +44,9 @@ val ServiceType.primaryColor: Color
         ServiceType.HEALTHCHECKS -> Color(0xFF16A34A)
         ServiceType.LINUX_UPDATE -> Color(0xFF14B8A6)
         ServiceType.DOCKHAND -> Color(0xFF4A90A4)
+        ServiceType.DOCKMON -> Color(0xFF0EA5E9)
+        ServiceType.KOMODO -> if (isThemeDark()) Color(0xFFF97316) else Color(0xFFC2410C)
+        ServiceType.MALTRAIL -> Color(0xFFDC2626)
         ServiceType.CRAFTY_CONTROLLER -> Color(0xFF2E86FF)
         ServiceType.PATCHMON -> Color(0xFF0EA5E9)
         ServiceType.RADARR -> Color(0xFFFFC230)
@@ -76,6 +79,9 @@ val ServiceType.backgroundColor: Color
         ServiceType.HEALTHCHECKS -> Color(0xFF16A34A).copy(alpha = 0.12f)
         ServiceType.LINUX_UPDATE -> Color(0xFF14B8A6).copy(alpha = 0.12f)
         ServiceType.DOCKHAND -> Color(0xFF4A90A4).copy(alpha = 0.10f)
+        ServiceType.DOCKMON -> Color(0xFF0EA5E9).copy(alpha = 0.12f)
+        ServiceType.KOMODO -> Color(0xFFF97316).copy(alpha = 0.12f)
+        ServiceType.MALTRAIL -> Color(0xFFDC2626).copy(alpha = 0.12f)
         ServiceType.CRAFTY_CONTROLLER -> Color(0xFF2E86FF).copy(alpha = 0.12f)
         ServiceType.PATCHMON -> Color(0xFF0EA5E9).copy(alpha = 0.12f)
         ServiceType.RADARR -> Color(0xFFFFC230).copy(alpha = 0.12f)
@@ -107,6 +113,9 @@ val ServiceType.iconUrl: String
         ServiceType.HEALTHCHECKS -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/healthchecks.png"
         ServiceType.LINUX_UPDATE -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/linux-update-dashboard.png"
         ServiceType.DOCKHAND -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/dockhand.png"
+        ServiceType.DOCKMON -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/dockmon.png"
+        ServiceType.KOMODO -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/komodo.png"
+        ServiceType.MALTRAIL -> "https://raw.githubusercontent.com/stamparm/maltrail/master/html/images/mlogo.png"
         ServiceType.CRAFTY_CONTROLLER -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/crafty-controller.png"
         ServiceType.PATCHMON -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/patchmon.png"
         ServiceType.RADARR -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/radarr.png"
@@ -144,6 +153,24 @@ val ServiceType.iconCandidates: List<String>
             return candidates.toList()
         }
 
+        if (this == ServiceType.DOCKMON) {
+            candidates += "https://raw.githubusercontent.com/selfhst/icons/main/png/dockmon.png"
+            candidates += "https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png"
+            return candidates.toList()
+        }
+
+        if (this == ServiceType.KOMODO) {
+            candidates += "https://raw.githubusercontent.com/selfhst/icons/main/png/komodo.png"
+            candidates += "https://komo.do/favicon.ico"
+            return candidates.toList()
+        }
+
+        if (this == ServiceType.MALTRAIL) {
+            candidates += "https://raw.githubusercontent.com/stamparm/maltrail/master/html/images/mlogo.png"
+            candidates += "https://raw.githubusercontent.com/stamparm/maltrail/master/html/images/favicon.png"
+            return candidates.toList()
+        }
+
         if (primary.isEmpty()) return emptyList()
 
         val jsDelivrPrefix = "https://cdn.jsdelivr.net/gh/selfhst/icons/png/"
@@ -170,6 +197,9 @@ val ServiceType.fallbackIcon: ImageVector
         ServiceType.HEALTHCHECKS -> Icons.Default.CheckCircle
         ServiceType.LINUX_UPDATE -> Icons.Default.Source
         ServiceType.DOCKHAND -> Icons.Default.Hub
+        ServiceType.DOCKMON -> Icons.Default.Hub
+        ServiceType.KOMODO -> Icons.Default.Widgets
+        ServiceType.MALTRAIL -> Icons.Default.Security
         ServiceType.CRAFTY_CONTROLLER -> Icons.Default.Dns
         ServiceType.PATCHMON -> Icons.Default.Storage
         ServiceType.RADARR -> Icons.Default.Movie

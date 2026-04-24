@@ -1,6 +1,7 @@
 package com.homelab.app.data.remote
 
 import com.homelab.app.data.repository.BeszelRepository
+import com.homelab.app.data.repository.MaltrailRepository
 import com.homelab.app.data.repository.NginxProxyManagerRepository
 import com.homelab.app.data.repository.ProxmoxRepository
 import com.homelab.app.data.repository.ServiceInstancesRepository
@@ -18,6 +19,7 @@ class AuthInterceptor @Inject constructor(
     private val globalEventBus: GlobalEventBus,
     private val serviceInstancesRepository: ServiceInstancesRepository,
     private val beszelRepository: dagger.Lazy<BeszelRepository>,
+    private val maltrailRepository: dagger.Lazy<MaltrailRepository>,
     private val nginxProxyManagerRepository: dagger.Lazy<NginxProxyManagerRepository>,
     private val proxmoxRepository: dagger.Lazy<ProxmoxRepository>
 ) : Interceptor {
@@ -141,6 +143,38 @@ class AuthInterceptor @Inject constructor(
                     .removeHeader("Cookie")
                     .addHeader("Authorization", "Bearer $newToken")
                     .addHeader("Cookie", "token=$newToken")
+                return chain.proceed(retryBuilder.build())
+            }
+        }
+
+        if (effectiveInstance != null &&
+            effectiveInstance.type == ServiceType.MALTRAIL &&
+            response.code == 401 &&
+            bypassHeader != "true" &&
+            !effectiveInstance.username.isNullOrBlank() &&
+            !effectiveInstance.password.isNullOrBlank()
+        ) {
+            val newCookie = try {
+                runBlocking {
+                    maltrailRepository.get().authenticate(
+                        url = effectiveInstance.url,
+                        username = effectiveInstance.username.orEmpty(),
+                        password = effectiveInstance.password.orEmpty(),
+                        fallbackUrl = effectiveInstance.fallbackUrl,
+                        allowSelfSigned = effectiveInstance.allowSelfSigned
+                    )
+                }.takeIf { it.isNotBlank() }
+            } catch (_: Exception) { null }
+
+            if (newCookie != null) {
+                runBlocking {
+                    serviceInstancesRepository.saveInstance(effectiveInstance.copy(token = newCookie))
+                }
+
+                response.close()
+                val retryBuilder = request.newBuilder()
+                    .removeHeader("Cookie")
+                    .addHeader("Cookie", newCookie)
                 return chain.proceed(retryBuilder.build())
             }
         }
@@ -328,6 +362,29 @@ class AuthInterceptor @Inject constructor(
             }
             ServiceType.DOCKHAND -> {
                 if (!hasAuthorization && instance.token.isNotBlank()) {
+                    builder.addHeader("Cookie", instance.token)
+                }
+            }
+            ServiceType.DOCKMON -> {
+                if (!hasAuthorization && !instance.apiKey.isNullOrBlank()) {
+                    val token = instance.apiKey.trim().let { raw ->
+                        if (raw.startsWith("bearer ", ignoreCase = true)) raw.substring(7).trim() else raw
+                    }
+                    if (token.isNotBlank()) {
+                        builder.addHeader("Authorization", "Bearer $token")
+                    }
+                }
+            }
+            ServiceType.KOMODO -> {
+                instance.apiKey?.trim()?.takeIf { it.isNotBlank() }?.let {
+                    builder.addHeader("X-Api-Key", it)
+                }
+                instance.password?.trim()?.takeIf { it.isNotBlank() }?.let {
+                    builder.addHeader("X-Api-Secret", it)
+                }
+            }
+            ServiceType.MALTRAIL -> {
+                if (instance.token.isNotBlank()) {
                     builder.addHeader("Cookie", instance.token)
                 }
             }

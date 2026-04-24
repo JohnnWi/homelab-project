@@ -5,11 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.homelab.app.data.repository.BeszelRepository
 import com.homelab.app.data.repository.DockhandRepository
+import com.homelab.app.data.repository.DockmonRepository
 import com.homelab.app.data.repository.GiteaRepository
 import com.homelab.app.data.repository.LinuxUpdateRepository
 import com.homelab.app.data.repository.CraftyRepository
 import com.homelab.app.data.repository.JellystatRepository
+import com.homelab.app.data.repository.KomodoRepository
 import com.homelab.app.data.repository.LocalPreferencesRepository
+import com.homelab.app.data.repository.MaltrailRepository
 import com.homelab.app.data.repository.NginxProxyManagerRepository
 import com.homelab.app.data.repository.HealthchecksRepository
 import com.homelab.app.data.repository.PatchmonRepository
@@ -52,6 +55,9 @@ class HomeViewModel @Inject constructor(
     private val linuxUpdateRepository: LinuxUpdateRepository,
     private val technitiumRepository: TechnitiumRepository,
     private val dockhandRepository: DockhandRepository,
+    private val dockmonRepository: DockmonRepository,
+    private val komodoRepository: KomodoRepository,
+    private val maltrailRepository: MaltrailRepository,
     private val craftyRepository: CraftyRepository,
     private val nginxProxyManagerRepository: NginxProxyManagerRepository,
     private val healthchecksRepository: HealthchecksRepository,
@@ -280,6 +286,20 @@ class HomeViewModel @Inject constructor(
             ServiceType.DOCKHAND -> {
                 val data = dockhandRepository.getDashboard(instanceId = instanceId, env = null)
                 InstanceSummary("${data.stats.runningContainers}", "/ ${data.stats.totalContainers}", "dockhand_containers")
+            }
+            ServiceType.DOCKMON -> {
+                val data = dockmonRepository.getSummary(instanceId)
+                InstanceSummary("${data.runningContainers}", "/ ${data.containers.size}", "dockmon_containers")
+            }
+            ServiceType.KOMODO -> {
+                val summary = komodoRepository.getSummary(instanceId)
+                InstanceSummary("${summary.runningContainers}", "/ ${summary.totalContainers}", "komodo_containers")
+            }
+            ServiceType.MALTRAIL -> {
+                val summary = maltrailRepository.getSummary(instanceId)
+                val latest = java.text.NumberFormat.getInstance().format(summary.latestCount)
+                val day = summary.latestDayLabel.takeIf { it.isNotBlank() }
+                InstanceSummary(latest, day, "maltrail_findings")
             }
             ServiceType.CRAFTY_CONTROLLER -> {
                 val servers = craftyRepository.getServers(instanceId)

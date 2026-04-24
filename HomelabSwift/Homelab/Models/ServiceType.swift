@@ -9,6 +9,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
     case healthchecks
     case linuxUpdate = "linux_update"
     case dockhand
+    case dockmon
+    case komodo
+    case maltrail
     case craftyController = "crafty_controller"
     case gitea
     case nginxProxyManager
@@ -53,6 +56,12 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
             return .technitium
         case "dockhand":
             return .dockhand
+        case "dockmon":
+            return .dockmon
+        case "komodo":
+            return .komodo
+        case "maltrail":
+            return .maltrail
         case "pangolin":
             return .pangolin
         case "crafty", "crafty_controller":
@@ -111,6 +120,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .healthchecks:       return "Healthchecks"
         case .linuxUpdate:             return "Linux Update"
         case .dockhand:                return "Dockhand"
+        case .dockmon:                 return "DockMon"
+        case .komodo:                  return "Komodo"
+        case .maltrail:                return "Maltrail"
         case .craftyController:        return "Crafty Controller"
         case .gitea:              return "Gitea"
         case .nginxProxyManager:  return "Nginx Proxy Manager"
@@ -142,6 +154,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .healthchecks:       return t.serviceHealthchecksDesc
         case .linuxUpdate:             return t.serviceLinuxUpdateDesc
         case .dockhand:                return t.serviceDockhandDesc
+        case .dockmon:                 return t.serviceDockmonDesc
+        case .komodo:                  return t.serviceKomodoDesc
+        case .maltrail:                return t.serviceMaltrailDesc
         case .craftyController:        return t.serviceCraftyControllerDesc
         case .gitea:              return t.serviceGiteaDesc
         case .nginxProxyManager:  return t.serviceNpmDesc
@@ -178,6 +193,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .healthchecks:       return "heart.text.square.fill"
         case .linuxUpdate:             return "chevron.left.forwardslash.chevron.right"
         case .dockhand:                return "shippingbox.circle.fill"
+        case .dockmon:                 return "arrow.triangle.2.circlepath.circle.fill"
+        case .komodo:                  return "shippingbox.fill"
+        case .maltrail:                return "network.badge.shield.half.filled"
         case .craftyController:        return "gamecontroller.fill"
         case .gitea:              return "arrow.triangle.branch"
         case .nginxProxyManager:  return "globe"
@@ -209,6 +227,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .healthchecks:       return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/healthchecks.png"
         case .linuxUpdate:             return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/linux-update-dashboard.png"
         case .dockhand:                return "https://dockhand.pro/favicon.ico"
+        case .dockmon:                 return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/dockmon.png"
+        case .komodo:                  return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/komodo.png"
+        case .maltrail:                return "https://raw.githubusercontent.com/stamparm/maltrail/master/html/images/mlogo.png"
         case .craftyController:        return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/crafty-controller.png"
         case .gitea:              return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/gitea.png"
         case .nginxProxyManager:  return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/nginx-proxy-manager.png"
@@ -241,6 +262,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .healthchecks:       slug = "healthchecks"
         case .linuxUpdate:             slug = "linux-update"
         case .dockhand:                slug = "dockhand"
+        case .dockmon:                 slug = "dockmon"
+        case .komodo:                  slug = "komodo"
+        case .maltrail:                slug = "maltrail"
         case .craftyController:        slug = "crafty-controller"
         case .gitea:              slug = "gitea"
         case .nginxProxyManager:  slug = "nginx-proxy-manager"
@@ -287,6 +311,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .healthchecks:       return "service-healthchecks"
         case .linuxUpdate:             return "service-linux-update"
         case .dockhand:                return "service-dockhand"
+        case .dockmon:                 return "service-dockmon"
+        case .komodo:                  return "service-komodo"
+        case .maltrail:                return "service-maltrail"
         case .craftyController:        return "service-crafty-controller"
         case .gitea:              return "service-gitea"
         case .nginxProxyManager:  return "service-nginx-proxy-manager"
@@ -318,6 +345,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .healthchecks:       return ServiceColorSet(primary: Color(hex: "#16A34A"), dark: Color(hex: "#15803D"), bg: Color(hex: "#16A34A").opacity(0.09))
         case .linuxUpdate:             return ServiceColorSet(primary: Color(hex: "#14B8A6"), dark: Color(hex: "#0F766E"), bg: Color(hex: "#14B8A6").opacity(0.09))
         case .dockhand:                return ServiceColorSet(primary: Color(hex: "#1E88E5"), dark: Color(hex: "#1565C0"), bg: Color(hex: "#1E88E5").opacity(0.09))
+        case .dockmon:                 return ServiceColorSet(primary: Color(hex: "#0EA5E9"), dark: Color(hex: "#0369A1"), bg: Color(hex: "#0EA5E9").opacity(0.09))
+        case .komodo:                  return ServiceColorSet(primary: Color(hex: "#F97316"), dark: Color(hex: "#C2410C"), bg: Color(hex: "#F97316").opacity(0.08))
+        case .maltrail:                return ServiceColorSet(primary: Color(hex: "#DC2626"), dark: Color(hex: "#991B1B"), bg: Color(hex: "#DC2626").opacity(0.08))
         case .craftyController:        return ServiceColorSet(primary: Color(hex: "#2E86FF"), dark: Color(hex: "#1E63C6"), bg: Color(hex: "#2E86FF").opacity(0.09))
         case .gitea:              return ServiceColorSet(primary: Color(hex: "#609926"), dark: Color(hex: "#4A7A1E"), bg: Color(hex: "#609926").opacity(0.09))
         case .nginxProxyManager:  return ServiceColorSet(primary: Color(hex: "#F15B2A"), dark: Color(hex: "#C9481F"), bg: Color(hex: "#F15B2A").opacity(0.09))
