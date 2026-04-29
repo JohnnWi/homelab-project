@@ -47,8 +47,8 @@ Homelab Dashboard is a fully native mobile app for monitoring and managing a sel
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/beszel.png" width="18" style="vertical-align:middle"> **Beszel**: server monitoring across nodes.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/linux-update-dashboard.png" width="18" style="vertical-align:middle"> **Linux Update**: pending package updates across hosts.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/crafty-controller.png" width="18" style="vertical-align:middle"> **Crafty Controller**: game server management dashboard.
-- **Pterodactyl**: game server management panel with power controls, resource stats, and live status visibility.
-- **Calagopus**: next-generation game server management panel with power controls, uptime, and resource stats.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/pterodactyl.png" width="18" style="vertical-align:middle"> **Pterodactyl**: game server management panel with power controls, resource stats, and live status visibility.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/calagopus.png" width="18" style="vertical-align:middle"> **Calagopus**: next-generation game server management panel with power controls, uptime, and resource stats.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/gitea.png" width="18" style="vertical-align:middle"> **Gitea / Forgejo**: repositories, activity, and source browsing.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/pangolin.png" width="18" style="vertical-align:middle"> **Pangolin / Newt**: tunnel and peer visibility.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/healthchecks.png" width="18" style="vertical-align:middle"> **Healthchecks**: uptime checks and health status.
