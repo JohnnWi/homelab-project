@@ -27,6 +27,15 @@
       ],
       "versions": [
         {
+          "version": "1.4.0",
+          "buildVersion": "30",
+          "date": "2026-04-29",
+          "localizedDescription": "- Added Uptime Kuma support across iOS and Android\n- Added Ubiquiti Network support across iOS and Android\n- Expanded backup support for the new services\n- Improved service onboarding, icons, and dashboard coverage\n",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v1.4.0/Homelab.ipa",
+          "size": 33264131,
+          "minOSVersion": "26.0"
+        },
+        {
           "version": "1.3.0",
           "buildVersion": "29",
           "date": "2026-04-24",
@@ -252,6 +261,16 @@
     }
   ],
   "news": [
+    {
+      "title": "v1.4.0 — - Added Uptime Kuma support across iOS and Android",
+      "identifier": "release-1.4.0",
+      "caption": "- Added Uptime Kuma support across iOS and Android - Added Ubiquiti Network support across iOS and Android - Expanded backup support for the new services",
+      "date": "2026-04-29",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v1.4.0",
+      "appID": "homelab.foreverhomelab"
+    },
     {
       "title": "v1.3.0 — - Added Komodo support across iOS and Android",
       "identifier": "release-1.3.0",

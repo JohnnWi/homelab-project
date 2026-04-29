@@ -1,6 +1,6 @@
 {
-  "latest": "1.3.0",
-  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.3.0/Homelab.ipa",
-  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.3.0/Homelab.apk",
-  "changelog": "- Added Komodo support across iOS and Android\n- Added Maltrail support across iOS and Android\n- Added DockMon support across iOS and Android\n- Expanded backup and restore support for the new services\n- Improved localized UI and service onboarding flows"
+  "latest": "1.4.0",
+  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.4.0/Homelab.ipa",
+  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.4.0/Homelab.apk",
+  "changelog": "- Added Uptime Kuma support across iOS and Android\n- Added Ubiquiti Network support across iOS and Android\n- Expanded backup support for the new services\n- Improved service onboarding, icons, and dashboard coverage"
 }
