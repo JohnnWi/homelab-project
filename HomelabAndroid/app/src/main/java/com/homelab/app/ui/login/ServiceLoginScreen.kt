@@ -507,7 +507,9 @@ fun ServiceLoginScreen(
                 serviceType == ServiceType.JELLYSEERR ||
                 serviceType == ServiceType.PROWLARR ||
                 serviceType == ServiceType.BAZARR ||
-                serviceType == ServiceType.WAKAPI
+                serviceType == ServiceType.WAKAPI ||
+                serviceType == ServiceType.PTERODACTYL ||
+                serviceType == ServiceType.CALAGOPUS
             ) {
                 SecretField(
                     value = apiKey,

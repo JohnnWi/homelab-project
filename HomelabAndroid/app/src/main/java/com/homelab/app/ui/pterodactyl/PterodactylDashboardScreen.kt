@@ -115,7 +115,7 @@ fun PterodactylDashboardScreen(
                 ServiceInstancePicker(
                     instances = instances,
                     selectedInstanceId = viewModel.instanceId,
-                    onInstanceSelected = { onNavigateToInstance(it) },
+                    onInstanceSelected = { onNavigateToInstance(it.id) },
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
             }
@@ -129,7 +129,7 @@ fun PterodactylDashboardScreen(
                 is UiState.Error -> {
                     ErrorScreen(
                         message = s.message,
-                        onRetry = s.retryAction
+                        onRetry = s.retryAction ?: { viewModel.refresh() }
                     )
                 }
                 is UiState.Success -> {
