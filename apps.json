@@ -27,6 +27,15 @@
       ],
       "versions": [
         {
+          "version": "1.5.0",
+          "buildVersion": "31",
+          "date": "2026-04-29",
+          "localizedDescription": "Added Pterodactyl support across iOS and Android.\nAdded Calagopus support across iOS and Android.\nImproved game server summaries and resource status handling.\nUpdated the service catalog and README.",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.0/Homelab.ipa",
+          "size": 33411472,
+          "minOSVersion": "26.0"
+        },
+        {
           "version": "1.4.0",
           "buildVersion": "30",
           "date": "2026-04-29",
@@ -261,6 +270,16 @@
     }
   ],
   "news": [
+    {
+      "title": "v1.5.0 — Added Pterodactyl support across iOS and Android.",
+      "identifier": "release-1.5.0",
+      "caption": "Added Pterodactyl support across iOS and Android. Added Calagopus support across iOS and Android. Improved game server summaries and resource status handling.",
+      "date": "2026-04-29",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v1.5.0",
+      "appID": "homelab.foreverhomelab"
+    },
     {
       "title": "v1.4.0 — - Added Uptime Kuma support across iOS and Android",
       "identifier": "release-1.4.0",

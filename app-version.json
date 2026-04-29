@@ -1,6 +1,6 @@
 {
-  "latest": "1.4.0",
-  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.4.0/Homelab.ipa",
-  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.4.0/Homelab.apk",
-  "changelog": "- Added Uptime Kuma support across iOS and Android\n- Added Ubiquiti Network support across iOS and Android\n- Expanded backup support for the new services\n- Improved service onboarding, icons, and dashboard coverage"
+  "latest": "1.5.0",
+  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.0/Homelab.ipa",
+  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.0/Homelab.apk",
+  "changelog": "Added Pterodactyl support across iOS and Android.\nAdded Calagopus support across iOS and Android.\nImproved game server summaries and resource status handling.\nUpdated the service catalog and README."
 }
