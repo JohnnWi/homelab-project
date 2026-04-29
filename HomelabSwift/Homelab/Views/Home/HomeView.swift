@@ -314,7 +314,9 @@ struct HomeView: View {
         case .dockmon:                DockmonDashboard(instanceId: route.instanceId)
         case .komodo:                 KomodoDashboard(instanceId: route.instanceId)
         case .maltrail:               MaltrailDashboard(instanceId: route.instanceId)
+        case .uptimeKuma:             UptimeKumaDashboard(instanceId: route.instanceId)
         case .craftyController:       CraftyDashboard(instanceId: route.instanceId)
+        case .unifiNetwork:           UniFiDashboard(instanceId: route.instanceId)
         case .gitea:             GiteaDashboard(instanceId: route.instanceId)
         case .nginxProxyManager: NpmDashboard(instanceId: route.instanceId)
         case .pangolin:          PangolinDashboard(instanceId: route.instanceId)
@@ -446,6 +448,14 @@ struct HomeView: View {
                     subValue: summary.latestDayLabel,
                     label: localizer.t.maltrailFindings
                 )
+            case .uptimeKuma:
+                guard let client = await servicesStore.uptimeKumaClient(instanceId: instanceId) else { return nil }
+                let summary = try await client.getSummary()
+                return ServiceSummaryInfo(
+                    value: "\(summary.up)",
+                    subValue: "/ \(summary.total)",
+                    label: localizer.t.uptimeKumaMonitors
+                )
             case .craftyController:
                 guard let client = await servicesStore.craftyClient(instanceId: instanceId) else { return nil }
                 let servers = try await client.getServers()
@@ -456,6 +466,14 @@ struct HomeView: View {
                     }
                 }
                 return ServiceSummaryInfo(value: "\(running)", subValue: "/ \(servers.count)", label: localizer.t.craftyRunningServers)
+            case .unifiNetwork:
+                guard let client = await servicesStore.unifiClient(instanceId: instanceId) else { return nil }
+                let dashboard = try await client.getDashboard()
+                return ServiceSummaryInfo(
+                    value: "\(dashboard.onlineDevices)",
+                    subValue: "/ \(dashboard.totalDevices)",
+                    label: localizer.t.unifiOnlineDevices
+                )
             case .gitea:
                 guard let client = await servicesStore.giteaClient(instanceId: instanceId) else { return nil }
                 var allRepos: [GiteaRepo] = []
@@ -850,13 +868,10 @@ struct ServiceIconView: View {
                     .renderingMode(.original)
                     .scaledToFit()
             } else {
-                ZStack {
-                    // Always render a fallback symbol so remote icons never appear blank.
+                if let primary = candidates.first {
+                    primaryIconView(primary)
+                } else {
                     fallbackView
-
-                    if let primary = candidates.first {
-                        primaryIconView(primary)
-                    }
                 }
             }
         }
@@ -874,11 +889,15 @@ struct ServiceIconView: View {
                     .renderingMode(.original)
                     .scaledToFit()
             case .failure:
-                secondaryIconView
+                if candidates.count > 1 {
+                    secondaryIconView
+                } else {
+                    fallbackView
+                }
             case .empty:
-                EmptyView()
+                fallbackView
             @unknown default:
-                EmptyView()
+                fallbackView
             }
         }
         .id(url.absoluteString)
@@ -895,14 +914,16 @@ struct ServiceIconView: View {
                         .renderingMode(.original)
                         .scaledToFit()
                 case .failure:
-                    EmptyView()
+                    fallbackView
                 case .empty:
-                    EmptyView()
+                    fallbackView
                 @unknown default:
-                    EmptyView()
+                    fallbackView
                 }
             }
             .id(candidates[1].absoluteString)
+        } else {
+            fallbackView
         }
     }
 

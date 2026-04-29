@@ -201,6 +201,18 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideUptimeKumaApi(retrofit: Retrofit): com.homelab.app.data.remote.api.UptimeKumaApi {
+        return retrofit.create(com.homelab.app.data.remote.api.UptimeKumaApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUnifiApi(retrofit: Retrofit): com.homelab.app.data.remote.api.UnifiApi {
+        return retrofit.create(com.homelab.app.data.remote.api.UnifiApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideCraftyApi(retrofit: Retrofit): com.homelab.app.data.remote.api.CraftyApi {
         return retrofit.create(com.homelab.app.data.remote.api.CraftyApi::class.java)
     }

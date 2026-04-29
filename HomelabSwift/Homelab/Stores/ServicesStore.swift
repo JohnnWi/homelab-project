@@ -14,7 +14,9 @@ private final class ServiceClientManager {
     private var dockmonClients: [UUID: DockmonAPIClient] = [:]
     private var komodoClients: [UUID: KomodoAPIClient] = [:]
     private var maltrailClients: [UUID: MaltrailAPIClient] = [:]
+    private var uptimeKumaClients: [UUID: UptimeKumaAPIClient] = [:]
     private var craftyClients: [UUID: CraftyAPIClient] = [:]
+    private var unifiClients: [UUID: UniFiAPIClient] = [:]
     private var giteaClients: [UUID: GiteaAPIClient] = [:]
     private var npmClients: [UUID: NginxProxyManagerAPIClient] = [:]
     private var pangolinClients: [UUID: PangolinAPIClient] = [:]
@@ -128,12 +130,30 @@ private final class ServiceClientManager {
         return client
     }
 
+    func uptimeKumaClient(id: UUID) -> UptimeKumaAPIClient {
+        if let client = uptimeKumaClients[id] {
+            return client
+        }
+        let client = UptimeKumaAPIClient(instanceId: id)
+        uptimeKumaClients[id] = client
+        return client
+    }
+
     func craftyClient(id: UUID) -> CraftyAPIClient {
         if let client = craftyClients[id] {
             return client
         }
         let client = CraftyAPIClient(instanceId: id)
         craftyClients[id] = client
+        return client
+    }
+
+    func unifiClient(id: UUID) -> UniFiAPIClient {
+        if let client = unifiClients[id] {
+            return client
+        }
+        let client = UniFiAPIClient(instanceId: id)
+        unifiClients[id] = client
         return client
     }
 
@@ -277,8 +297,12 @@ private final class ServiceClientManager {
             komodoClients.removeValue(forKey: id)
         case .maltrail:
             maltrailClients.removeValue(forKey: id)
+        case .uptimeKuma:
+            uptimeKumaClients.removeValue(forKey: id)
         case .craftyController:
             craftyClients.removeValue(forKey: id)
+        case .unifiNetwork:
+            unifiClients.removeValue(forKey: id)
         case .gitea:
             giteaClients.removeValue(forKey: id)
         case .nginxProxyManager:
@@ -322,7 +346,9 @@ private final class ServiceClientManager {
         dockmonClients = dockmonClients.filter { knownInstanceIds.contains($0.key) }
         komodoClients = komodoClients.filter { knownInstanceIds.contains($0.key) }
         maltrailClients = maltrailClients.filter { knownInstanceIds.contains($0.key) }
+        uptimeKumaClients = uptimeKumaClients.filter { knownInstanceIds.contains($0.key) }
         craftyClients = craftyClients.filter { knownInstanceIds.contains($0.key) }
+        unifiClients = unifiClients.filter { knownInstanceIds.contains($0.key) }
         giteaClients = giteaClients.filter { knownInstanceIds.contains($0.key) }
         npmClients = npmClients.filter { knownInstanceIds.contains($0.key) }
         pangolinClients = pangolinClients.filter { knownInstanceIds.contains($0.key) }
@@ -592,9 +618,19 @@ final class ServicesStore {
         return clientManager.maltrailClient(id: instance.id)
     }
 
+    func uptimeKumaClient(instanceId: UUID) async -> UptimeKumaAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .uptimeKuma else { return nil }
+        return clientManager.uptimeKumaClient(id: instance.id)
+    }
+
     func craftyClient(instanceId: UUID) async -> CraftyAPIClient? {
         guard let instance = instancesById[instanceId], instance.type == .craftyController else { return nil }
         return clientManager.craftyClient(id: instance.id)
+    }
+
+    func unifiClient(instanceId: UUID) async -> UniFiAPIClient? {
+        guard let instance = instancesById[instanceId], instance.type == .unifiNetwork else { return nil }
+        return clientManager.unifiClient(id: instance.id)
     }
 
     func giteaClient(instanceId: UUID) async -> GiteaAPIClient? {
@@ -696,8 +732,12 @@ final class ServicesStore {
             ok = await clientManager.komodoClient(id: instanceId).ping()
         case .maltrail:
             ok = await clientManager.maltrailClient(id: instanceId).ping()
+        case .uptimeKuma:
+            ok = await clientManager.uptimeKumaClient(id: instanceId).ping()
         case .craftyController:
             ok = await clientManager.craftyClient(id: instanceId).ping()
+        case .unifiNetwork:
+            ok = await clientManager.unifiClient(id: instanceId).ping()
         case .gitea:
             ok = await clientManager.giteaClient(id: instanceId).ping()
         case .nginxProxyManager:
@@ -1046,6 +1086,16 @@ final class ServicesStore {
                 allowSelfSigned: instance.allowSelfSigned
             )
 
+        case .uptimeKuma:
+            let client = clientManager.uptimeKumaClient(id: instance.id)
+            await client.configure(
+                url: instance.url,
+                fallbackUrl: instance.fallbackUrl,
+                username: instance.username,
+                password: instance.password,
+                allowSelfSigned: instance.allowSelfSigned
+            )
+
         case .craftyController:
             let client = clientManager.craftyClient(id: instance.id)
             await client.configure(
@@ -1055,6 +1105,16 @@ final class ServicesStore {
                 token: instance.token,
                 fallbackUrl: instance.fallbackUrl
             , allowSelfSigned: instance.allowSelfSigned)
+
+        case .unifiNetwork:
+            let client = clientManager.unifiClient(id: instance.id)
+            await client.configure(
+                url: instance.url,
+                apiKey: instance.apiKey ?? "",
+                mode: instance.unifiAuthMode ?? .siteManager,
+                fallbackUrl: instance.fallbackUrl,
+                allowSelfSigned: instance.allowSelfSigned
+            )
 
         case .gitea:
             let client = clientManager.giteaClient(id: instance.id)

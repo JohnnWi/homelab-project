@@ -91,6 +91,13 @@
 		84F415AFC1217C67B1C8D080 /* ProxmoxGuestConfigEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33B224BF42CCCC8D7E73416 /* ProxmoxGuestConfigEditSheet.swift */; };
 		889C2C456E8212B86F6EB9BB /* AdGuardHomeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1911146A0ED528B1D912614C /* AdGuardHomeModels.swift */; };
 		8A663C3AED31DE94C751E17A /* MaltrailDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B08BBF2836A4CDE120732B2E /* MaltrailDashboard.swift */; };
+		E9B7C8145B2A4F5C9D1E3062 /* UptimeKumaModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B7C8145B2A4F5C9D1E3061 /* UptimeKumaModels.swift */; };
+		E9B7C8145B2A4F5C9D1E3064 /* UptimeKumaAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B7C8145B2A4F5C9D1E3063 /* UptimeKumaAPIClient.swift */; };
+		E9B7C8145B2A4F5C9D1E3066 /* UptimeKumaDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B7C8145B2A4F5C9D1E3065 /* UptimeKumaDashboard.swift */; };
+		E9C1A0000000000000000001 /* UniFiAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C1A0000000000000000002 /* UniFiAPIClient.swift */; };
+		E9C1A0000000000000000003 /* UniFiDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C1A0000000000000000004 /* UniFiDashboard.swift */; };
+		E9C2A0000000000000000002 /* UniFiDevicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C2A0000000000000000001 /* UniFiDevicesView.swift */; };
+		E9C2A0000000000000000004 /* UniFiClientsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C2A0000000000000000003 /* UniFiClientsView.swift */; };
 		8BE00328A6AC68DF3E40F05B /* Translations+Italian.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D8F0162AE327AA60600505 /* Translations+Italian.swift */; };
 		8DD71C55FFF77D4A370735D1 /* PlexAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF3DE80965FEEDE327E3AE34 /* PlexAPIClient.swift */; };
 		8EADC34444DEB43F553D0513 /* SkeletonLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CC9947203975F8072646659 /* SkeletonLoader.swift */; };
@@ -316,6 +323,13 @@
 		AD139A00611FED93C43C0833 /* HealthchecksModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthchecksModels.swift; sourceTree = "<group>"; };
 		AE1461ABFFED5C380B73195B /* AdGuardHomeFiltersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeFiltersView.swift; sourceTree = "<group>"; };
 		B08BBF2836A4CDE120732B2E /* MaltrailDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaltrailDashboard.swift; sourceTree = "<group>"; };
+		E9B7C8145B2A4F5C9D1E3061 /* UptimeKumaModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UptimeKumaModels.swift; sourceTree = "<group>"; };
+		E9B7C8145B2A4F5C9D1E3063 /* UptimeKumaAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UptimeKumaAPIClient.swift; sourceTree = "<group>"; };
+		E9B7C8145B2A4F5C9D1E3065 /* UptimeKumaDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UptimeKumaDashboard.swift; sourceTree = "<group>"; };
+		E9C1A0000000000000000002 /* UniFiAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniFiAPIClient.swift; sourceTree = "<group>"; };
+		E9C1A0000000000000000004 /* UniFiDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniFiDashboard.swift; sourceTree = "<group>"; };
+		E9C2A0000000000000000001 /* UniFiDevicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniFiDevicesView.swift; sourceTree = "<group>"; };
+		E9C2A0000000000000000003 /* UniFiClientsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniFiClientsView.swift; sourceTree = "<group>"; };
 		B0D364FA7AED9BAC9B522C01 /* JellystatAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellystatAPIClient.swift; sourceTree = "<group>"; };
 		B0F5CFB96CB606EB9EC34EBB /* AdGuardHomeAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdGuardHomeAPIClient.swift; sourceTree = "<group>"; };
 		B1EBFFF57A15B47F78E81D04 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
@@ -582,6 +596,7 @@
 				69A014381BA51401C9862848 /* Healthchecks */,
 				14E1ED932033D48687A9AEFA /* LinuxUpdate */,
 				9296229844E2867993B7CDC5 /* Maltrail */,
+				E9B7C8145B2A4F5C9D1E3067 /* UptimeKuma */,
 				F3AB0740CCD7B809F06B451A /* NginxProxyManager */,
 				FBC83234CE88E51531A08129 /* Patchmon */,
 				F2BD8B68C5C78ECC6C3C024A /* PiHole */,
@@ -773,6 +788,24 @@
 			path = Maltrail;
 			sourceTree = "<group>";
 		};
+		E9B7C8145B2A4F5C9D1E3069 /* UptimeKuma */ = {
+			isa = PBXGroup;
+			children = (
+				E9B7C8145B2A4F5C9D1E3065 /* UptimeKumaDashboard.swift */,
+			);
+			path = UptimeKuma;
+			sourceTree = "<group>";
+		};
+		E9C1A0000000000000000005 /* UniFi */ = {
+			isa = PBXGroup;
+			children = (
+				E9C1A0000000000000000004 /* UniFiDashboard.swift */,
+				E9C2A0000000000000000001 /* UniFiDevicesView.swift */,
+				E9C2A0000000000000000003 /* UniFiClientsView.swift */,
+			);
+			path = UniFi;
+			sourceTree = "<group>";
+		};
 		8A7222B61ABE4DC99B26EDA7 /* Crafty */ = {
 			isa = PBXGroup;
 			children = (
@@ -817,6 +850,22 @@
 				C0DE4821BAECE125BF5D455F /* MaltrailModels.swift */,
 			);
 			path = Maltrail;
+			sourceTree = "<group>";
+		};
+		E9B7C8145B2A4F5C9D1E3067 /* UptimeKuma */ = {
+			isa = PBXGroup;
+			children = (
+				E9B7C8145B2A4F5C9D1E3061 /* UptimeKumaModels.swift */,
+			);
+			path = UptimeKuma;
+			sourceTree = "<group>";
+		};
+		E9C1A0000000000000000006 /* UniFi */ = {
+			isa = PBXGroup;
+			children = (
+				E9C1A0000000000000000002 /* UniFiAPIClient.swift */,
+			);
+			path = UniFi;
 			sourceTree = "<group>";
 		};
 		95BCC083816D8AA934FDC8F5 /* Proxmox */ = {
@@ -944,6 +993,8 @@
 				59689F328ECB35DE4A5FD7C4 /* Lidarr */,
 				922AD3CD77717AA4927E1C6F /* LinuxUpdate */,
 				8A6AA03DA4BF8904504DBDA8 /* Maltrail */,
+				E9B7C8145B2A4F5C9D1E3069 /* UptimeKuma */,
+				E9C1A0000000000000000005 /* UniFi */,
 				B5B73DED8852F94FA4F1DB7F /* Media */,
 				710B37A9B027F4C732FAA0E0 /* NginxProxyManager */,
 				4D773C488C27A57846186D6C /* Pangolin */,
@@ -1054,6 +1105,8 @@
 				9B045F71B3B23D93B967B53A /* Lidarr */,
 				4C90EF8FCC9EEF95D9AB014C /* LinuxUpdate */,
 				7EE465F8B66B567A6A7A2622 /* Maltrail */,
+				E9B7C8145B2A4F5C9D1E3068 /* UptimeKuma */,
+				E9C1A0000000000000000006 /* UniFi */,
 				23AB1F8E0947D3598E65C623 /* NginxProxyManager */,
 				1E129360F625134B518C39D4 /* Pangolin */,
 				AEF3A1B12CFF68006D2F06AF /* Patchmon */,
@@ -1097,6 +1150,14 @@
 				7398039FD5D5E7D82AF14C76 /* DockmonAPIClient.swift */,
 			);
 			path = Dockmon;
+			sourceTree = "<group>";
+		};
+		E9B7C8145B2A4F5C9D1E3068 /* UptimeKuma */ = {
+			isa = PBXGroup;
+			children = (
+				E9B7C8145B2A4F5C9D1E3063 /* UptimeKumaAPIClient.swift */,
+			);
+			path = UptimeKuma;
 			sourceTree = "<group>";
 		};
 		A53C3C6205A14998A35D3DBF /* Komodo */ = {
@@ -1371,6 +1432,13 @@
 				952767CF7AF01E00666D4CF6 /* MaltrailAPIClient.swift in Sources */,
 				8A663C3AED31DE94C751E17A /* MaltrailDashboard.swift in Sources */,
 				CC23054F0C872CC583502288 /* MaltrailModels.swift in Sources */,
+				E9B7C8145B2A4F5C9D1E3064 /* UptimeKumaAPIClient.swift in Sources */,
+				E9B7C8145B2A4F5C9D1E3066 /* UptimeKumaDashboard.swift in Sources */,
+				E9B7C8145B2A4F5C9D1E3062 /* UptimeKumaModels.swift in Sources */,
+				E9C1A0000000000000000001 /* UniFiAPIClient.swift in Sources */,
+				E9C1A0000000000000000003 /* UniFiDashboard.swift in Sources */,
+				E9C2A0000000000000000002 /* UniFiDevicesView.swift in Sources */,
+				E9C2A0000000000000000004 /* UniFiClientsView.swift in Sources */,
 				B8698D0D65FAC913F0591434 /* MediaDashboardView.swift in Sources */,
 				97C25FD08421A32F71C2B3BD /* NginxProxyManagerAPIClient.swift in Sources */,
 				EDFF65DD1D2A1F388BF64B2F /* NginxProxyManagerModels.swift in Sources */,

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Source
@@ -47,6 +48,8 @@ val ServiceType.primaryColor: Color
         ServiceType.DOCKMON -> Color(0xFF0EA5E9)
         ServiceType.KOMODO -> if (isThemeDark()) Color(0xFFF97316) else Color(0xFFC2410C)
         ServiceType.MALTRAIL -> Color(0xFFDC2626)
+        ServiceType.UPTIME_KUMA -> if (isThemeDark()) Color(0xFF22C55E) else Color(0xFF15803D)
+        ServiceType.UNIFI_NETWORK -> Color(0xFF007AFF)
         ServiceType.CRAFTY_CONTROLLER -> Color(0xFF2E86FF)
         ServiceType.PATCHMON -> Color(0xFF0EA5E9)
         ServiceType.RADARR -> Color(0xFFFFC230)
@@ -82,6 +85,8 @@ val ServiceType.backgroundColor: Color
         ServiceType.DOCKMON -> Color(0xFF0EA5E9).copy(alpha = 0.12f)
         ServiceType.KOMODO -> Color(0xFFF97316).copy(alpha = 0.12f)
         ServiceType.MALTRAIL -> Color(0xFFDC2626).copy(alpha = 0.12f)
+        ServiceType.UPTIME_KUMA -> Color(0xFF22C55E).copy(alpha = 0.12f)
+        ServiceType.UNIFI_NETWORK -> Color(0xFF007AFF).copy(alpha = 0.12f)
         ServiceType.CRAFTY_CONTROLLER -> Color(0xFF2E86FF).copy(alpha = 0.12f)
         ServiceType.PATCHMON -> Color(0xFF0EA5E9).copy(alpha = 0.12f)
         ServiceType.RADARR -> Color(0xFFFFC230).copy(alpha = 0.12f)
@@ -116,6 +121,8 @@ val ServiceType.iconUrl: String
         ServiceType.DOCKMON -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/dockmon.png"
         ServiceType.KOMODO -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/komodo.png"
         ServiceType.MALTRAIL -> "https://raw.githubusercontent.com/stamparm/maltrail/master/html/images/mlogo.png"
+        ServiceType.UPTIME_KUMA -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/uptime-kuma.png"
+        ServiceType.UNIFI_NETWORK -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/ubiquiti-unifi.png"
         ServiceType.CRAFTY_CONTROLLER -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/crafty-controller.png"
         ServiceType.PATCHMON -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/patchmon.png"
         ServiceType.RADARR -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/radarr.png"
@@ -171,6 +178,15 @@ val ServiceType.iconCandidates: List<String>
             return candidates.toList()
         }
 
+        if (this == ServiceType.UPTIME_KUMA) {
+            candidates += "https://raw.githubusercontent.com/selfhst/icons/main/png/uptime-kuma.png"
+            return candidates.toList()
+        }
+
+        if (this == ServiceType.UNIFI_NETWORK) {
+            return candidates.toList()
+        }
+
         if (primary.isEmpty()) return emptyList()
 
         val jsDelivrPrefix = "https://cdn.jsdelivr.net/gh/selfhst/icons/png/"
@@ -200,6 +216,8 @@ val ServiceType.fallbackIcon: ImageVector
         ServiceType.DOCKMON -> Icons.Default.Hub
         ServiceType.KOMODO -> Icons.Default.Widgets
         ServiceType.MALTRAIL -> Icons.Default.Security
+        ServiceType.UPTIME_KUMA -> Icons.Default.CheckCircle
+        ServiceType.UNIFI_NETWORK -> Icons.Default.Router
         ServiceType.CRAFTY_CONTROLLER -> Icons.Default.Dns
         ServiceType.PATCHMON -> Icons.Default.Storage
         ServiceType.RADARR -> Icons.Default.Movie

@@ -35,6 +35,8 @@ class SseClient @Inject constructor(
                 ServiceType.DOCKMON -> "DockMon"
                 ServiceType.KOMODO -> "Komodo"
                 ServiceType.MALTRAIL -> "Maltrail"
+                ServiceType.UPTIME_KUMA -> "Uptime Kuma"
+                ServiceType.UNIFI_NETWORK -> "Ubiquiti Network"
                 ServiceType.NGINX_PROXY_MANAGER -> "NginxProxyManager"
                 ServiceType.PANGOLIN -> "Pangolin"
                 ServiceType.PATCHMON -> "PatchMon"

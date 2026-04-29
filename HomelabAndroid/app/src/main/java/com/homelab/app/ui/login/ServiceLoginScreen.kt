@@ -224,6 +224,8 @@ fun ServiceLoginScreen(
                 ServiceType.DOCKMON -> stringResource(R.string.login_hint_dockmon)
                 ServiceType.KOMODO -> stringResource(R.string.login_hint_komodo)
                 ServiceType.MALTRAIL -> stringResource(R.string.login_hint_maltrail)
+                ServiceType.UPTIME_KUMA -> stringResource(R.string.login_hint_uptime_kuma)
+                ServiceType.UNIFI_NETWORK -> stringResource(R.string.login_hint_unifi_network)
                 ServiceType.CRAFTY_CONTROLLER -> stringResource(R.string.login_hint_crafty_controller)
                 ServiceType.JELLYSTAT -> stringResource(R.string.login_hint_jellystat)
                 ServiceType.PATCHMON -> stringResource(R.string.login_hint_patchmon)
@@ -494,6 +496,7 @@ fun ServiceLoginScreen(
                 serviceType == ServiceType.LINUX_UPDATE ||
                 serviceType == ServiceType.DOCKMON ||
                 serviceType == ServiceType.KOMODO ||
+                serviceType == ServiceType.UNIFI_NETWORK ||
                 serviceType == ServiceType.JELLYSTAT ||
                 serviceType == ServiceType.PLEX ||
                 serviceType == ServiceType.RADARR ||
@@ -642,6 +645,7 @@ fun ServiceLoginScreen(
                     val isEmailField = serviceType == ServiceType.BESZEL || serviceType == ServiceType.NGINX_PROXY_MANAGER
                     val usernameLabel = when {
                         serviceType == ServiceType.PATCHMON -> stringResource(R.string.patchmon_token_key)
+                        serviceType == ServiceType.UPTIME_KUMA -> stringResource(R.string.uptime_kuma_username_optional)
                         isEmailField -> stringResource(R.string.login_email_label)
                         else -> stringResource(R.string.login_username_label)
                     }
@@ -667,6 +671,8 @@ fun ServiceLoginScreen(
                     onValueChange = { password = it },
                     label = if (serviceType == ServiceType.PATCHMON) {
                         stringResource(R.string.patchmon_token_secret)
+                    } else if (serviceType == ServiceType.UPTIME_KUMA) {
+                        stringResource(R.string.uptime_kuma_password_or_api_key)
                     } else {
                         stringResource(R.string.login_password_hint)
                     },

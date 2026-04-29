@@ -28,6 +28,7 @@ secrets.json
 # IDE / Editor
 .claude/
 .qwen/
+.cache/
 .idea/
 .vscode/
 .gradle/

@@ -80,6 +80,7 @@ struct Translations {
     let serviceDockmonDesc: String
     let serviceKomodoDesc: String
     let serviceMaltrailDesc: String
+    let serviceUptimeKumaDesc: String
     let servicePangolinDesc: String
     let pangolinSitesClientsLabel: String
     let servicePlex: String
@@ -105,6 +106,73 @@ struct Translations {
     let serviceFlaresolverrDesc: String
     let serviceWakapiDesc: String
     let serviceCraftyControllerDesc: String
+    let serviceUnifiNetworkDesc: String
+    let loginHintUnifiNetwork: String
+    let unifiAuthMode: String
+    let unifiSiteManager: String
+    let unifiLocalNetwork: String
+    let unifiSiteManagerHelp: String
+    let unifiLocalNetworkHelp: String
+    let unifiSiteManagerURLPlaceholder: String
+    let unifiSection: String
+    let unifiDevices: String
+    let unifiClients: String
+    let unifiSites: String
+    let unifiHosts: String
+    let unifiOnlineDevices: String
+    let unifiOfflineDevices: String
+    let unifiWifiClients: String
+    let unifiWiredClients: String
+    let unifiInternetHealth: String
+    let unifiLatency: String
+    let unifiPacketLoss: String
+    let unifiUptime: String
+    let unifiTime: String
+    let unifiNeedsAttention: String
+    let unifiNoClients: String
+    let unifiGuestAuthorizedFormat: String
+    let unifiUnauthorizedGuestsFormat: String
+    let unifiOpenDemo: String
+    let unifiDemoInfo: String
+    let unifiGuestAuthorizationFailed: String
+    let unifiAllSites: String
+    let unifiSiteDistribution: String
+    let unifiTrafficNow: String
+    let unifiNetworks: String
+    let unifiViewAll: String
+    let unifiDownload: String
+    let unifiUpload: String
+    let unifiThroughput: String
+    let unifiPorts: String
+    let unifiVlan: String
+    let unifiSubnet: String
+    let unifiDhcp: String
+    let unifiUsage: String
+    let unifiAll: String
+    let unifiAPs: String
+    let unifiSwitches: String
+    let unifiGateways: String
+    let unifiGuest: String
+    let unifiPendingUpdatesFormat: String
+    let unifiCriticalAlertsFormat: String
+    let unifiSearchDevices: String
+    let unifiSearchClients: String
+    let unifiDeviceDetail: String
+    let unifiDeviceHealth: String
+    let unifiTemperature: String
+    let unifiClientDetail: String
+    let unifiGuestUnauthorized: String
+    let unifiWifiRadios: String
+    let unifiQuality: String
+    let unifiSignal: String
+    let unifiClientExperience: String
+    let unifiOperations: String
+    let unifiWan: String
+    let unifiLan: String
+    let unifiTopology: String
+    let unifiFabric: String
+    let unifiCoverage: String
+    let unifiUplinks: String
 
     // Login
     let loginTitle: String
@@ -132,6 +200,7 @@ struct Translations {
     let loginHintDockmon: String
     let loginHintKomodo: String
     let loginHintMaltrail: String
+    let loginHintUptimeKuma: String
     let loginHintHealthchecks: String
     let loginHintPatchmon: String
     let loginHintJellystat: String
@@ -307,6 +376,17 @@ struct Translations {
     let komodoPaused: String
     let komodoRestarting: String
     let komodoUnknown: String
+    let komodoOpenStacks: String
+    let komodoStackManagement: String
+    let komodoStackManagementSubtitle: String
+    let komodoNoStacks: String
+    let komodoStackServices: String
+    let komodoNoStackServices: String
+    let komodoDeploy: String
+    let komodoStart: String
+    let komodoStop: String
+    let komodoRestart: String
+    let komodoUpdateAvailable: String
     let komodoErrorInvalidCredentials: String
 
     // Maltrail
@@ -325,6 +405,20 @@ struct Translations {
     let maltrailProtocol: String
     let maltrailSeverity: String
     let maltrailEventDetails: String
+
+    // Uptime Kuma
+    let uptimeKumaMonitors: String
+    let uptimeKumaUp: String
+    let uptimeKumaDown: String
+    let uptimeKumaPending: String
+    let uptimeKumaMaintenance: String
+    let uptimeKumaUnknown: String
+    let uptimeKumaAvgLatency: String
+    let uptimeKumaCertExpiring: String
+    let uptimeKumaResponseTime: String
+    let uptimeKumaCertDays: String
+    let uptimeKumaNoMonitors: String
+    let uptimeKumaInvalidMetrics: String
 
     // Linux Update
     let linuxUpdateActionCheckAll: String

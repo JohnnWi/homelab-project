@@ -461,7 +461,9 @@ struct BackupView: View {
         case .dockmon: return ServiceType.dockmon.displayName
         case .komodo: return ServiceType.komodo.displayName
         case .maltrail: return ServiceType.maltrail.displayName
+        case .uptimeKuma: return ServiceType.uptimeKuma.displayName
         case .craftyController: return ServiceType.craftyController.displayName
+        case .unifiNetwork: return ServiceType.unifiNetwork.displayName
         case .gitea: return localizer.t.serviceGitea
         case .nginxProxyManager: return localizer.t.serviceNpm
         case .pangolin: return ServiceType.pangolin.displayName

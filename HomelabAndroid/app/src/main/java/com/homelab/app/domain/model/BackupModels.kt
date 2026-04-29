@@ -55,6 +55,8 @@ object BackupServiceTypeMapper {
             ServiceType.DOCKMON -> "dockmon"
             ServiceType.KOMODO -> "komodo"
             ServiceType.MALTRAIL -> "maltrail"
+            ServiceType.UPTIME_KUMA -> "uptime_kuma"
+            ServiceType.UNIFI_NETWORK -> "unifi_network"
             ServiceType.CRAFTY_CONTROLLER -> "crafty_controller"
             ServiceType.GITEA -> "gitea"
             ServiceType.NGINX_PROXY_MANAGER -> "nginx_proxy_manager"
@@ -92,6 +94,8 @@ object BackupServiceTypeMapper {
             "dockmon" -> ServiceType.DOCKMON
             "komodo" -> ServiceType.KOMODO
             "maltrail" -> ServiceType.MALTRAIL
+            "uptime_kuma", "uptime-kuma", "uptimekuma" -> ServiceType.UPTIME_KUMA
+            "unifi_network", "unifi-network", "unifinetwork", "unifi", "ubiquiti", "ubiquiti_network" -> ServiceType.UNIFI_NETWORK
             "gitea" -> ServiceType.GITEA
             "nginx_proxy_manager", "nginxproxymanager" -> ServiceType.NGINX_PROXY_MANAGER
             "pangolin" -> ServiceType.PANGOLIN

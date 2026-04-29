@@ -48,6 +48,35 @@ data class KomodoDashboardData(
     val containers: KomodoContainerSummary
 )
 
+data class KomodoStackItem(
+    val id: String,
+    val name: String,
+    val status: String,
+    val server: String?,
+    val project: String?,
+    val updateAvailable: Boolean
+)
+
+data class KomodoStackService(
+    val name: String,
+    val image: String?,
+    val containerName: String?,
+    val status: String,
+    val updateAvailable: Boolean
+)
+
+data class KomodoStackDetail(
+    val stack: KomodoStackItem,
+    val services: List<KomodoStackService>
+)
+
+enum class KomodoStackAction {
+    DEPLOY,
+    START,
+    STOP,
+    RESTART
+}
+
 data class KomodoSummary(
     val runningContainers: Int,
     val totalContainers: Int,
@@ -113,6 +142,45 @@ class KomodoRepository @Inject constructor(
         )
     }
 
+    suspend fun getStacks(instanceId: String): List<KomodoStackItem> {
+        val response = api.listStacks(instanceId = instanceId)
+        return arrayPayload(response).mapNotNull { parseStackItem(it) }
+    }
+
+    suspend fun getStackDetail(instanceId: String, stackId: String): KomodoStackDetail {
+        val body = mapOf("stack" to stackId)
+        val stackResponse = api.getStack(body = body, instanceId = instanceId)
+        val servicesResponse = api.listStackServices(body = body, instanceId = instanceId)
+        val stack = parseStackItem(unwrap(stackResponse))
+            ?: KomodoStackItem(
+                id = stackId,
+                name = stackId,
+                status = "Unknown",
+                server = null,
+                project = null,
+                updateAvailable = false
+            )
+        return KomodoStackDetail(
+            stack = stack,
+            services = arrayPayload(servicesResponse).mapNotNull { parseStackService(it) }
+        )
+    }
+
+    suspend fun executeStackAction(instanceId: String, stackId: String, action: KomodoStackAction) {
+        val body = when (action) {
+            KomodoStackAction.DEPLOY -> mapOf("stack" to stackId, "services" to emptyList<String>(), "stop_time" to null)
+            KomodoStackAction.START,
+            KomodoStackAction.STOP,
+            KomodoStackAction.RESTART -> mapOf("stack" to stackId, "services" to emptyList<String>())
+        }
+        when (action) {
+            KomodoStackAction.DEPLOY -> api.deployStack(body = body, instanceId = instanceId)
+            KomodoStackAction.START -> api.startStack(body = body, instanceId = instanceId)
+            KomodoStackAction.STOP -> api.stopStack(body = body, instanceId = instanceId)
+            KomodoStackAction.RESTART -> api.restartStack(body = body, instanceId = instanceId)
+        }
+    }
+
     private suspend fun validateCredentials(
         baseUrl: String,
         apiKey: String,
@@ -174,6 +242,67 @@ class KomodoRepository @Inject constructor(
         )
     }
 
+    private fun parseStackItem(element: JsonElement): KomodoStackItem? {
+        val obj = unwrap(element) as? JsonObject ?: return null
+        val info = obj["info"] as? JsonObject
+        val config = obj["config"] as? JsonObject
+        val id = obj.stringOrNull("id", "_id")
+            ?: (obj["_id"] as? JsonObject)?.stringOrNull("\$oid")
+            ?: obj.stringOrNull("name")
+            ?: return null
+        val name = obj.stringOrNull("name")
+            ?: config?.stringOrNull("name", "project_name", "projectName")
+            ?: id
+        val status = info?.stringOrNull("state", "status")
+            ?: obj.stringOrNull("state", "status")
+            ?: config?.stringOrNull("state", "status")
+            ?: "Unknown"
+        return KomodoStackItem(
+            id = id,
+            name = name,
+            status = status,
+            server = info?.stringOrNull("server", "server_name", "serverName")
+                ?: config?.stringOrNull("server", "server_id", "serverId"),
+            project = info?.stringOrNull("project", "project_name", "projectName")
+                ?: config?.stringOrNull("project_name", "projectName"),
+            updateAvailable = info?.boolOrFalse("update_available", "updateAvailable", "updates_available", "updatesAvailable")
+                ?: obj.boolOrFalse("update_available", "updateAvailable", "updates_available", "updatesAvailable")
+                ?: false
+        )
+    }
+
+    private fun parseStackService(element: JsonElement): KomodoStackService? {
+        val obj = unwrap(element) as? JsonObject ?: return null
+        val container = obj["container"] as? JsonObject
+        val name = obj.stringOrNull("service", "name", "service_name", "serviceName")
+            ?: container?.stringOrNull("name", "container_name", "containerName")
+            ?: return null
+        val status = container?.stringOrNull("state", "status")
+            ?: obj.stringOrNull("state", "status")
+            ?: "Unknown"
+        return KomodoStackService(
+            name = name,
+            image = obj.stringOrNull("image") ?: container?.stringOrNull("image"),
+            containerName = container?.stringOrNull("name", "container_name", "containerName"),
+            status = status,
+            updateAvailable = obj.boolOrFalse("update_available", "updateAvailable", "updates_available", "updatesAvailable") ?: false
+        )
+    }
+
+    private fun arrayPayload(element: JsonElement): List<JsonElement> {
+        return when (val payload = unwrap(element)) {
+            is JsonArray -> payload.toList()
+            is JsonObject -> {
+                for (key in listOf("items", "resources", "stacks", "services", "containers", "data", "response", "result")) {
+                    val nested = payload[key]
+                    if (nested is JsonArray) return nested.toList()
+                }
+                emptyList()
+            }
+            else -> emptyList()
+        }
+    }
+
     private fun unwrap(element: JsonElement): JsonElement {
         if (element is JsonObject) {
             for (key in listOf("data", "response", "result", "summary", "stats")) {
@@ -212,6 +341,19 @@ class KomodoRepository @Inject constructor(
         for (key in keys) {
             val value = this[key]?.asStringOrNull()
             if (!value.isNullOrBlank()) return value
+        }
+        return null
+    }
+
+    private fun JsonObject.boolOrFalse(vararg keys: String): Boolean? {
+        for (key in keys) {
+            val value = this[key]
+            if (value is JsonPrimitive) {
+                value.contentOrNull?.let { content ->
+                    if (content.equals("true", ignoreCase = true)) return true
+                    if (content.equals("false", ignoreCase = true)) return false
+                }
+            }
         }
         return null
     }

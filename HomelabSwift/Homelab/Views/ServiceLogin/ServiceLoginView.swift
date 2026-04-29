@@ -28,6 +28,8 @@ struct ServiceLoginView: View {
     @State private var proxmoxApiRealm = "pam"
     @State private var proxmoxApiTokenId = ""
     @State private var proxmoxApiTokenSecret = ""
+    @State private var unifiAuthMode: UniFiAuthMode = .siteManager
+    @State private var showUniFiDemo = false
 
     private var existingInstance: ServiceInstance? {
         existingInstanceId.flatMap { servicesStore.instance(id: $0) }
@@ -46,6 +48,7 @@ struct ServiceLoginView: View {
             || serviceType == .craftyController
             || serviceType == .dockhand
             || serviceType == .maltrail
+            || serviceType == .uptimeKuma
     }
 
     private var usesApiKeyAuth: Bool {
@@ -56,6 +59,7 @@ struct ServiceLoginView: View {
             || serviceType == .pangolin
             || serviceType == .jellystat
             || serviceType == .plex
+            || serviceType == .unifiNetwork
             || serviceType == .radarr
             || serviceType == .sonarr
             || serviceType == .lidarr
@@ -84,6 +88,10 @@ struct ServiceLoginView: View {
     private var canSubmit: Bool {
         let cleanUrl = normalizedURL(url)
         guard !cleanUrl.isEmpty else { return false }
+
+        if serviceType == .unifiNetwork {
+            return normalizedOptional(apiKey) != nil || (isEditing && existingInstance?.apiKey?.isEmpty == false)
+        }
 
         if !isProxmox {
             return true
@@ -143,6 +151,11 @@ struct ServiceLoginView: View {
             .task {
                 prefillIfNeeded()
             }
+            .sheet(isPresented: $showUniFiDemo) {
+                NavigationStack {
+                    UniFiDashboard(instanceId: UUID(), _previewData: .demo(mode: unifiAuthMode))
+                }
+            }
             .onChange(of: proxmoxApiTokenEntryMode) { _, newValue in
                 guard isProxmox, proxmoxAuthMode == 1 else { return }
                 if newValue == 0, let parts = ProxmoxAPITokenParts(rawValue: apiKey) {
@@ -157,6 +170,17 @@ struct ServiceLoginView: View {
                     secret: proxmoxApiTokenSecret
                 )?.rawValue {
                     apiKey = token
+                }
+            }
+            .onChange(of: unifiAuthMode) { _, newValue in
+                guard serviceType == .unifiNetwork else { return }
+                if newValue == .siteManager {
+                    url = "https://api.ui.com"
+                    fallbackUrl = ""
+                    allowSelfSigned = false
+                } else if url == "https://api.ui.com" {
+                    url = ""
+                    allowSelfSigned = true
                 }
             }
         }
@@ -250,17 +274,25 @@ struct ServiceLoginView: View {
 
             InputField(
                 icon: "globe",
-                placeholder: localizer.t.loginUrlPlaceholder,
+                placeholder: serviceType == .unifiNetwork && unifiAuthMode == .siteManager ? localizer.t.unifiSiteManagerURLPlaceholder : localizer.t.loginUrlPlaceholder,
                 text: $url,
                 keyboardType: .URL
             )
+            .disabled(serviceType == .unifiNetwork && unifiAuthMode == .siteManager)
+            .opacity(serviceType == .unifiNetwork && unifiAuthMode == .siteManager ? 0.5 : 1)
 
-            InputField(
-                icon: "link",
-                placeholder: localizer.t.loginFallbackOptional,
-                text: $fallbackUrl,
-                keyboardType: .URL
-            )
+            if serviceType != .unifiNetwork || unifiAuthMode == .localNetwork {
+                InputField(
+                    icon: "link",
+                    placeholder: localizer.t.loginFallbackOptional,
+                    text: $fallbackUrl,
+                    keyboardType: .URL
+                )
+            }
+
+            if serviceType == .unifiNetwork {
+                unifiAuthSection
+            }
 
             if supportsOptionalApiKey {
                 InputField(
@@ -403,6 +435,25 @@ struct ServiceLoginView: View {
             .disabled(isLoading || !canSubmit)
             .padding(.top, 6)
 
+            if serviceType == .unifiNetwork {
+                Button {
+                    endEditing()
+                    showUniFiDemo = true
+                } label: {
+                    Text(localizer.t.unifiOpenDemo)
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                }
+                .buttonStyle(.bordered)
+                .tint(serviceColor)
+
+                Text(localizer.t.unifiDemoInfo)
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
         }
         .offset(x: shakeOffset)
     }
@@ -418,7 +469,9 @@ struct ServiceLoginView: View {
         case .dockmon:           return localizer.t.loginHintDockmon
         case .komodo:            return localizer.t.loginHintKomodo
         case .maltrail:          return localizer.t.loginHintMaltrail
+        case .uptimeKuma:        return localizer.t.loginHintUptimeKuma
         case .craftyController:  return localizer.t.loginHintCraftyController
+        case .unifiNetwork:      return localizer.t.loginHintUnifiNetwork
         case .gitea:             return localizer.t.loginHintGitea2FA
         case .nginxProxyManager: return localizer.t.loginHintNpm
         case .pangolin:          return localizer.t.loginHintPangolin
@@ -461,10 +514,31 @@ struct ServiceLoginView: View {
         .glassCard(tint: serviceColor.opacity(0.08))
     }
 
+    private var unifiAuthSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Picker(localizer.t.unifiAuthMode, selection: $unifiAuthMode) {
+                Text(localizer.t.unifiSiteManager).tag(UniFiAuthMode.siteManager)
+                Text(localizer.t.unifiLocalNetwork).tag(UniFiAuthMode.localNetwork)
+            }
+            .pickerStyle(.segmented)
+
+            Text(unifiAuthMode == .siteManager ? localizer.t.unifiSiteManagerHelp : localizer.t.unifiLocalNetworkHelp)
+                .font(.caption)
+                .foregroundStyle(AppTheme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(14)
+        .glassCard(tint: serviceColor.opacity(0.06))
+    }
+
     private func prefillIfNeeded() {
         guard !didPrefill, let existing = existingInstance else {
             if !didPrefill && label.isEmpty {
                 label = serviceType.displayName
+                if serviceType == .unifiNetwork {
+                    url = "https://api.ui.com"
+                    allowSelfSigned = false
+                }
             }
             didPrefill = true
             return
@@ -481,6 +555,7 @@ struct ServiceLoginView: View {
         proxmoxApiUser = ""
         proxmoxApiTokenId = ""
         proxmoxApiTokenSecret = ""
+        unifiAuthMode = existing.unifiAuthMode ?? .siteManager
 
         if serviceType == .proxmox {
             username = existing.username ?? ""
@@ -553,6 +628,7 @@ struct ServiceLoginView: View {
                     piholeAuthMode: existing.piholeAuthMode,
                     proxmoxAuthMode: existing.proxmoxAuthMode,
                     proxmoxRealm: existing.proxmoxRealm,
+                    unifiAuthMode: existing.unifiAuthMode,
                     fallbackUrl: fallbackUrl,
                     allowSelfSigned: allowSelfSigned,
                     password: existing.password
@@ -658,6 +734,30 @@ struct ServiceLoginView: View {
                 username: existingInstance?.username,
                 apiKey: key,
                 fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
+            )
+
+        case .unifiNetwork:
+            let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
+            guard let key, !key.isEmpty else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+            let mode = unifiAuthMode
+            let effectiveURL = mode == .siteManager ? "https://api.ui.com" : url
+            let effectiveFallback = mode == .siteManager ? nil : fallbackUrl
+            let client = UniFiAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: effectiveURL, apiKey: key, mode: mode, fallbackUrl: effectiveFallback, allowSelfSigned: allowSelfSigned)
+            try await client.authenticate(url: effectiveURL, apiKey: key, mode: mode, fallbackUrl: effectiveFallback)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .unifiNetwork,
+                label: label,
+                url: effectiveURL,
+                token: "",
+                username: nil,
+                apiKey: key,
+                unifiAuthMode: mode,
+                fallbackUrl: effectiveFallback,
                 allowSelfSigned: allowSelfSigned
             )
 
@@ -770,6 +870,47 @@ struct ServiceLoginView: View {
                 label: label,
                 url: url,
                 token: cookie,
+                username: identity,
+                apiKey: existingInstance?.apiKey,
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned,
+                password: resolvedPassword
+            )
+
+        case .uptimeKuma:
+            let identity = normalizedOptional(username) ?? existingInstance?.username
+            let secret = normalizedOptional(password)
+            if identity != nil && secret == nil && existingInstance?.password?.isEmpty != false {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+
+            let resolvedPassword: String?
+            if let secret, !secret.isEmpty {
+                resolvedPassword = secret
+            } else {
+                resolvedPassword = existingInstance?.password
+            }
+
+            let client = UptimeKumaAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(
+                url: url,
+                fallbackUrl: fallbackUrl,
+                username: identity,
+                password: resolvedPassword,
+                allowSelfSigned: allowSelfSigned
+            )
+            try await client.authenticate(
+                url: url,
+                username: identity,
+                password: resolvedPassword,
+                fallbackUrl: fallbackUrl
+            )
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .uptimeKuma,
+                label: label,
+                url: url,
+                token: "",
                 username: identity,
                 apiKey: existingInstance?.apiKey,
                 fallbackUrl: fallbackUrl,

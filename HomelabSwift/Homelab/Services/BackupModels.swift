@@ -24,6 +24,7 @@ struct BackupServiceEntry: Codable {
     let piholeAuthMode: String?
     let proxmoxAuthMode: String?
     let proxmoxRealm: String?
+    let unifiAuthMode: String?
     let fallbackUrl: String?
     let allowSelfSigned: Bool
     let password: String?
@@ -48,7 +49,9 @@ enum BackupServiceTypeMapper {
         case .dockmon:                return "dockmon"
         case .komodo:                 return "komodo"
         case .maltrail:               return "maltrail"
+        case .uptimeKuma:             return "uptime_kuma"
         case .craftyController:       return "crafty_controller"
+        case .unifiNetwork:           return "unifi_network"
         case .gitea:             return "gitea"
         case .nginxProxyManager: return "nginx_proxy_manager"
         case .pangolin:          return "pangolin"
@@ -89,9 +92,17 @@ enum BackupServiceTypeMapper {
         case "dockmon":               return .dockmon
         case "komodo":                return .komodo
         case "maltrail":              return .maltrail
+        case "uptime_kuma",
+             "uptime-kuma",
+             "uptimekuma":            return .uptimeKuma
         case "crafty_controller",
              "crafty-controller",
              "crafty":                return .craftyController
+        case "unifi_network",
+             "unifi-network",
+             "unifinetwork",
+             "unifi",
+             "ubiquiti":              return .unifiNetwork
         case "gitea":                return .gitea
         case "nginx_proxy_manager",
              "nginxproxymanager":     return .nginxProxyManager
@@ -150,6 +161,20 @@ enum BackupServiceTypeMapper {
         case .apiToken: return "api_token"
         }
     }
+
+    static func unifiAuthMode(from string: String?) -> UniFiAuthMode? {
+        guard let string else { return nil }
+        switch string.lowercased() {
+        case "site_manager", "sitemanager", "cloud": return .siteManager
+        case "local_network", "localnetwork", "network", "local": return .localNetwork
+        default: return nil
+        }
+    }
+
+    static func backupAuthMode(for mode: UniFiAuthMode?) -> String? {
+        guard let mode else { return nil }
+        return mode.rawValue
+    }
 }
 
 // MARK: - Conversion Helpers
@@ -168,6 +193,7 @@ extension ServiceInstance {
             piholeAuthMode: BackupServiceTypeMapper.backupAuthMode(for: piholeAuthMode),
             proxmoxAuthMode: BackupServiceTypeMapper.backupAuthMode(for: proxmoxAuthMode),
             proxmoxRealm: proxmoxRealm,
+            unifiAuthMode: BackupServiceTypeMapper.backupAuthMode(for: unifiAuthMode),
             fallbackUrl: fallbackUrl,
             allowSelfSigned: allowSelfSigned,
             password: password,
@@ -192,6 +218,7 @@ extension BackupServiceEntry {
             piholeAuthMode: BackupServiceTypeMapper.piholeAuthMode(from: piholeAuthMode),
             proxmoxAuthMode: BackupServiceTypeMapper.proxmoxAuthMode(from: proxmoxAuthMode),
             proxmoxRealm: proxmoxRealm,
+            unifiAuthMode: BackupServiceTypeMapper.unifiAuthMode(from: unifiAuthMode),
             fallbackUrl: fallbackUrl,
             allowSelfSigned: allowSelfSigned,
             password: password

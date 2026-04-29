@@ -26,6 +26,8 @@ import com.homelab.app.data.repository.PortainerRepository
 import com.homelab.app.data.repository.ServiceInstancesRepository
 import com.homelab.app.data.repository.ServicesRepository
 import com.homelab.app.data.repository.TechnitiumRepository
+import com.homelab.app.data.repository.UnifiRepository
+import com.homelab.app.data.repository.UptimeKumaRepository
 import com.homelab.app.data.repository.WakapiRepository
 import com.homelab.app.data.repository.ProxmoxRepository
 import com.homelab.app.domain.model.PiHoleAuthMode
@@ -58,6 +60,8 @@ class ServiceLoginViewModel @Inject constructor(
     private val dockmonRepository: DockmonRepository,
     private val komodoRepository: KomodoRepository,
     private val maltrailRepository: MaltrailRepository,
+    private val uptimeKumaRepository: UptimeKumaRepository,
+    private val unifiRepository: UnifiRepository,
     private val nginxProxyManagerRepository: NginxProxyManagerRepository,
     private val healthchecksRepository: HealthchecksRepository,
     private val jellystatRepository: JellystatRepository,
@@ -429,6 +433,49 @@ class ServiceLoginViewModel @Inject constructor(
                                 password = resolvedPassword.ifBlank { null }
                             )
                         }
+                        ServiceType.UPTIME_KUMA -> {
+                            val resolvedPassword = trimmedPassword.ifBlank {
+                                if (existing != null && existing.url == cleanUrl && existing.username.orEmpty() == trimmedUsername) {
+                                    return@ifBlank existing.password.orEmpty()
+                                }
+                                ""
+                            }
+                            uptimeKumaRepository.authenticate(
+                                url = cleanUrl,
+                                username = trimmedUsername.ifBlank { null },
+                                passwordOrApiKey = resolvedPassword.ifBlank { null },
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
+                            )
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                username = trimmedUsername.ifBlank { null },
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned,
+                                password = resolvedPassword.ifBlank { null }
+                            )
+                        }
+                        ServiceType.UNIFI_NETWORK -> {
+                            require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
+                            unifiRepository.authenticate(
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
+                            )
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = canonicalUnifiUrl(cleanUrl),
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
+                            )
+                        }
                         ServiceType.CRAFTY_CONTROLLER -> {
                             require(trimmedUsername.isNotBlank()) { context.getString(R.string.login_error_username_required) }
                             val authPassword = trimmedPassword.ifBlank {
@@ -660,6 +707,15 @@ class ServiceLoginViewModel @Inject constructor(
         val trimmed = url.trim()
         if (trimmed.isBlank()) return null
         return cleanUrl(trimmed)
+    }
+
+    private fun canonicalUnifiUrl(url: String): String {
+        val lowered = url.lowercase()
+        return if (lowered.contains("unifi.ui.com") || lowered.contains("api.ui.com")) {
+            "https://api.ui.com"
+        } else {
+            url
+        }
     }
 
     fun clearError() {

@@ -10,6 +10,10 @@ struct KomodoDashboard: View {
     @State private var selectedInstanceId: UUID
     @State private var state: LoadableState<Void> = .idle
     @State private var dashboard: KomodoDashboardData?
+    @State private var isShowingStacks = false
+    @State private var stacksState: LoadableState<[KomodoStackItem]> = .idle
+    @State private var stackDetailState: LoadableState<KomodoStackDetail> = .idle
+    @State private var isRunningStackAction = false
 
     private let komodoColor = ServiceType.komodo.colors.primary
 
@@ -44,7 +48,22 @@ struct KomodoDashboard: View {
         }
         .task(id: selectedInstanceId) {
             dashboard = nil
+            stacksState = .idle
+            stackDetailState = .idle
             await fetchDashboard(showLoading: true)
+        }
+        .sheet(isPresented: $isShowingStacks) {
+            KomodoStacksSheet(
+                stacksState: stacksState,
+                detailState: stackDetailState,
+                isRunningAction: isRunningStackAction,
+                onRefreshList: { Task { await loadStacks() } },
+                onBackToList: { stackDetailState = .idle },
+                onSelectStack: { stack in Task { await loadStackDetail(stack.id) } },
+                onAction: { stackId, action in Task { await runStackAction(stackId: stackId, action: action) } }
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
     }
 
@@ -142,7 +161,10 @@ struct KomodoDashboard: View {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                 resourceCard(title: localizer.t.komodoServers, summary: dashboard?.servers ?? .empty, icon: "server.rack", tint: AppTheme.info)
                 resourceCard(title: localizer.t.komodoDeployments, summary: dashboard?.deployments ?? .empty, icon: "shippingbox.fill", tint: komodoColor)
-                resourceCard(title: localizer.t.komodoStacks, summary: dashboard?.stacks ?? .empty, icon: "square.stack.3d.up.fill", tint: AppTheme.warning)
+                resourceCard(title: localizer.t.komodoStacks, summary: dashboard?.stacks ?? .empty, icon: "square.stack.3d.up.fill", tint: AppTheme.warning) {
+                    isShowingStacks = true
+                    Task { await loadStacks() }
+                }
                 resourceCard(title: localizer.t.komodoContainers, summary: resourceSummary(from: dashboard?.containers ?? .empty), icon: "cube.box.fill", tint: AppTheme.running)
             }
         }
@@ -177,7 +199,7 @@ struct KomodoDashboard: View {
         .glassCard()
     }
 
-    private func resourceCard(title: String, summary: KomodoResourceSummary, icon: String, tint: Color) -> some View {
+    private func resourceCard(title: String, summary: KomodoResourceSummary, icon: String, tint: Color, action: (() -> Void)? = nil) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: icon)
@@ -201,10 +223,21 @@ struct KomodoDashboard: View {
                 miniStat(title: localizer.t.komodoHealthy, value: summary.healthy, tint: AppTheme.running)
                 miniStat(title: localizer.t.komodoUnhealthy, value: summary.unhealthy, tint: AppTheme.danger)
             }
+
+            if action != nil {
+                Label(localizer.t.komodoOpenStacks, systemImage: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(tint)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.78)
+            }
         }
         .frame(maxWidth: .infinity, minHeight: 126, alignment: .topLeading)
         .padding(14)
         .glassCard(tint: tint.opacity(colorScheme == .dark ? 0.08 : 0.045))
+        .onTapGesture {
+            action?()
+        }
     }
 
     private func metricCell(title: String, value: String, tint: Color) -> some View {
@@ -291,5 +324,327 @@ struct KomodoDashboard: View {
         } catch {
             state = .error(APIError.custom(error.localizedDescription))
         }
+    }
+
+    private func loadStacks() async {
+        guard let client = await servicesStore.komodoClient(instanceId: selectedInstanceId) else {
+            stacksState = .error(.notConfigured)
+            return
+        }
+
+        stacksState = .loading
+        do {
+            stacksState = .loaded(try await client.getStacks())
+        } catch {
+            stacksState = .error(APIError.custom(error.localizedDescription))
+        }
+    }
+
+    private func loadStackDetail(_ stackId: String) async {
+        guard let client = await servicesStore.komodoClient(instanceId: selectedInstanceId) else {
+            stackDetailState = .error(.notConfigured)
+            return
+        }
+
+        stackDetailState = .loading
+        do {
+            stackDetailState = .loaded(try await client.getStackDetail(stackId: stackId))
+        } catch {
+            stackDetailState = .error(APIError.custom(error.localizedDescription))
+        }
+    }
+
+    private func runStackAction(stackId: String, action: KomodoStackAction) async {
+        guard let client = await servicesStore.komodoClient(instanceId: selectedInstanceId) else {
+            stackDetailState = .error(.notConfigured)
+            return
+        }
+
+        isRunningStackAction = true
+        do {
+            try await client.executeStackAction(stackId: stackId, action: action)
+            await loadStackDetail(stackId)
+            await loadStacks()
+            await fetchDashboard(showLoading: false)
+        } catch {
+            stackDetailState = .error(APIError.custom(error.localizedDescription))
+        }
+        isRunningStackAction = false
+    }
+}
+
+private struct KomodoStacksSheet: View {
+    let stacksState: LoadableState<[KomodoStackItem]>
+    let detailState: LoadableState<KomodoStackDetail>
+    let isRunningAction: Bool
+    let onRefreshList: () -> Void
+    let onBackToList: () -> Void
+    let onSelectStack: (KomodoStackItem) -> Void
+    let onAction: (String, KomodoStackAction) -> Void
+
+    @Environment(Localizer.self) private var localizer
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                switch detailState {
+                case .loaded(let detail):
+                    stackDetail(detail)
+                case .loading:
+                    loadingView
+                case .error(let error):
+                    errorView(error)
+                case .idle, .offline:
+                    stackList
+                }
+            }
+            .padding(18)
+            .navigationTitle(localizer.t.komodoStackManagement)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        if case .loaded = detailState {
+                            onBackToList()
+                        } else {
+                            dismiss()
+                        }
+                    } label: {
+                        Image(systemName: "chevron.left")
+                    }
+                    .accessibilityLabel(localizer.t.back)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: onRefreshList) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .accessibilityLabel(localizer.t.refresh)
+                }
+            }
+        }
+    }
+
+    private var stackList: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(localizer.t.komodoStackManagementSubtitle)
+                .font(.subheadline)
+                .foregroundStyle(AppTheme.textSecondary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.82)
+
+            switch stacksState {
+            case .loaded(let stacks):
+                if stacks.isEmpty {
+                    ContentUnavailableView(localizer.t.komodoNoStacks, systemImage: "square.stack.3d.up.slash")
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 10) {
+                            ForEach(stacks) { stack in
+                                stackRow(stack)
+                            }
+                        }
+                        .padding(.bottom, 24)
+                    }
+                }
+            case .loading, .idle:
+                loadingView
+            case .error(let error):
+                errorView(error)
+            case .offline:
+                errorView(.custom(String(format: localizer.t.offlineUnreachable, ServiceType.komodo.displayName)))
+            }
+        }
+    }
+
+    private func stackDetail(_ detail: KomodoStackDetail) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(spacing: 12) {
+                    Image(systemName: "square.stack.3d.up.fill")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(statusColor(detail.stack.status))
+                        .frame(width: 40, height: 40)
+                        .background(statusColor(detail.stack.status).opacity(0.14), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(detail.stack.name)
+                            .font(.headline)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        Text([detail.stack.server, detail.stack.project].compactMap { $0 }.joined(separator: " · ").ifEmpty(detail.stack.id))
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.textMuted)
+                            .lineLimit(1)
+                    }
+                    Spacer()
+                    statusPill(detail.stack.status)
+                }
+                .padding(14)
+                .glassCard(tint: statusColor(detail.stack.status).opacity(0.08))
+
+                actionGrid(stackId: detail.stack.id)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(localizer.t.komodoStackServices)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppTheme.textMuted)
+                        .textCase(.uppercase)
+
+                    if detail.services.isEmpty {
+                        Text(localizer.t.komodoNoStackServices)
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.textSecondary)
+                            .frame(maxWidth: .infinity, minHeight: 88)
+                            .glassCard()
+                    } else {
+                        ForEach(detail.services) { service in
+                            serviceRow(service)
+                        }
+                    }
+                }
+            }
+            .padding(.bottom, 28)
+        }
+    }
+
+    private func actionGrid(stackId: String) -> some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+            actionButton(localizer.t.komodoDeploy, icon: "arrow.up.circle.fill", tint: ServiceType.komodo.colors.primary) {
+                onAction(stackId, .deploy)
+            }
+            actionButton(localizer.t.komodoStart, icon: "play.fill", tint: AppTheme.running) {
+                onAction(stackId, .start)
+            }
+            actionButton(localizer.t.komodoStop, icon: "stop.fill", tint: AppTheme.danger) {
+                onAction(stackId, .stop)
+            }
+            actionButton(localizer.t.komodoRestart, icon: "arrow.clockwise", tint: AppTheme.warning) {
+                onAction(stackId, .restart)
+            }
+        }
+    }
+
+    private func actionButton(_ title: String, icon: String, tint: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: icon)
+                .font(.subheadline.weight(.semibold))
+                .frame(maxWidth: .infinity, minHeight: 42)
+                .lineLimit(1)
+                .minimumScaleFactor(0.78)
+        }
+        .buttonStyle(.bordered)
+        .tint(tint)
+        .disabled(isRunningAction)
+    }
+
+    private func stackRow(_ stack: KomodoStackItem) -> some View {
+        Button {
+            onSelectStack(stack)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "square.stack.3d.up.fill")
+                    .foregroundStyle(statusColor(stack.status))
+                    .frame(width: 34, height: 34)
+                    .background(statusColor(stack.status).opacity(0.14), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(stack.name)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.primary)
+                        .lineLimit(1)
+                    Text([stack.server, stack.project].compactMap { $0 }.joined(separator: " · ").ifEmpty(stack.id))
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textMuted)
+                        .lineLimit(1)
+                }
+                Spacer()
+                statusPill(stack.status)
+            }
+            .padding(13)
+            .glassCard(tint: statusColor(stack.status).opacity(0.06))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func serviceRow(_ service: KomodoStackService) -> some View {
+        HStack(spacing: 10) {
+            Circle()
+                .fill(statusColor(service.status))
+                .frame(width: 9, height: 9)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(service.name)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                Text(service.image ?? service.containerName ?? "-")
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.textMuted)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.76)
+            }
+            Spacer()
+            if service.updateAvailable {
+                Text(localizer.t.komodoUpdateAvailable)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(AppTheme.warning)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(AppTheme.warning.opacity(0.14), in: Capsule())
+            } else {
+                statusPill(service.status)
+            }
+        }
+        .padding(12)
+        .glassCard()
+    }
+
+    private var loadingView: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .tint(ServiceType.komodo.colors.primary)
+            Text(localizer.t.loading)
+                .font(.caption)
+                .foregroundStyle(AppTheme.textMuted)
+        }
+        .frame(maxWidth: .infinity, minHeight: 240)
+    }
+
+    private func errorView(_ error: APIError) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.title2)
+                .foregroundStyle(AppTheme.danger)
+            Text(error.localizedDescription)
+                .font(.subheadline)
+                .foregroundStyle(AppTheme.textSecondary)
+                .multilineTextAlignment(.center)
+            Button(localizer.t.retry, action: onRefreshList)
+                .buttonStyle(.borderedProminent)
+        }
+        .frame(maxWidth: .infinity, minHeight: 240)
+    }
+
+    private func statusPill(_ status: String) -> some View {
+        Text(status.capitalized)
+            .font(.caption2.weight(.bold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.72)
+            .foregroundStyle(statusColor(status))
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
+            .background(statusColor(status).opacity(0.14), in: Capsule())
+    }
+
+    private func statusColor(_ status: String) -> Color {
+        let value = status.lowercased()
+        if value.contains("running") || value.contains("healthy") { return AppTheme.running }
+        if value.contains("paused") || value.contains("restarting") || value.contains("deploying") || value.contains("created") { return AppTheme.warning }
+        if value.contains("stopped") || value.contains("down") || value.contains("dead") || value.contains("unhealthy") { return AppTheme.danger }
+        return AppTheme.textSecondary
+    }
+}
+
+private extension String {
+    func ifEmpty(_ fallback: String) -> String {
+        isEmpty ? fallback : self
     }
 }

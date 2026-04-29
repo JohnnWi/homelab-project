@@ -37,6 +37,36 @@ struct KomodoDashboardData: Sendable {
     }
 }
 
+struct KomodoStackItem: Identifiable, Hashable, Sendable {
+    let id: String
+    let name: String
+    let status: String
+    let server: String?
+    let project: String?
+    let updateAvailable: Bool
+}
+
+struct KomodoStackService: Identifiable, Hashable, Sendable {
+    var id: String { name }
+    let name: String
+    let image: String?
+    let containerName: String?
+    let status: String
+    let updateAvailable: Bool
+}
+
+struct KomodoStackDetail: Sendable {
+    let stack: KomodoStackItem
+    let services: [KomodoStackService]
+}
+
+enum KomodoStackAction: Sendable {
+    case deploy
+    case start
+    case stop
+    case restart
+}
+
 struct KomodoSummary: Sendable {
     let runningContainers: Int
     let totalContainers: Int

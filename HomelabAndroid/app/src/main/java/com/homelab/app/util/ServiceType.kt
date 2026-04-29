@@ -22,6 +22,8 @@ enum class ServiceType(val displayName: String) {
     DOCKMON("DockMon"),
     KOMODO("Komodo"),
     MALTRAIL("Maltrail"),
+    UPTIME_KUMA("Uptime Kuma"),
+    UNIFI_NETWORK("Ubiquiti Network"),
     CRAFTY_CONTROLLER("Crafty Controller"),
     PATCHMON("PatchMon"),
     RADARR("Radarr"),
@@ -66,6 +68,12 @@ enum class ServiceType(val displayName: String) {
                 "DOCKMON" -> DOCKMON
                 "KOMODO" -> KOMODO
                 "MALTRAIL" -> MALTRAIL
+                "UPTIMEKUMA",
+                "UPTIME_KUMA" -> UPTIME_KUMA
+                "UBIQUITI",
+                "UBIQUITI_NETWORK",
+                "UNIFI",
+                "UNIFI_NETWORK" -> UNIFI_NETWORK
                 "CRAFTY",
                 "CRAFTY_CONTROLLER" -> CRAFTY_CONTROLLER
                 else -> entries.firstOrNull { it.name == normalized } ?: UNKNOWN

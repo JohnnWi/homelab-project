@@ -41,4 +41,53 @@ interface KomodoApi {
         @Header("X-Homelab-Service") service: String = "Komodo",
         @Header("X-Homelab-Instance-Id") instanceId: String
     ): JsonElement
+
+    @POST("read/ListStacks")
+    suspend fun listStacks(
+        @Body body: Map<String, @JvmSuppressWildcards Any?> = mapOf("query" to emptyMap<String, Any>()),
+        @Header("X-Homelab-Service") service: String = "Komodo",
+        @Header("X-Homelab-Instance-Id") instanceId: String
+    ): JsonElement
+
+    @POST("read/GetStack")
+    suspend fun getStack(
+        @Body body: Map<String, @JvmSuppressWildcards Any?>,
+        @Header("X-Homelab-Service") service: String = "Komodo",
+        @Header("X-Homelab-Instance-Id") instanceId: String
+    ): JsonElement
+
+    @POST("read/ListStackServices")
+    suspend fun listStackServices(
+        @Body body: Map<String, @JvmSuppressWildcards Any?>,
+        @Header("X-Homelab-Service") service: String = "Komodo",
+        @Header("X-Homelab-Instance-Id") instanceId: String
+    ): JsonElement
+
+    @POST("execute/DeployStack")
+    suspend fun deployStack(
+        @Body body: Map<String, @JvmSuppressWildcards Any?>,
+        @Header("X-Homelab-Service") service: String = "Komodo",
+        @Header("X-Homelab-Instance-Id") instanceId: String
+    ): JsonElement
+
+    @POST("execute/StartStack")
+    suspend fun startStack(
+        @Body body: Map<String, @JvmSuppressWildcards Any?>,
+        @Header("X-Homelab-Service") service: String = "Komodo",
+        @Header("X-Homelab-Instance-Id") instanceId: String
+    ): JsonElement
+
+    @POST("execute/StopStack")
+    suspend fun stopStack(
+        @Body body: Map<String, @JvmSuppressWildcards Any?>,
+        @Header("X-Homelab-Service") service: String = "Komodo",
+        @Header("X-Homelab-Instance-Id") instanceId: String
+    ): JsonElement
+
+    @POST("execute/RestartStack")
+    suspend fun restartStack(
+        @Body body: Map<String, @JvmSuppressWildcards Any?>,
+        @Header("X-Homelab-Service") service: String = "Komodo",
+        @Header("X-Homelab-Instance-Id") instanceId: String
+    ): JsonElement
 }

@@ -89,6 +89,8 @@ private fun dashboardRoute(type: ServiceType, instanceId: String): String {
         ServiceType.DOCKMON -> "dockmon/$instanceId/dashboard"
         ServiceType.KOMODO -> "komodo/$instanceId/dashboard"
         ServiceType.MALTRAIL -> "maltrail/$instanceId/dashboard"
+        ServiceType.UPTIME_KUMA -> "uptime-kuma/$instanceId/dashboard"
+        ServiceType.UNIFI_NETWORK -> "unifi/$instanceId/dashboard"
         ServiceType.CRAFTY_CONTROLLER -> "crafty/$instanceId/dashboard"
         ServiceType.NGINX_PROXY_MANAGER -> "nginxpm/$instanceId/dashboard"
         ServiceType.PANGOLIN -> "pangolin/$instanceId/dashboard"
@@ -623,6 +625,23 @@ fun AppNavigation() {
             }
 
             composable(
+                route = "unifi/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.unifi.UnifiDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.UNIFI_NETWORK, newInstanceId)) {
+                                popUpTo("unifi/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
                 route = "dockhand/{instanceId}/dashboard",
                 arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
             ) { backStackEntry ->
@@ -684,6 +703,23 @@ fun AppNavigation() {
                         if (newInstanceId != instanceId) {
                             navController.navigate(dashboardRoute(ServiceType.MALTRAIL, newInstanceId)) {
                                 popUpTo("maltrail/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "uptime-kuma/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.uptimekuma.UptimeKumaDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.UPTIME_KUMA, newInstanceId)) {
+                                popUpTo("uptime-kuma/$instanceId/dashboard") { inclusive = true }
                             }
                         }
                     }

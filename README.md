@@ -11,13 +11,22 @@ Homelab Dashboard is a fully native mobile app for monitoring and managing a sel
 
 > **Disclaimer:** This is a vibe-coding project built for fun and personal use. It is provided as-is with no guarantees. The author assumes no responsibility for any issues, data loss, or damages resulting from the use of this software.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=JohnnWi/homelab-project&type=Date)](https://star-history.com/#JohnnWi/homelab-project&Date)
+<table align="center">
+  <tr>
+    <th>iOS Dashboard</th>
+    <th>Android Dashboard</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="media-docs/foto-ios/Dashboard.png" width="230" /></td>
+    <td align="center"><img src="media-docs/foto-android/Dashboard.jpg" width="230" /></td>
+  </tr>
+</table>
 
 ---
 
 ## 🚀 Highlights
 
-- **29 integrated service dashboards** across infrastructure, networking, media automation, observability, and developer tooling.
+- **31 integrated service dashboards** across infrastructure, networking, media automation, observability, and developer tooling.
 - **One app, many instances**: add multiple instances of the same service and switch between them without friction.
 - **Fully native on both platforms**: SwiftUI on iOS, Jetpack Compose on Android.
 - **Practical daily-use features**: encrypted backup and restore, biometric unlock, multilingual UI, alternate icons, and fast in-app update prompts.
@@ -31,6 +40,7 @@ Homelab Dashboard is a fully native mobile app for monitoring and managing a sel
 
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/portainer.png" width="18" style="vertical-align:middle"> **Portainer**: container overview, quick actions, resource usage.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/proxmox.png" width="18" style="vertical-align:middle"> **Proxmox VE**: nodes, guests, storage, networking, backups, and cluster operations.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/uptime-kuma.png" width="18" style="vertical-align:middle"> **Uptime Kuma**: monitor status, uptime visibility, and incident tracking.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/dockhand.png" width="18" style="vertical-align:middle"> **Dockhand**: native container management dashboard.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/dockmon.png" width="18" style="vertical-align:middle"> **DockMon**: Docker host and container monitoring with logs, restart, and update actions.
 - <img src="HomelabSwift/Homelab/Assets.xcassets/service-komodo.imageset/komodo.png" width="18" style="vertical-align:middle"> **Komodo**: resource, deployment, stack, and server monitoring.
@@ -47,6 +57,7 @@ Homelab Dashboard is a fully native mobile app for monitoring and managing a sel
 
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/pi-hole.png" width="18" style="vertical-align:middle"> **Pi-hole**: queries, blocked domains, toggles, timers.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/adguard-home.png" width="18" style="vertical-align:middle"> **AdGuard Home**: filters, rewrites, blocked services, query activity.
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/ubiquiti-unifi.png" width="18" style="vertical-align:middle"> **Ubiquiti Network**: gateways, switches, access points, clients, and site visibility.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/technitium.png" width="18" style="vertical-align:middle"> **Technitium DNS**: DNS metrics and health.
 - <img src="HomelabSwift/Homelab/Assets.xcassets/service-maltrail.imageset/icon.png" width="18" style="vertical-align:middle"> **Maltrail**: threat detections, daily findings, and event visibility.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/nginx-proxy-manager.png" width="18" style="vertical-align:middle"> **Nginx Proxy Manager / NPMplus**: proxy hosts, streams, redirects, certificates, access lists.

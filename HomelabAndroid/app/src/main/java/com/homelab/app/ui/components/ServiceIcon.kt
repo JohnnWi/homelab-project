@@ -1,8 +1,10 @@
 package com.homelab.app.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -14,6 +16,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
@@ -25,6 +29,7 @@ import com.homelab.app.ui.theme.primaryColor
 import com.homelab.app.util.ServiceType
 
 @Composable
+@SuppressLint("DiscouragedApi", "LocalContextResourcesRead", "ModifierParameter")
 fun ServiceIcon(
     type: ServiceType,
     size: Dp = 56.dp,
@@ -37,6 +42,14 @@ fun ServiceIcon(
     val iconSources = remember(type, candidatesKey) { type.iconCandidates.ifEmpty { listOf(type.iconUrl).filter { it.isNotBlank() } } }
     var sourceIndex by remember(type, candidatesKey) { mutableIntStateOf(0) }
     val currentSource = iconSources.getOrNull(sourceIndex)
+    val context = LocalContext.current
+    val localServiceIcon = remember(type) {
+        if (type == ServiceType.UNIFI_NETWORK) {
+            context.resources.getIdentifier("service_unifi", "drawable", context.packageName)
+        } else {
+            0
+        }
+    }
 
     Surface(
         shape = RoundedCornerShape(cornerRadius),
@@ -56,7 +69,14 @@ fun ServiceIcon(
                     )
                 }
 
-                if (currentSource != null) {
+                if (localServiceIcon != 0) {
+                    Image(
+                        painter = painterResource(localServiceIcon),
+                        contentDescription = type.displayName,
+                        modifier = Modifier.size(iconSize),
+                        contentScale = ContentScale.Fit
+                    )
+                } else if (currentSource != null) {
                     SubcomposeAsyncImage(
                         model = currentSource,
                         contentDescription = type.displayName,

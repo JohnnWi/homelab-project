@@ -75,6 +75,47 @@ actor KomodoAPIClient {
         )
     }
 
+    func getStacks() async throws -> [KomodoStackItem] {
+        let json = try await readJSON(path: "/read/ListStacks", body: ["query": [:]])
+        return KomodoJSON.arrayPayload(from: json).compactMap { KomodoJSON.stackItem(from: $0) }
+    }
+
+    func getStackDetail(stackId: String) async throws -> KomodoStackDetail {
+        let body: [String: Any] = ["stack": stackId]
+        let stackJSON = try await readJSON(path: "/read/GetStack", body: body)
+        let servicesJSON = try await readJSON(path: "/read/ListStackServices", body: body)
+        let stack = KomodoJSON.stackItem(from: stackJSON)
+            ?? KomodoStackItem(
+                id: stackId,
+                name: stackId,
+                status: "Unknown",
+                server: nil,
+                project: nil,
+                updateAvailable: false
+            )
+        return KomodoStackDetail(
+            stack: stack,
+            services: KomodoJSON.arrayPayload(from: servicesJSON).compactMap { KomodoJSON.stackService(from: $0) }
+        )
+    }
+
+    func executeStackAction(stackId: String, action: KomodoStackAction) async throws {
+        let path: String
+        var body: [String: Any] = ["stack": stackId, "services": []]
+        switch action {
+        case .deploy:
+            path = "/execute/DeployStack"
+            body["stop_time"] = NSNull()
+        case .start:
+            path = "/execute/StartStack"
+        case .stop:
+            path = "/execute/StopStack"
+        case .restart:
+            path = "/execute/RestartStack"
+        }
+        _ = try await readJSON(path: path, body: body)
+    }
+
     func getSummary() async throws -> KomodoSummary {
         let dashboard = try await getDashboard()
         return KomodoSummary(
@@ -85,15 +126,16 @@ actor KomodoAPIClient {
         )
     }
 
-    private func readJSON(path: String) async throws -> Any {
+    private func readJSON(path: String, body: [String: Any] = [:]) async throws -> Any {
         do {
+            let requestBody = try JSONSerialization.data(withJSONObject: body, options: [])
             let data = try await engine.requestData(
                 baseURL: baseURL,
                 fallbackURL: fallbackURL,
                 path: path,
                 method: "POST",
                 headers: authHeaders(),
-                body: Data("{}".utf8)
+                body: requestBody
             )
             guard !data.isEmpty else { return [:] }
             return try JSONSerialization.jsonObject(with: data)
@@ -189,12 +231,87 @@ private enum KomodoJSON {
         return nil
     }
 
+    static func arrayPayload(from json: Any) -> [Any] {
+        let payload = payload(from: json)
+        if let array = payload as? [Any] { return array }
+        if let dict = payload as? [String: Any] {
+            for key in ["items", "resources", "stacks", "services", "containers", "data", "response", "result"] {
+                if let array = dict.first(where: { $0.key.caseInsensitiveCompare(key) == .orderedSame })?.value as? [Any] {
+                    return array
+                }
+            }
+        }
+        return []
+    }
+
+    static func stackItem(from json: Any) -> KomodoStackItem? {
+        guard let dict = payload(from: json) as? [String: Any] else { return nil }
+        let info = dict["info"] as? [String: Any]
+        let config = dict["config"] as? [String: Any]
+        let id = stringValue(dict, keys: ["id", "_id"])
+            ?? stringValue(dict["_id"] as Any, keys: ["$oid"])
+            ?? stringValue(dict, keys: ["name"])
+        guard let id, !id.isEmpty else { return nil }
+        let name = stringValue(dict, keys: ["name"])
+            ?? stringValue(config as Any, keys: ["name", "project_name", "projectName"])
+            ?? id
+        let status = stringValue(info as Any, keys: ["state", "status"])
+            ?? stringValue(dict, keys: ["state", "status"])
+            ?? stringValue(config as Any, keys: ["state", "status"])
+            ?? "Unknown"
+        return KomodoStackItem(
+            id: id,
+            name: name,
+            status: status,
+            server: stringValue(info as Any, keys: ["server", "server_name", "serverName"])
+                ?? stringValue(config as Any, keys: ["server", "server_id", "serverId"]),
+            project: stringValue(info as Any, keys: ["project", "project_name", "projectName"])
+                ?? stringValue(config as Any, keys: ["project_name", "projectName"]),
+            updateAvailable: boolValue(dict, keys: ["update_available", "updateAvailable", "updates_available", "updatesAvailable"])
+                ?? boolValue(info as Any, keys: ["update_available", "updateAvailable", "updates_available", "updatesAvailable"])
+                ?? false
+        )
+    }
+
+    static func stackService(from json: Any) -> KomodoStackService? {
+        guard let dict = payload(from: json) as? [String: Any] else { return nil }
+        let container = dict["container"] as? [String: Any]
+        let name = stringValue(dict, keys: ["service", "name", "service_name", "serviceName"])
+            ?? stringValue(container as Any, keys: ["name", "container_name", "containerName"])
+        guard let name, !name.isEmpty else { return nil }
+        let status = stringValue(container as Any, keys: ["state", "status"])
+            ?? stringValue(dict, keys: ["state", "status"])
+            ?? "Unknown"
+        return KomodoStackService(
+            name: name,
+            image: stringValue(dict, keys: ["image"]) ?? stringValue(container as Any, keys: ["image"]),
+            containerName: stringValue(container as Any, keys: ["name", "container_name", "containerName"]),
+            status: status,
+            updateAvailable: boolValue(dict, keys: ["update_available", "updateAvailable", "updates_available", "updatesAvailable"]) ?? false
+        )
+    }
+
     static func stringValue(_ json: Any, keys: [String]) -> String? {
         guard let dict = payload(from: json) as? [String: Any] else { return nil }
         for key in keys {
             if let value = dict.first(where: { $0.key.caseInsensitiveCompare(key) == .orderedSame })?.value {
                 if let string = value as? String, !string.isEmpty { return string }
                 if let number = value as? NSNumber { return number.stringValue }
+            }
+        }
+        return nil
+    }
+
+    private static func boolValue(_ json: Any, keys: [String]) -> Bool? {
+        guard let dict = payload(from: json) as? [String: Any] else { return nil }
+        for key in keys {
+            if let value = dict.first(where: { $0.key.caseInsensitiveCompare(key) == .orderedSame })?.value {
+                if let bool = value as? Bool { return bool }
+                if let number = value as? NSNumber { return number.boolValue }
+                if let string = value as? String {
+                    if string.caseInsensitiveCompare("true") == .orderedSame { return true }
+                    if string.caseInsensitiveCompare("false") == .orderedSame { return false }
+                }
             }
         }
         return nil

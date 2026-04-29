@@ -10,6 +10,11 @@ enum ProxmoxAuthMode: String, Codable, Equatable {
     case apiToken
 }
 
+enum UniFiAuthMode: String, Codable, Equatable {
+    case siteManager = "site_manager"
+    case localNetwork = "local_network"
+}
+
 struct ProxmoxAPITokenParts: Equatable, Hashable {
     let user: String
     let realm: String
@@ -119,6 +124,7 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
     var proxmoxAuthMode: ProxmoxAuthMode?
     var proxmoxRealm: String?
     var proxmoxOTP: String?
+    var unifiAuthMode: UniFiAuthMode?
     var fallbackUrl: String?
     var allowSelfSigned: Bool
     var password: String?
@@ -136,6 +142,7 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
         proxmoxAuthMode: ProxmoxAuthMode? = nil,
         proxmoxRealm: String? = nil,
         proxmoxOTP: String? = nil,
+        unifiAuthMode: UniFiAuthMode? = nil,
         fallbackUrl: String? = nil,
         allowSelfSigned: Bool = false,
         password: String? = nil
@@ -152,6 +159,7 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
         self.proxmoxAuthMode = proxmoxAuthMode
         self.proxmoxRealm = proxmoxRealm?.trimmedNilIfEmpty
         self.proxmoxOTP = proxmoxOTP?.trimmedNilIfEmpty
+        self.unifiAuthMode = unifiAuthMode
         self.fallbackUrl = Self.cleanOptionalURL(fallbackUrl)
         self.allowSelfSigned = allowSelfSigned
         self.password = password?.trimmedNilIfEmpty
@@ -186,6 +194,7 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
             proxmoxAuthMode: proxmoxAuthMode,
             proxmoxRealm: proxmoxRealm,
             proxmoxOTP: proxmoxOTP,
+            unifiAuthMode: unifiAuthMode,
             fallbackUrl: fallbackUrl,
             allowSelfSigned: allowSelfSigned,
             password: password
@@ -203,6 +212,7 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
         proxmoxAuthMode: ProxmoxAuthMode? = nil,
         proxmoxRealm: String? = nil,
         proxmoxOTP: String? = nil,
+        unifiAuthMode: UniFiAuthMode? = nil,
         fallbackUrl: String? = nil,
         allowSelfSigned: Bool? = nil,
         password: String? = nil
@@ -220,6 +230,7 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
             proxmoxAuthMode: proxmoxAuthMode ?? self.proxmoxAuthMode,
             proxmoxRealm: proxmoxRealm ?? self.proxmoxRealm,
             proxmoxOTP: proxmoxOTP ?? self.proxmoxOTP,
+            unifiAuthMode: unifiAuthMode ?? self.unifiAuthMode,
             fallbackUrl: fallbackUrl ?? self.fallbackUrl,
             allowSelfSigned: allowSelfSigned ?? self.allowSelfSigned,
             password: password ?? self.password
@@ -251,6 +262,7 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
         case proxmoxAuthMode
         case proxmoxRealm
         case proxmoxOTP
+        case unifiAuthMode
         case fallbackUrl
         case allowSelfSigned
         case password
@@ -271,6 +283,7 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
             proxmoxAuthMode: try container.decodeIfPresent(ProxmoxAuthMode.self, forKey: .proxmoxAuthMode),
             proxmoxRealm: try container.decodeIfPresent(String.self, forKey: .proxmoxRealm),
             proxmoxOTP: try container.decodeIfPresent(String.self, forKey: .proxmoxOTP),
+            unifiAuthMode: try container.decodeIfPresent(UniFiAuthMode.self, forKey: .unifiAuthMode),
             fallbackUrl: try container.decodeIfPresent(String.self, forKey: .fallbackUrl),
             allowSelfSigned: try container.decodeIfPresent(Bool.self, forKey: .allowSelfSigned) ?? false,
             password: try container.decodeIfPresent(String.self, forKey: .password)

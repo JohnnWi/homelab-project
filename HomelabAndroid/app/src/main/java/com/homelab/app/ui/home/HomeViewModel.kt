@@ -24,6 +24,7 @@ import com.homelab.app.data.repository.PiholeRepository
 import com.homelab.app.data.repository.PortainerRepository
 import com.homelab.app.data.repository.ServicesRepository
 import com.homelab.app.data.repository.TechnitiumRepository
+import com.homelab.app.data.repository.UptimeKumaRepository
 import com.homelab.app.domain.model.ServiceInstance
 import com.homelab.app.util.ServiceType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -58,6 +59,7 @@ class HomeViewModel @Inject constructor(
     private val dockmonRepository: DockmonRepository,
     private val komodoRepository: KomodoRepository,
     private val maltrailRepository: MaltrailRepository,
+    private val uptimeKumaRepository: UptimeKumaRepository,
     private val craftyRepository: CraftyRepository,
     private val nginxProxyManagerRepository: NginxProxyManagerRepository,
     private val healthchecksRepository: HealthchecksRepository,
@@ -300,6 +302,10 @@ class HomeViewModel @Inject constructor(
                 val latest = java.text.NumberFormat.getInstance().format(summary.latestCount)
                 val day = summary.latestDayLabel.takeIf { it.isNotBlank() }
                 InstanceSummary(latest, day, "maltrail_findings")
+            }
+            ServiceType.UPTIME_KUMA -> {
+                val summary = uptimeKumaRepository.getSummary(instanceId)
+                InstanceSummary("${summary.upCount}", "/ ${summary.totalCount}", "uptime_kuma_monitors")
             }
             ServiceType.CRAFTY_CONTROLLER -> {
                 val servers = craftyRepository.getServers(instanceId)

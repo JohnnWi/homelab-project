@@ -2,6 +2,7 @@ package com.homelab.app.ui.komodo
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,29 +17,47 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudQueue
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -55,6 +74,10 @@ import com.homelab.app.R
 import com.homelab.app.data.repository.KomodoContainerSummary
 import com.homelab.app.data.repository.KomodoDashboardData
 import com.homelab.app.data.repository.KomodoResourceSummary
+import com.homelab.app.data.repository.KomodoStackAction
+import com.homelab.app.data.repository.KomodoStackDetail
+import com.homelab.app.data.repository.KomodoStackItem
+import com.homelab.app.data.repository.KomodoStackService
 import com.homelab.app.domain.model.ServiceInstance
 import com.homelab.app.ui.common.ErrorScreen
 import com.homelab.app.ui.components.ServiceIcon
@@ -65,6 +88,7 @@ import com.homelab.app.ui.theme.StatusRed
 import com.homelab.app.ui.theme.primaryColor
 import com.homelab.app.util.ServiceType
 import com.homelab.app.util.UiState
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,11 +98,29 @@ fun KomodoDashboardScreen(
     viewModel: KomodoViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val stacksState by viewModel.stacksState.collectAsStateWithLifecycle()
+    val stackDetailState by viewModel.stackDetailState.collectAsStateWithLifecycle()
+    val isRunningStackAction by viewModel.isRunningStackAction.collectAsStateWithLifecycle()
     val instances by viewModel.instances.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val accent = ServiceType.KOMODO.primaryColor
+    val snackbarHostState = remember { SnackbarHostState() }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+    var showStacksSheet by remember { mutableStateOf(false) }
+    val actionCompleted = stringResource(R.string.komodo_action_completed)
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is KomodoUiEvent.StackActionSucceeded -> snackbarHostState.showSnackbar(actionCompleted)
+                is KomodoUiEvent.StackActionFailed -> snackbarHostState.showSnackbar(event.message)
+            }
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -142,9 +184,40 @@ fun KomodoDashboardScreen(
                         onInstanceSelected = {
                             viewModel.setPreferredInstance(it.id)
                             onNavigateToInstance(it.id)
+                        },
+                        onStacksClicked = {
+                            showStacksSheet = true
+                            viewModel.loadStacks()
                         }
                     )
                 }
+            }
+        }
+
+        if (showStacksSheet) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    showStacksSheet = false
+                    viewModel.clearStackDetail()
+                },
+                sheetState = sheetState,
+                containerColor = MaterialTheme.colorScheme.surface
+            ) {
+                KomodoStacksSheet(
+                    stacksState = stacksState,
+                    detailState = stackDetailState,
+                    isRunningAction = isRunningStackAction,
+                    onBackToList = { viewModel.clearStackDetail() },
+                    onRefreshList = { viewModel.loadStacks() },
+                    onStackSelected = { viewModel.loadStackDetail(it.id) },
+                    onAction = { stackId, action -> viewModel.runStackAction(stackId, action) },
+                    onDismiss = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            showStacksSheet = false
+                            viewModel.clearStackDetail()
+                        }
+                    }
+                )
             }
         }
     }
@@ -155,7 +228,8 @@ private fun KomodoContent(
     data: KomodoDashboardData,
     instances: List<ServiceInstance>,
     selectedInstanceId: String,
-    onInstanceSelected: (ServiceInstance) -> Unit
+    onInstanceSelected: (ServiceInstance) -> Unit,
+    onStacksClicked: () -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -199,7 +273,8 @@ private fun KomodoContent(
                     value = data.stacks.total.toString(),
                     detail = statusDetail(data.stacks),
                     icon = Icons.Default.Inventory2,
-                    color = StatusOrange
+                    color = StatusOrange,
+                    onClick = onStacksClicked
                 ),
                 right = MetricSpec(
                     label = stringResource(R.string.komodo_containers),
@@ -313,8 +388,13 @@ private fun KomodoMetricRow(left: MetricSpec, right: MetricSpec) {
 
 @Composable
 private fun KomodoMetricCard(spec: MetricSpec, modifier: Modifier = Modifier) {
+    val cardModifier = if (spec.onClick != null) {
+        modifier.heightIn(min = 136.dp).clickable(onClick = spec.onClick)
+    } else {
+        modifier.heightIn(min = 136.dp)
+    }
     Surface(
-        modifier = modifier.heightIn(min = 136.dp),
+        modifier = cardModifier,
         shape = RoundedCornerShape(22.dp),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f))
@@ -359,6 +439,25 @@ private fun KomodoMetricCard(spec: MetricSpec, modifier: Modifier = Modifier) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            if (spec.onClick != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(R.string.komodo_open_stacks),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = spec.color,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = spec.color,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
         }
     }
 }
@@ -427,6 +526,392 @@ private fun StateBar(label: String, value: Int, total: Int, color: Color) {
 }
 
 @Composable
+private fun KomodoStacksSheet(
+    stacksState: UiState<List<KomodoStackItem>>,
+    detailState: UiState<KomodoStackDetail>,
+    isRunningAction: Boolean,
+    onBackToList: () -> Unit,
+    onRefreshList: () -> Unit,
+    onStackSelected: (KomodoStackItem) -> Unit,
+    onAction: (String, KomodoStackAction) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 360.dp, max = 720.dp)
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        when (detailState) {
+            is UiState.Success -> {
+                KomodoStackDetailHeader(
+                    detail = detailState.data,
+                    onBackToList = onBackToList,
+                    onDismiss = onDismiss
+                )
+                KomodoStackActions(
+                    stackId = detailState.data.stack.id,
+                    isRunningAction = isRunningAction,
+                    onAction = onAction
+                )
+                KomodoServicesList(services = detailState.data.services)
+            }
+            UiState.Loading -> {
+                KomodoStackSheetTitle(onRefreshList, onDismiss)
+                Box(modifier = Modifier.fillMaxWidth().height(240.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = ServiceType.KOMODO.primaryColor)
+                }
+            }
+            is UiState.Error -> {
+                KomodoStackSheetTitle(onRefreshList, onDismiss)
+                ErrorScreen(
+                    message = detailState.message,
+                    onRetry = detailState.retryAction ?: onRefreshList
+                )
+            }
+            UiState.Idle, UiState.Offline -> {
+                KomodoStackSheetTitle(onRefreshList, onDismiss)
+                when (stacksState) {
+                    is UiState.Success -> KomodoStackList(
+                        stacks = stacksState.data,
+                        onStackSelected = onStackSelected
+                    )
+                    UiState.Loading, UiState.Idle -> Box(
+                        modifier = Modifier.fillMaxWidth().height(240.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = ServiceType.KOMODO.primaryColor)
+                    }
+                    is UiState.Error -> ErrorScreen(
+                        message = stacksState.message,
+                        onRetry = stacksState.retryAction ?: onRefreshList
+                    )
+                    UiState.Offline -> ErrorScreen(
+                        message = stringResource(R.string.error_network),
+                        onRetry = onRefreshList,
+                        isOffline = true
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun KomodoStackSheetTitle(onRefreshList: () -> Unit, onDismiss: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.komodo_stack_management),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = stringResource(R.string.komodo_stack_management_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        IconButton(onClick = onRefreshList) {
+            Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh))
+        }
+        IconButton(onClick = onDismiss) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+        }
+    }
+}
+
+@Composable
+private fun KomodoStackList(stacks: List<KomodoStackItem>, onStackSelected: (KomodoStackItem) -> Unit) {
+    if (stacks.isEmpty()) {
+        Box(modifier = Modifier.fillMaxWidth().height(220.dp), contentAlignment = Alignment.Center) {
+            Text(
+                text = stringResource(R.string.komodo_no_stacks),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        return
+    }
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(bottom = 24.dp)
+    ) {
+        items(stacks, key = { it.id }) { stack ->
+            KomodoStackRow(stack = stack, onClick = { onStackSelected(stack) })
+        }
+    }
+}
+
+@Composable
+private fun KomodoStackRow(stack: KomodoStackItem, onClick: () -> Unit) {
+    val statusColor = komodoStatusColor(stack.status)
+    Surface(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.42f))
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Surface(shape = RoundedCornerShape(12.dp), color = statusColor.copy(alpha = 0.14f)) {
+                Icon(Icons.Default.Inventory2, contentDescription = null, tint = statusColor, modifier = Modifier.padding(8.dp).size(20.dp))
+            }
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(
+                    text = stack.name,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = listOfNotNull(stack.server, stack.project).joinToString(" · ").ifBlank { stack.id },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            KomodoStatusChip(label = stack.status, color = statusColor)
+        }
+    }
+}
+
+@Composable
+private fun KomodoStackDetailHeader(
+    detail: KomodoStackDetail,
+    onBackToList: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = onBackToList) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = detail.stack.name,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = listOfNotNull(detail.stack.server, detail.stack.project).joinToString(" · ").ifBlank {
+                    stringResource(R.string.komodo_stack_services_count, detail.services.size)
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        KomodoStatusChip(label = detail.stack.status, color = komodoStatusColor(detail.stack.status))
+        IconButton(onClick = onDismiss) {
+            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close))
+        }
+    }
+}
+
+@Composable
+private fun KomodoStackActions(
+    stackId: String,
+    isRunningAction: Boolean,
+    onAction: (String, KomodoStackAction) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = stringResource(R.string.komodo_stack_actions),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            KomodoActionButton(
+                label = stringResource(R.string.komodo_deploy),
+                icon = Icons.Default.CloudQueue,
+                enabled = !isRunningAction,
+                primary = true,
+                modifier = Modifier.weight(1f),
+                onClick = { onAction(stackId, KomodoStackAction.DEPLOY) }
+            )
+            KomodoActionButton(
+                label = stringResource(R.string.komodo_start),
+                icon = Icons.Default.PlayArrow,
+                enabled = !isRunningAction,
+                modifier = Modifier.weight(1f),
+                onClick = { onAction(stackId, KomodoStackAction.START) }
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            KomodoActionButton(
+                label = stringResource(R.string.komodo_stop),
+                icon = Icons.Default.Stop,
+                enabled = !isRunningAction,
+                modifier = Modifier.weight(1f),
+                onClick = { onAction(stackId, KomodoStackAction.STOP) }
+            )
+            KomodoActionButton(
+                label = stringResource(R.string.komodo_restart),
+                icon = Icons.Default.RestartAlt,
+                enabled = !isRunningAction,
+                modifier = Modifier.weight(1f),
+                onClick = { onAction(stackId, KomodoStackAction.RESTART) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun KomodoActionButton(
+    label: String,
+    icon: ImageVector,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    primary: Boolean = false,
+    onClick: () -> Unit
+) {
+    if (primary) {
+        Button(onClick = onClick, enabled = enabled, modifier = modifier.heightIn(min = 44.dp)) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(17.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    } else {
+        OutlinedButton(onClick = onClick, enabled = enabled, modifier = modifier.heightIn(min = 44.dp)) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(17.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+@Composable
+private fun KomodoServicesList(services: List<KomodoStackService>) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = stringResource(R.string.komodo_stack_services),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        if (services.isEmpty()) {
+            Text(
+                text = stringResource(R.string.komodo_no_stack_services),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 24.dp)
+            )
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(bottom = 28.dp),
+                modifier = Modifier.heightIn(max = 320.dp)
+            ) {
+                items(services, key = { it.name }) { service ->
+                    KomodoServiceRow(service)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun KomodoServiceRow(service: KomodoStackService) {
+    val statusColor = komodoStatusColor(service.status)
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.36f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.36f))
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier.size(10.dp).background(statusColor, RoundedCornerShape(5.dp))
+            )
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = service.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = service.image ?: service.containerName ?: "-",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            if (service.updateAvailable) {
+                AssistChip(
+                    onClick = {},
+                    label = {
+                        Text(
+                            text = stringResource(R.string.komodo_update_available),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                )
+            } else {
+                KomodoStatusChip(label = service.status, color = statusColor)
+            }
+        }
+    }
+}
+
+@Composable
+private fun KomodoStatusChip(label: String, color: Color) {
+    Surface(
+        shape = RoundedCornerShape(999.dp),
+        color = color.copy(alpha = 0.13f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.36f))
+    ) {
+        Text(
+            text = label.replaceFirstChar { it.uppercase() },
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = color,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+        )
+    }
+}
+
+@Composable
+private fun komodoStatusColor(status: String): Color {
+    val normalized = status.lowercase()
+    return when {
+        "running" in normalized || "healthy" in normalized -> StatusGreen
+        "paused" in normalized || "restarting" in normalized || "deploying" in normalized || "created" in normalized -> StatusOrange
+        "stopped" in normalized || "down" in normalized || "dead" in normalized || "unhealthy" in normalized -> StatusRed
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+}
+
+@Composable
 private fun statusDetail(summary: KomodoResourceSummary): String {
     return if (summary.unhealthy > 0) {
         "${summary.unhealthy} ${stringResource(R.string.komodo_unhealthy)}"
@@ -456,5 +941,6 @@ private data class MetricSpec(
     val value: String,
     val detail: String,
     val icon: ImageVector,
-    val color: Color
+    val color: Color,
+    val onClick: (() -> Unit)? = null
 )

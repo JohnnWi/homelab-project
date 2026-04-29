@@ -12,7 +12,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
     case dockmon
     case komodo
     case maltrail
+    case uptimeKuma = "uptime_kuma"
     case craftyController = "crafty_controller"
+    case unifiNetwork = "unifi_network"
     case gitea
     case nginxProxyManager
     case pangolin
@@ -62,10 +64,14 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
             return .komodo
         case "maltrail":
             return .maltrail
+        case "uptimekuma", "uptime_kuma":
+            return .uptimeKuma
         case "pangolin":
             return .pangolin
         case "crafty", "crafty_controller":
             return .craftyController
+        case "unifi", "ubiquiti", "unifi_network", "unifinetwork":
+            return .unifiNetwork
         case "proxmox", "proxmox_ve", "proxmoxve", "pve":
             return .proxmox
         default:
@@ -123,7 +129,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .dockmon:                 return "DockMon"
         case .komodo:                  return "Komodo"
         case .maltrail:                return "Maltrail"
+        case .uptimeKuma:              return "Uptime Kuma"
         case .craftyController:        return "Crafty Controller"
+        case .unifiNetwork:            return "Ubiquiti Network"
         case .gitea:              return "Gitea"
         case .nginxProxyManager:  return "Nginx Proxy Manager"
         case .pangolin:           return "Pangolin"
@@ -157,7 +165,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .dockmon:                 return t.serviceDockmonDesc
         case .komodo:                  return t.serviceKomodoDesc
         case .maltrail:                return t.serviceMaltrailDesc
+        case .uptimeKuma:              return t.serviceUptimeKumaDesc
         case .craftyController:        return t.serviceCraftyControllerDesc
+        case .unifiNetwork:            return t.serviceUnifiNetworkDesc
         case .gitea:              return t.serviceGiteaDesc
         case .nginxProxyManager:  return t.serviceNpmDesc
         case .pangolin:           return t.servicePangolinDesc
@@ -196,7 +206,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .dockmon:                 return "arrow.triangle.2.circlepath.circle.fill"
         case .komodo:                  return "shippingbox.fill"
         case .maltrail:                return "network.badge.shield.half.filled"
+        case .uptimeKuma:              return "heart.text.square.fill"
         case .craftyController:        return "gamecontroller.fill"
+        case .unifiNetwork:            return "dot.radiowaves.left.and.right"
         case .gitea:              return "arrow.triangle.branch"
         case .nginxProxyManager:  return "globe"
         case .pangolin:           return "point.3.connected.trianglepath.dotted"
@@ -230,7 +242,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .dockmon:                 return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/dockmon.png"
         case .komodo:                  return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/komodo.png"
         case .maltrail:                return "https://raw.githubusercontent.com/stamparm/maltrail/master/html/images/mlogo.png"
+        case .uptimeKuma:              return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/uptime-kuma.png"
         case .craftyController:        return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/crafty-controller.png"
+        case .unifiNetwork:            return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/ubiquiti-unifi.png"
         case .gitea:              return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/gitea.png"
         case .nginxProxyManager:  return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/nginx-proxy-manager.png"
         case .pangolin:           return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/pangolin.png"
@@ -265,7 +279,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .dockmon:                 slug = "dockmon"
         case .komodo:                  slug = "komodo"
         case .maltrail:                slug = "maltrail"
+        case .uptimeKuma:              slug = "uptime-kuma"
         case .craftyController:        slug = "crafty-controller"
+        case .unifiNetwork:            slug = "unifi"
         case .gitea:              slug = "gitea"
         case .nginxProxyManager:  slug = "nginx-proxy-manager"
         case .pangolin:           slug = "pangolin"
@@ -314,7 +330,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .dockmon:                 return "service-dockmon"
         case .komodo:                  return "service-komodo"
         case .maltrail:                return "service-maltrail"
+        case .uptimeKuma:              return "service-uptime-kuma"
         case .craftyController:        return "service-crafty-controller"
+        case .unifiNetwork:            return "service-unifi"
         case .gitea:              return "service-gitea"
         case .nginxProxyManager:  return "service-nginx-proxy-manager"
         case .pangolin:           return "service-pangolin"
@@ -348,7 +366,9 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .dockmon:                 return ServiceColorSet(primary: Color(hex: "#0EA5E9"), dark: Color(hex: "#0369A1"), bg: Color(hex: "#0EA5E9").opacity(0.09))
         case .komodo:                  return ServiceColorSet(primary: Color(hex: "#F97316"), dark: Color(hex: "#C2410C"), bg: Color(hex: "#F97316").opacity(0.08))
         case .maltrail:                return ServiceColorSet(primary: Color(hex: "#DC2626"), dark: Color(hex: "#991B1B"), bg: Color(hex: "#DC2626").opacity(0.08))
+        case .uptimeKuma:              return ServiceColorSet(primary: Color(hex: "#22C55E"), dark: Color(hex: "#15803D"), bg: Color(hex: "#22C55E").opacity(0.09))
         case .craftyController:        return ServiceColorSet(primary: Color(hex: "#2E86FF"), dark: Color(hex: "#1E63C6"), bg: Color(hex: "#2E86FF").opacity(0.09))
+        case .unifiNetwork:            return ServiceColorSet(primary: Color(hex: "#006FFF"), dark: Color(hex: "#0057D8"), bg: Color(hex: "#006FFF").opacity(0.09))
         case .gitea:              return ServiceColorSet(primary: Color(hex: "#609926"), dark: Color(hex: "#4A7A1E"), bg: Color(hex: "#609926").opacity(0.09))
         case .nginxProxyManager:  return ServiceColorSet(primary: Color(hex: "#F15B2A"), dark: Color(hex: "#C9481F"), bg: Color(hex: "#F15B2A").opacity(0.09))
         case .pangolin:           return ServiceColorSet(primary: Color(hex: "#FF8A3D"), dark: Color(hex: "#D96A22"), bg: Color(hex: "#FF8A3D").opacity(0.10))
