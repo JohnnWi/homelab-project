@@ -27,6 +27,15 @@
       ],
       "versions": [
         {
+          "version": "1.5.1",
+          "buildVersion": "32",
+          "date": "2026-04-29",
+          "localizedDescription": "Fixed Komodo API payload handling across iOS and Android.\nImproved Komodo stack actions and repository compatibility.\nIncluded stability improvements for Komodo integrations.",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.1/Homelab.ipa",
+          "size": 33412467,
+          "minOSVersion": "26.0"
+        },
+        {
           "version": "1.5.0",
           "buildVersion": "31",
           "date": "2026-04-29",
@@ -270,6 +279,16 @@
     }
   ],
   "news": [
+    {
+      "title": "v1.5.1 — Fixed Komodo API payload handling across iOS and Android.",
+      "identifier": "release-1.5.1",
+      "caption": "Fixed Komodo API payload handling across iOS and Android. Improved Komodo stack actions and repository compatibility. Included stability improvements for Komodo integrations.",
+      "date": "2026-04-29",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v1.5.1",
+      "appID": "homelab.foreverhomelab"
+    },
     {
       "title": "v1.5.0 — Added Pterodactyl support across iOS and Android.",
       "identifier": "release-1.5.0",

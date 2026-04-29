@@ -1,6 +1,6 @@
 {
-  "latest": "1.5.0",
-  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.0/Homelab.ipa",
-  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.0/Homelab.apk",
-  "changelog": "Added Pterodactyl support across iOS and Android.\nAdded Calagopus support across iOS and Android.\nImproved game server summaries and resource status handling.\nUpdated the service catalog and README."
+  "latest": "1.5.1",
+  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.1/Homelab.ipa",
+  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.1/Homelab.apk",
+  "changelog": "Fixed Komodo API payload handling across iOS and Android.\nImproved Komodo stack actions and repository compatibility.\nIncluded stability improvements for Komodo integrations."
 }
