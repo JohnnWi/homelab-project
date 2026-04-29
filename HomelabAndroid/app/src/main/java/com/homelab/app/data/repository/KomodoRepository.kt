@@ -13,6 +13,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
@@ -143,12 +144,12 @@ class KomodoRepository @Inject constructor(
     }
 
     suspend fun getStacks(instanceId: String): List<KomodoStackItem> {
-        val response = api.listStacks(instanceId = instanceId)
+        val response = api.listStacks(body = listStacksBody(), instanceId = instanceId)
         return arrayPayload(response).mapNotNull { parseStackItem(it) }
     }
 
     suspend fun getStackDetail(instanceId: String, stackId: String): KomodoStackDetail {
-        val body = mapOf("stack" to stackId)
+        val body = stackBody(stackId)
         val stackResponse = api.getStack(body = body, instanceId = instanceId)
         val servicesResponse = api.listStackServices(body = body, instanceId = instanceId)
         val stack = parseStackItem(unwrap(stackResponse))
@@ -168,16 +169,32 @@ class KomodoRepository @Inject constructor(
 
     suspend fun executeStackAction(instanceId: String, stackId: String, action: KomodoStackAction) {
         val body = when (action) {
-            KomodoStackAction.DEPLOY -> mapOf("stack" to stackId, "services" to emptyList<String>(), "stop_time" to null)
+            KomodoStackAction.DEPLOY -> stackActionBody(stackId, includeStopTime = true)
             KomodoStackAction.START,
             KomodoStackAction.STOP,
-            KomodoStackAction.RESTART -> mapOf("stack" to stackId, "services" to emptyList<String>())
+            KomodoStackAction.RESTART -> stackActionBody(stackId, includeStopTime = false)
         }
         when (action) {
             KomodoStackAction.DEPLOY -> api.deployStack(body = body, instanceId = instanceId)
             KomodoStackAction.START -> api.startStack(body = body, instanceId = instanceId)
             KomodoStackAction.STOP -> api.stopStack(body = body, instanceId = instanceId)
             KomodoStackAction.RESTART -> api.restartStack(body = body, instanceId = instanceId)
+        }
+    }
+
+    private fun listStacksBody(): JsonObject = buildJsonObject {
+        put("query", JsonObject(emptyMap()))
+    }
+
+    private fun stackBody(stackId: String): JsonObject = buildJsonObject {
+        put("stack", JsonPrimitive(stackId))
+    }
+
+    private fun stackActionBody(stackId: String, includeStopTime: Boolean): JsonObject = buildJsonObject {
+        put("stack", JsonPrimitive(stackId))
+        put("services", JsonArray(emptyList()))
+        if (includeStopTime) {
+            put("stop_time", JsonNull)
         }
     }
 

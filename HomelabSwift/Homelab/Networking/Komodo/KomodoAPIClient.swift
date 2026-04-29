@@ -76,7 +76,7 @@ actor KomodoAPIClient {
     }
 
     func getStacks() async throws -> [KomodoStackItem] {
-        let json = try await readJSON(path: "/read/ListStacks", body: ["query": [:]])
+        let json = try await readJSON(path: "/read/ListStacks", body: ["query": [String: Any]()])
         return KomodoJSON.arrayPayload(from: json).compactMap { KomodoJSON.stackItem(from: $0) }
     }
 
@@ -101,7 +101,7 @@ actor KomodoAPIClient {
 
     func executeStackAction(stackId: String, action: KomodoStackAction) async throws {
         let path: String
-        var body: [String: Any] = ["stack": stackId, "services": []]
+        var body: [String: Any] = ["stack": stackId, "services": [String]()]
         switch action {
         case .deploy:
             path = "/execute/DeployStack"
