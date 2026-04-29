@@ -1556,6 +1556,39 @@ extension Translations {
         proxmoxConfigSaved: "Configuration enregistrée",
         proxmoxConfigSaveError: "Échec de l'enregistrement de la configuration",
         debugLogsEmpty: "Aucun log pour l'instant",
-        securityLockoutMessage: "Trop de tentatives. Attendez %d secondes."
+        securityLockoutMessage: "Trop de tentatives. Attendez %d secondes.",
+
+        // Pterodactyl
+        servicePterodactylDesc: "Panneau de gestion de serveurs de jeux",
+        loginHintPterodactyl: "Utilisez une clé API Client Pterodactyl. Générez-la depuis votre page de compte sous Identifiants API.",
+        pterodactylNoServers: "Aucun serveur trouvé pour ce compte.",
+        pterodactylRunningServers: "Serveurs actifs",
+        pterodactylTotalServers: "Serveurs au total",
+        pterodactylCPU: "CPU",
+        pterodactylRAM: "RAM",
+        pterodactylDisk: "Disque",
+        pterodactylUptime: "Disponibilité",
+        pterodactylStatusRunning: "En cours",
+        pterodactylStatusStopping: "Arrêt en cours",
+        pterodactylStatusStarting: "Démarrage",
+        pterodactylStatusOffline: "Hors ligne",
+        pterodactylStatusSuspended: "Suspendu",
+        pterodactylStatusInstalling: "Installation",
+
+        // Calagopus
+        serviceCalagopusDesc: "Panneau de gestion de serveurs de jeux nouvelle génération",
+        loginHintCalagopus: "Utilisez une clé API Client Calagopus. Générez-en une depuis votre page de compte sous Identifiants API.",
+        calagopusNoServers: "Aucun serveur trouvé pour ce compte.",
+        calagopusRunningServers: "Serveurs actifs",
+        calagopusTotalServers: "Serveurs totaux",
+        calagopusCPU: "CPU",
+        calagopusRAM: "RAM",
+        calagopusDisk: "Disque",
+        calagopusUptime: "Disponibilité",
+        calagopusStatusRunning: "En cours",
+        calagopusStatusStopping: "Arrêt en cours",
+        calagopusStatusStarting: "Démarrage",
+        calagopusStatusOffline: "Hors ligne",
+        calagopusStatusSuspended: "Suspendu"
     )
 }

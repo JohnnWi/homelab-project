@@ -1796,4 +1796,49 @@
     <string name="uptime_kuma_response_time">Response</string>
     <string name="uptime_kuma_cert_days">Cert days</string>
     <string name="uptime_kuma_no_monitors">No monitors found</string>
+
+    <!-- Pterodactyl -->
+    <string name="service_pterodactyl">Pterodactyl</string>
+    <string name="service_pterodactyl_desc">Game server management panel</string>
+    <string name="login_hint_pterodactyl">Use a Pterodactyl Client API key. Generate one from your account page under API Credentials.</string>
+    <string name="pterodactyl_no_servers">No servers found for this account.</string>
+    <string name="pterodactyl_running_servers">running servers</string>
+    <string name="pterodactyl_total_servers">Total servers</string>
+    <string name="pterodactyl_cpu">CPU</string>
+    <string name="pterodactyl_ram">RAM</string>
+    <string name="pterodactyl_disk">Disk</string>
+    <string name="pterodactyl_uptime">Uptime</string>
+    <string name="pterodactyl_status_running">Running</string>
+    <string name="pterodactyl_status_stopping">Stopping</string>
+    <string name="pterodactyl_status_starting">Starting</string>
+    <string name="pterodactyl_status_offline">Offline</string>
+    <string name="pterodactyl_status_suspended">Suspended</string>
+    <string name="pterodactyl_status_installing">Installing</string>
+    <string name="pterodactyl_action_start">Start</string>
+    <string name="pterodactyl_action_stop">Stop</string>
+    <string name="pterodactyl_action_restart">Restart</string>
+    <string name="pterodactyl_action_kill">Kill</string>
+    <string name="pterodactyl_action_sent">Action sent</string>
+
+    <!-- Calagopus -->
+    <string name="service_calagopus">Calagopus</string>
+    <string name="service_calagopus_desc">Next-generation game server management panel</string>
+    <string name="login_hint_calagopus">Use a Calagopus Client API key. Generate one from your account page under API Credentials.</string>
+    <string name="calagopus_no_servers">No servers found for this account.</string>
+    <string name="calagopus_running_servers">running servers</string>
+    <string name="calagopus_total_servers">Total servers</string>
+    <string name="calagopus_cpu">CPU</string>
+    <string name="calagopus_ram">RAM</string>
+    <string name="calagopus_disk">Disk</string>
+    <string name="calagopus_uptime">Uptime</string>
+    <string name="calagopus_status_running">Running</string>
+    <string name="calagopus_status_stopping">Stopping</string>
+    <string name="calagopus_status_starting">Starting</string>
+    <string name="calagopus_status_offline">Offline</string>
+    <string name="calagopus_status_suspended">Suspended</string>
+    <string name="calagopus_action_start">Start</string>
+    <string name="calagopus_action_stop">Stop</string>
+    <string name="calagopus_action_restart">Restart</string>
+    <string name="calagopus_action_kill">Kill</string>
+    <string name="calagopus_action_sent">Action sent</string>
 </resources>

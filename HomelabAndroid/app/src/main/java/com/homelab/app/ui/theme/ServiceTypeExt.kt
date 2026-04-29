@@ -62,6 +62,8 @@ val ServiceType.primaryColor: Color
         ServiceType.GLUETUN -> Color(0xFF06B6D4)
         ServiceType.FLARESOLVERR -> Color(0xFFFF4500)
         ServiceType.WAKAPI -> Color(0xFF2563EB)
+        ServiceType.PTERODACTYL -> Color(0xFF5D87FF)
+        ServiceType.CALAGOPUS -> Color(0xFF16A34A)
         ServiceType.UNKNOWN -> if (isThemeDark()) Color.LightGray else Color.Gray
     }
 
@@ -99,6 +101,8 @@ val ServiceType.backgroundColor: Color
         ServiceType.GLUETUN -> Color(0xFF06B6D4).copy(alpha = 0.12f)
         ServiceType.FLARESOLVERR -> Color(0xFFFF4500).copy(alpha = 0.12f)
         ServiceType.WAKAPI -> Color(0xFF2563EB).copy(alpha = 0.12f)
+        ServiceType.PTERODACTYL -> Color(0xFF5D87FF).copy(alpha = 0.12f)
+        ServiceType.CALAGOPUS -> Color(0xFF16A34A).copy(alpha = 0.12f)
         ServiceType.UNKNOWN -> if (isThemeDark()) Color(0xFF334155) else Color(0xFFF1F5F9)
     }
 
@@ -135,6 +139,8 @@ val ServiceType.iconUrl: String
         ServiceType.GLUETUN -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/gluetun.png"
         ServiceType.FLARESOLVERR -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/flaresolverr.png"
         ServiceType.WAKAPI -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/wakapi.png"
+        ServiceType.PTERODACTYL -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/pterodactyl.png"
+        ServiceType.CALAGOPUS -> "https://cdn.jsdelivr.net/gh/selfhst/icons/png/calagopus.png"
         ServiceType.UNKNOWN -> ""
     }
 
@@ -231,5 +237,7 @@ val ServiceType.fallbackIcon: ImageVector
         ServiceType.FLARESOLVERR -> Icons.Default.LocalFireDepartment
         ServiceType.WAKAPI -> Icons.Default.CheckCircle
         ServiceType.PROXMOX -> Icons.Default.Dns
+        ServiceType.PTERODACTYL -> Icons.Default.Dns
+        ServiceType.CALAGOPUS -> Icons.Default.Dns
         ServiceType.UNKNOWN -> Icons.Default.Widgets
     }

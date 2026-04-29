@@ -258,4 +258,16 @@ object NetworkModule {
     fun provideProxmoxApi(retrofit: Retrofit): com.homelab.app.data.remote.api.ProxmoxApi {
         return retrofit.create(com.homelab.app.data.remote.api.ProxmoxApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun providePterodactylApi(retrofit: Retrofit): com.homelab.app.data.remote.api.PterodactylApi {
+        return retrofit.create(com.homelab.app.data.remote.api.PterodactylApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCalagopusApi(retrofit: Retrofit): com.homelab.app.data.remote.api.CalagopusApi {
+        return retrofit.create(com.homelab.app.data.remote.api.CalagopusApi::class.java)
+    }
 }

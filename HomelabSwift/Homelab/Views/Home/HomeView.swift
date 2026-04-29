@@ -329,6 +329,8 @@ struct HomeView: View {
         case .lidarr:            LidarrDashboard(instanceId: route.instanceId)
         case .wakapi:            WakapiDashboard(instanceId: route.instanceId)
         case .proxmox:           ProxmoxDashboard(instanceId: route.instanceId)
+        case .pterodactyl:       PterodactylDashboard(instanceId: route.instanceId)
+        case .calagopus:         CalagopusDashboard(instanceId: route.instanceId)
         case .jellyseerr, .prowlarr, .bazarr, .gluetun, .flaresolverr:
                                  GenericMediaDashboard(serviceType: route.type, instanceId: route.instanceId)
         }
@@ -532,6 +534,16 @@ struct HomeView: View {
                     totalRunning += vms.filter { $0.isRunning }.count + lxcs.filter { $0.isRunning }.count
                 }
                 return ServiceSummaryInfo(value: "\(totalRunning)", subValue: "/ \(totalGuests)", label: localizer.t.proxmoxGuestsRunning)
+            case .pterodactyl:
+                guard let client = await servicesStore.pterodactylClient(instanceId: instanceId) else { return nil }
+                let servers = try await client.getServers()
+                let running = servers.filter { $0.status == nil && !$0.isSuspended && !$0.isInstalling }.count
+                return ServiceSummaryInfo(value: "\(running)", subValue: "/ \(servers.count)", label: localizer.t.pterodactylRunningServers)
+            case .calagopus:
+                guard let client = await servicesStore.calagopusClient(instanceId: instanceId) else { return nil }
+                let servers = try await client.getServers()
+                let running = servers.filter { $0.status == nil && !$0.isSuspended }.count
+                return ServiceSummaryInfo(value: "\(running)", subValue: "/ \(servers.count)", label: localizer.t.calagopusRunningServers)
             default:
                 return nil
             }

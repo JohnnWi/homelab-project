@@ -67,6 +67,8 @@ struct ServiceLoginView: View {
             || serviceType == .prowlarr
             || serviceType == .bazarr
             || serviceType == .wakapi
+            || serviceType == .pterodactyl
+            || serviceType == .calagopus
     }
 
     private var usesKomodoAuth: Bool {
@@ -485,6 +487,8 @@ struct ServiceLoginView: View {
                                  return localizer.t.loginHintFlaresolverr
         case .wakapi:            return localizer.t.loginHintWakapi
         case .proxmox:           return localizer.t.loginHintProxmox
+        case .pterodactyl:       return localizer.t.loginHintPterodactyl
+        case .calagopus:         return localizer.t.loginHintCalagopus
         case .qbittorrent, .radarr, .sonarr, .lidarr, .jellyseerr, .prowlarr, .bazarr:
                                  return nil
         default: return nil
@@ -728,6 +732,46 @@ struct ServiceLoginView: View {
             return ServiceInstance(
                 id: existingInstanceId ?? UUID(),
                 type: .wakapi,
+                label: label,
+                url: url,
+                token: "",
+                username: existingInstance?.username,
+                apiKey: key,
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
+            )
+
+        case .pterodactyl:
+            let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
+            guard let key, !key.isEmpty else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+            let client = PterodactylAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: url, apiKey: key, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
+            try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .pterodactyl,
+                label: label,
+                url: url,
+                token: "",
+                username: existingInstance?.username,
+                apiKey: key,
+                fallbackUrl: fallbackUrl,
+                allowSelfSigned: allowSelfSigned
+            )
+
+        case .calagopus:
+            let key = normalizedOptional(apiKey) ?? existingInstance?.apiKey
+            guard let key, !key.isEmpty else {
+                throw APIError.custom(localizer.t.loginErrorCredentials)
+            }
+            let client = CalagopusAPIClient(instanceId: existingInstanceId ?? UUID())
+            await client.configure(url: url, apiKey: key, fallbackUrl: fallbackUrl, allowSelfSigned: allowSelfSigned)
+            try await client.authenticate(url: url, apiKey: key, fallbackUrl: fallbackUrl)
+            return ServiceInstance(
+                id: existingInstanceId ?? UUID(),
+                type: .calagopus,
                 label: label,
                 url: url,
                 token: "",

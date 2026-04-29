@@ -19,6 +19,8 @@ import com.homelab.app.data.repository.PatchmonRepository
 import com.homelab.app.data.repository.PangolinRepository
 import com.homelab.app.data.repository.PlexRepository
 import com.homelab.app.data.repository.ProxmoxRepository
+import com.homelab.app.data.repository.PterodactylRepository
+import com.homelab.app.data.repository.CalagopusRepository
 import com.homelab.app.data.repository.AdGuardHomeRepository
 import com.homelab.app.data.repository.PiholeRepository
 import com.homelab.app.data.repository.PortainerRepository
@@ -68,6 +70,8 @@ class HomeViewModel @Inject constructor(
     private val proxmoxRepository: ProxmoxRepository,
     private val pangolinRepository: PangolinRepository,
     private val wakapiRepository: com.homelab.app.data.repository.WakapiRepository,
+    private val pterodactylRepository: PterodactylRepository,
+    private val calagopusRepository: CalagopusRepository,
     private val localPreferencesRepository: LocalPreferencesRepository
 ) : ViewModel() {
 
@@ -363,6 +367,16 @@ class HomeViewModel @Inject constructor(
                     totalRunning += vms.count { it.isRunning } + lxcs.count { it.isRunning }
                 }
                 InstanceSummary("$totalRunning", "/ $totalGuests", "proxmox_guests_running")
+            }
+            ServiceType.PTERODACTYL -> {
+                val servers = pterodactylRepository.getServers(instanceId)
+                val running = servers.count { it.status == null && !it.isSuspended && !it.isInstalling }
+                InstanceSummary("$running", "/ ${servers.size}", "pterodactyl_running_servers")
+            }
+            ServiceType.CALAGOPUS -> {
+                val servers = calagopusRepository.getServers(instanceId)
+                val running = servers.count { it.status == null && !it.isSuspended }
+                InstanceSummary("$running", "/ ${servers.size}", "calagopus_running_servers")
             }
             else -> null
         }

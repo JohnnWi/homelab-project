@@ -69,6 +69,8 @@ enum BackupServiceTypeMapper {
         case .flaresolverr:      return "flaresolverr"
         case .wakapi:            return "wakapi"
         case .proxmox:           return "proxmox"
+        case .pterodactyl:       return "pterodactyl"
+        case .calagopus:         return "calagopus"
         }
     }
 
@@ -123,6 +125,8 @@ enum BackupServiceTypeMapper {
         case "proxmox",
              "proxmox_ve",
              "pve":                  return .proxmox
+        case "pterodactyl":          return .pterodactyl
+        case "calagopus":            return .calagopus
         default:                     return nil
         }
     }

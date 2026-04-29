@@ -239,6 +239,8 @@ fun ServiceLoginScreen(
                 ServiceType.BAZARR -> stringResource(R.string.login_hint_bazarr)
                 ServiceType.GLUETUN -> stringResource(R.string.login_hint_gluetun)
                 ServiceType.FLARESOLVERR -> stringResource(R.string.login_hint_flaresolverr)
+                ServiceType.PTERODACTYL -> stringResource(R.string.login_hint_pterodactyl)
+                ServiceType.CALAGOPUS -> stringResource(R.string.login_hint_calagopus)
                 else -> null
             }
 

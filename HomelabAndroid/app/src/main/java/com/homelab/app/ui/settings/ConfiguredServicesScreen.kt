@@ -423,6 +423,8 @@ internal fun serviceDisplayNameForSettings(type: ServiceType): String {
         ServiceType.FLARESOLVERR -> stringResource(R.string.service_flaresolverr)
         ServiceType.WAKAPI -> stringResource(R.string.service_wakapi)
         ServiceType.PROXMOX -> stringResource(R.string.service_proxmox)
+        ServiceType.PTERODACTYL -> stringResource(R.string.service_pterodactyl)
+        ServiceType.CALAGOPUS -> stringResource(R.string.service_calagopus)
         ServiceType.UNKNOWN -> type.displayName
     }
 }
