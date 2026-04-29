@@ -1556,6 +1556,39 @@ extension Translations {
         proxmoxConfigSaved: "Konfiguration gespeichert",
         proxmoxConfigSaveError: "Konfiguration konnte nicht gespeichert werden",
         debugLogsEmpty: "Noch keine Logs",
-        securityLockoutMessage: "Zu viele Versuche. Warten Sie %d Sekunden."
+        securityLockoutMessage: "Zu viele Versuche. Warten Sie %d Sekunden.",
+
+        // Pterodactyl
+        servicePterodactylDesc: "Game-Server-Verwaltungspanel",
+        loginHintPterodactyl: "Verwende einen Pterodactyl Client-API-Schlüssel. Erstelle einen auf deiner Kontoseite unter API-Zugangsdaten.",
+        pterodactylNoServers: "Keine Server für dieses Konto gefunden.",
+        pterodactylRunningServers: "Laufende Server",
+        pterodactylTotalServers: "Server insgesamt",
+        pterodactylCPU: "CPU",
+        pterodactylRAM: "RAM",
+        pterodactylDisk: "Festplatte",
+        pterodactylUptime: "Laufzeit",
+        pterodactylStatusRunning: "Läuft",
+        pterodactylStatusStopping: "Wird gestoppt",
+        pterodactylStatusStarting: "Wird gestartet",
+        pterodactylStatusOffline: "Offline",
+        pterodactylStatusSuspended: "Gesperrt",
+        pterodactylStatusInstalling: "Wird installiert",
+
+        // Calagopus
+        serviceCalagopusDesc: "Spielserver-Verwaltungspanel der nächsten Generation",
+        loginHintCalagopus: "Verwende einen Calagopus Client-API-Schlüssel. Erstelle ihn auf deiner Kontoseite unter API-Anmeldedaten.",
+        calagopusNoServers: "Keine Server für dieses Konto gefunden.",
+        calagopusRunningServers: "Aktive Server",
+        calagopusTotalServers: "Server gesamt",
+        calagopusCPU: "CPU",
+        calagopusRAM: "RAM",
+        calagopusDisk: "Festplatte",
+        calagopusUptime: "Laufzeit",
+        calagopusStatusRunning: "Läuft",
+        calagopusStatusStopping: "Wird gestoppt",
+        calagopusStatusStarting: "Wird gestartet",
+        calagopusStatusOffline: "Offline",
+        calagopusStatusSuspended: "Gesperrt"
     )
 }

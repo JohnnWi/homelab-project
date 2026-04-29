@@ -1556,6 +1556,39 @@ extension Translations {
         proxmoxConfigSaved: "Configuración guardada",
         proxmoxConfigSaveError: "Error al guardar la configuración",
         debugLogsEmpty: "Aún no hay registros",
-        securityLockoutMessage: "Demasiados intentos. Espera %d segundos."
+        securityLockoutMessage: "Demasiados intentos. Espera %d segundos.",
+
+        // Pterodactyl
+        servicePterodactylDesc: "Panel de gestión de servidores de juegos",
+        loginHintPterodactyl: "Usa una clave API de cliente de Pterodactyl. Genera una desde la página de tu cuenta en Credenciales de API.",
+        pterodactylNoServers: "No se encontraron servidores para esta cuenta.",
+        pterodactylRunningServers: "Servidores activos",
+        pterodactylTotalServers: "Servidores totales",
+        pterodactylCPU: "CPU",
+        pterodactylRAM: "RAM",
+        pterodactylDisk: "Disco",
+        pterodactylUptime: "Tiempo activo",
+        pterodactylStatusRunning: "En ejecución",
+        pterodactylStatusStopping: "Deteniéndose",
+        pterodactylStatusStarting: "Iniciando",
+        pterodactylStatusOffline: "Sin conexión",
+        pterodactylStatusSuspended: "Suspendido",
+        pterodactylStatusInstalling: "Instalando",
+
+        // Calagopus
+        serviceCalagopusDesc: "Panel de gestión de servidores de juegos de nueva generación",
+        loginHintCalagopus: "Usa una clave API Client de Calagopus. Genérala desde tu página de cuenta en Credenciales API.",
+        calagopusNoServers: "No se encontraron servidores para esta cuenta.",
+        calagopusRunningServers: "Servidores activos",
+        calagopusTotalServers: "Servidores totales",
+        calagopusCPU: "CPU",
+        calagopusRAM: "RAM",
+        calagopusDisk: "Disco",
+        calagopusUptime: "Tiempo activo",
+        calagopusStatusRunning: "En ejecución",
+        calagopusStatusStopping: "Deteniéndose",
+        calagopusStatusStarting: "Iniciando",
+        calagopusStatusOffline: "Sin conexión",
+        calagopusStatusSuspended: "Suspendido"
     )
 }

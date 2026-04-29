@@ -329,6 +329,8 @@ struct HomeView: View {
         case .lidarr:            LidarrDashboard(instanceId: route.instanceId)
         case .wakapi:            WakapiDashboard(instanceId: route.instanceId)
         case .proxmox:           ProxmoxDashboard(instanceId: route.instanceId)
+        case .pterodactyl:       PterodactylDashboard(instanceId: route.instanceId)
+        case .calagopus:         CalagopusDashboard(instanceId: route.instanceId)
         case .jellyseerr, .prowlarr, .bazarr, .gluetun, .flaresolverr:
                                  GenericMediaDashboard(serviceType: route.type, instanceId: route.instanceId)
         }
@@ -532,6 +534,16 @@ struct HomeView: View {
                     totalRunning += vms.filter { $0.isRunning }.count + lxcs.filter { $0.isRunning }.count
                 }
                 return ServiceSummaryInfo(value: "\(totalRunning)", subValue: "/ \(totalGuests)", label: localizer.t.proxmoxGuestsRunning)
+            case .pterodactyl:
+                guard let client = await servicesStore.pterodactylClient(instanceId: instanceId) else { return nil }
+                let servers = try await client.getServers()
+                let running = await countRunningPterodactylServers(servers, client: client)
+                return ServiceSummaryInfo(value: "\(running)", subValue: "/ \(servers.count)", label: localizer.t.pterodactylRunningServers)
+            case .calagopus:
+                guard let client = await servicesStore.calagopusClient(instanceId: instanceId) else { return nil }
+                let servers = try await client.getServers()
+                let running = await countRunningCalagopusServers(servers, client: client)
+                return ServiceSummaryInfo(value: "\(running)", subValue: "/ \(servers.count)", label: localizer.t.calagopusRunningServers)
             default:
                 return nil
             }
@@ -555,6 +567,61 @@ struct HomeView: View {
             return String(format: "%.0fh", hours)
         }
         return String(format: "%.1fh", hours)
+    }
+
+    private func countRunningPterodactylServers(_ servers: [PterodactylServer], client: PterodactylAPIClient) async -> Int {
+        var total = 0
+        for batch in chunk(servers, size: 4) {
+            total += await withTaskGroup(of: Bool.self, returning: Int.self) { group in
+                for server in batch {
+                    group.addTask {
+                        guard !server.isSuspended && !server.isInstalling else { return false }
+                        if let resources = try? await client.getServerResources(identifier: server.identifier) {
+                            return !resources.isSuspended && resources.currentState == "running"
+                        }
+                        return server.status == "running"
+                    }
+                }
+
+                var running = 0
+                for await value in group where value {
+                    running += 1
+                }
+                return running
+            }
+        }
+        return total
+    }
+
+    private func countRunningCalagopusServers(_ servers: [CalagopusServer], client: CalagopusAPIClient) async -> Int {
+        var total = 0
+        for batch in chunk(servers, size: 4) {
+            total += await withTaskGroup(of: Bool.self, returning: Int.self) { group in
+                for server in batch {
+                    group.addTask {
+                        guard !server.isSuspended else { return false }
+                        if let resources = try? await client.getServerResources(uuidShort: server.uuidShort) {
+                            return resources.state == "running"
+                        }
+                        return server.status == "running"
+                    }
+                }
+
+                var running = 0
+                for await value in group where value {
+                    running += 1
+                }
+                return running
+            }
+        }
+        return total
+    }
+
+    private func chunk<T>(_ items: [T], size: Int) -> [[T]] {
+        guard size > 0 else { return [items] }
+        return stride(from: 0, to: items.count, by: size).map { index in
+            Array(items[index ..< min(index + size, items.count)])
+        }
     }
 }
 

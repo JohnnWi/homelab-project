@@ -75,6 +75,8 @@ object BackupServiceTypeMapper {
             ServiceType.FLARESOLVERR -> "flaresolverr"
             ServiceType.WAKAPI -> "wakapi"
             ServiceType.PROXMOX -> "proxmox"
+            ServiceType.PTERODACTYL -> "pterodactyl"
+            ServiceType.CALAGOPUS -> "calagopus"
             ServiceType.UNKNOWN -> "unknown"
         }
     }
@@ -114,6 +116,8 @@ object BackupServiceTypeMapper {
             "wakapi" -> ServiceType.WAKAPI
             "crafty_controller", "crafty" -> ServiceType.CRAFTY_CONTROLLER
             "proxmox" -> ServiceType.PROXMOX
+            "pterodactyl" -> ServiceType.PTERODACTYL
+            "calagopus" -> ServiceType.CALAGOPUS
             else -> null
         }
     }

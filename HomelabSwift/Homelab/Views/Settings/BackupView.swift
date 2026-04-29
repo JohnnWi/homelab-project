@@ -481,6 +481,8 @@ struct BackupView: View {
         case .flaresolverr: return localizer.t.serviceFlaresolverr
         case .wakapi: return localizer.t.serviceWakapi
         case .proxmox: return localizer.t.serviceProxmox
+        case .pterodactyl: return ServiceType.pterodactyl.displayName
+        case .calagopus: return ServiceType.calagopus.displayName
         }
     }
 

@@ -30,6 +30,8 @@ import com.homelab.app.data.repository.UnifiRepository
 import com.homelab.app.data.repository.UptimeKumaRepository
 import com.homelab.app.data.repository.WakapiRepository
 import com.homelab.app.data.repository.ProxmoxRepository
+import com.homelab.app.data.repository.PterodactylRepository
+import com.homelab.app.data.repository.CalagopusRepository
 import com.homelab.app.domain.model.PiHoleAuthMode
 import com.homelab.app.domain.model.ServiceInstance
 import com.homelab.app.util.ErrorHandler
@@ -70,7 +72,9 @@ class ServiceLoginViewModel @Inject constructor(
     private val plexRepository: PlexRepository,
     private val mediaArrRepository: MediaArrRepository,
     private val wakapiRepository: WakapiRepository,
-    private val proxmoxRepository: ProxmoxRepository
+    private val proxmoxRepository: ProxmoxRepository,
+    private val pterodactylRepository: PterodactylRepository,
+    private val calagopusRepository: CalagopusRepository
 ) : ViewModel() {
 
     private val existingInstanceId: String? = savedStateHandle["instanceId"]
@@ -681,6 +685,40 @@ class ServiceLoginViewModel @Inject constructor(
                             )
                         }
                         ServiceType.UNKNOWN -> throw IllegalArgumentException(context.getString(R.string.error_unknown))
+                        ServiceType.PTERODACTYL -> {
+                            require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
+                            pterodactylRepository.authenticate(
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
+                            )
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl
+                            )
+                        }
+                        ServiceType.CALAGOPUS -> {
+                            require(trimmedApiKey.isNotBlank()) { context.getString(R.string.login_error_api_key_required) }
+                            calagopusRepository.authenticate(
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl,
+                                allowSelfSigned = allowSelfSigned
+                            )
+                            ServiceInstance(
+                                id = instanceId,
+                                type = serviceType,
+                                label = normalizedLabel,
+                                url = cleanUrl,
+                                apiKey = trimmedApiKey,
+                                fallbackUrl = cleanFallbackUrl
+                            )
+                        }
                     }
                 }.copy(allowSelfSigned = allowSelfSigned)
 

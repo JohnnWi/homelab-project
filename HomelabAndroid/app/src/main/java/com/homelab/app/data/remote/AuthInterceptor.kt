@@ -469,6 +469,12 @@ class AuthInterceptor @Inject constructor(
                     }
                 }
             }
+            ServiceType.PTERODACTYL,
+            ServiceType.CALAGOPUS -> {
+                if (!hasAuthorization && !instance.apiKey.isNullOrBlank()) {
+                    builder.addHeader("Authorization", "Bearer ${instance.apiKey}")
+                }
+            }
             else -> {}
         }
     }

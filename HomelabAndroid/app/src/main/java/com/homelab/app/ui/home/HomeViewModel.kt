@@ -19,6 +19,8 @@ import com.homelab.app.data.repository.PatchmonRepository
 import com.homelab.app.data.repository.PangolinRepository
 import com.homelab.app.data.repository.PlexRepository
 import com.homelab.app.data.repository.ProxmoxRepository
+import com.homelab.app.data.repository.PterodactylRepository
+import com.homelab.app.data.repository.CalagopusRepository
 import com.homelab.app.data.repository.AdGuardHomeRepository
 import com.homelab.app.data.repository.PiholeRepository
 import com.homelab.app.data.repository.PortainerRepository
@@ -68,6 +70,8 @@ class HomeViewModel @Inject constructor(
     private val proxmoxRepository: ProxmoxRepository,
     private val pangolinRepository: PangolinRepository,
     private val wakapiRepository: com.homelab.app.data.repository.WakapiRepository,
+    private val pterodactylRepository: PterodactylRepository,
+    private val calagopusRepository: CalagopusRepository,
     private val localPreferencesRepository: LocalPreferencesRepository
 ) : ViewModel() {
 
@@ -364,6 +368,16 @@ class HomeViewModel @Inject constructor(
                 }
                 InstanceSummary("$totalRunning", "/ $totalGuests", "proxmox_guests_running")
             }
+            ServiceType.PTERODACTYL -> {
+                val servers = pterodactylRepository.getServers(instanceId)
+                val running = countRunningPterodactylServers(instanceId, servers)
+                InstanceSummary("$running", "/ ${servers.size}", "pterodactyl_running_servers")
+            }
+            ServiceType.CALAGOPUS -> {
+                val servers = calagopusRepository.getServers(instanceId)
+                val running = countRunningCalagopusServers(instanceId, servers)
+                InstanceSummary("$running", "/ ${servers.size}", "calagopus_running_servers")
+            }
             else -> null
         }
     }
@@ -380,6 +394,47 @@ class HomeViewModel @Inject constructor(
             value >= 10.0 -> String.format(locale, "%.1fh", value)
             else -> String.format(locale, "%.2fh", value)
         }
+    }
+
+    private suspend fun countRunningPterodactylServers(
+        instanceId: String,
+        servers: List<com.homelab.app.data.remote.dto.pterodactyl.PterodactylServer>
+    ): Int = countRunningServers(servers.chunked(4)) { server ->
+        if (server.isSuspended || server.isInstalling) {
+            return@countRunningServers false
+        }
+        val currentState = runCatching {
+            pterodactylRepository.getServerResources(instanceId, server.identifier).currentState
+        }.getOrNull()
+        (currentState ?: server.status) == "running"
+    }
+
+    private suspend fun countRunningCalagopusServers(
+        instanceId: String,
+        servers: List<com.homelab.app.data.remote.dto.calagopus.CalagopusServer>
+    ): Int = countRunningServers(servers.chunked(4)) { server ->
+        if (server.isSuspended) {
+            return@countRunningServers false
+        }
+        val currentState = runCatching {
+            calagopusRepository.getServerResources(instanceId, server.uuidShort).state
+        }.getOrNull()
+        (currentState ?: server.status) == "running"
+    }
+
+    private suspend fun <T> countRunningServers(
+        chunks: List<List<T>>,
+        isRunning: suspend (T) -> Boolean
+    ): Int {
+        var total = 0
+        for (chunk in chunks) {
+            total += coroutineScope {
+                chunk.map { item -> async { isRunning(item) } }
+                    .awaitAll()
+                    .count { it }
+            }
+        }
+        return total
     }
 
     fun moveService(serviceType: ServiceType, offset: Int) {

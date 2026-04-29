@@ -99,6 +99,8 @@ private fun dashboardRoute(type: ServiceType, instanceId: String): String {
         ServiceType.WAKAPI -> "wakapi/$instanceId/dashboard"
         ServiceType.PLEX -> "plex/$instanceId/dashboard"
         ServiceType.PROXMOX -> "proxmox/$instanceId/dashboard"
+        ServiceType.PTERODACTYL -> "pterodactyl/$instanceId/dashboard"
+        ServiceType.CALAGOPUS -> "calagopus/$instanceId/dashboard"
         ServiceType.RADARR,
         ServiceType.SONARR,
         ServiceType.LIDARR,
@@ -1342,6 +1344,40 @@ fun AppNavigation() {
                 com.homelab.app.ui.media.MediaServiceDashboardScreen(
                     serviceType = mediaType,
                     onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = "pterodactyl/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.pterodactyl.PterodactylDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.PTERODACTYL, newInstanceId)) {
+                                popUpTo("pterodactyl/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable(
+                route = "calagopus/{instanceId}/dashboard",
+                arguments = listOf(androidx.navigation.navArgument("instanceId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val instanceId = backStackEntry.arguments?.getString("instanceId") ?: return@composable
+                com.homelab.app.ui.calagopus.CalagopusDashboardScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToInstance = { newInstanceId ->
+                        if (newInstanceId != instanceId) {
+                            navController.navigate(dashboardRoute(ServiceType.CALAGOPUS, newInstanceId)) {
+                                popUpTo("calagopus/$instanceId/dashboard") { inclusive = true }
+                            }
+                        }
+                    }
                 )
             }
         }

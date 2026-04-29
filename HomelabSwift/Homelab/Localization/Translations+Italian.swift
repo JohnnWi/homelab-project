@@ -1554,6 +1554,39 @@ extension Translations {
         proxmoxConfigSaved: "Configurazione salvata",
         proxmoxConfigSaveError: "Impossibile salvare la configurazione",
         debugLogsEmpty: "Nessun log presente",
-        securityLockoutMessage: "Troppi tentativi. Attendi %d secondi."
+        securityLockoutMessage: "Troppi tentativi. Attendi %d secondi.",
+
+        // Pterodactyl
+        servicePterodactylDesc: "Pannello di gestione server di gioco",
+        loginHintPterodactyl: "Usa una chiave API Client di Pterodactyl. Generala dalla tua pagina account sotto Credenziali API.",
+        pterodactylNoServers: "Nessun server trovato per questo account.",
+        pterodactylRunningServers: "Server attivi",
+        pterodactylTotalServers: "Server totali",
+        pterodactylCPU: "CPU",
+        pterodactylRAM: "RAM",
+        pterodactylDisk: "Disco",
+        pterodactylUptime: "Uptime",
+        pterodactylStatusRunning: "Attivo",
+        pterodactylStatusStopping: "In arresto",
+        pterodactylStatusStarting: "In avvio",
+        pterodactylStatusOffline: "Offline",
+        pterodactylStatusSuspended: "Sospeso",
+        pterodactylStatusInstalling: "In installazione",
+
+        // Calagopus
+        serviceCalagopusDesc: "Pannello di gestione server di gioco di nuova generazione",
+        loginHintCalagopus: "Usa una chiave API Client di Calagopus. Generala dalla tua pagina account sotto Credenziali API.",
+        calagopusNoServers: "Nessun server trovato per questo account.",
+        calagopusRunningServers: "Server attivi",
+        calagopusTotalServers: "Server totali",
+        calagopusCPU: "CPU",
+        calagopusRAM: "RAM",
+        calagopusDisk: "Disco",
+        calagopusUptime: "Uptime",
+        calagopusStatusRunning: "Attivo",
+        calagopusStatusStopping: "In arresto",
+        calagopusStatusStarting: "In avvio",
+        calagopusStatusOffline: "Offline",
+        calagopusStatusSuspended: "Sospeso"
     )
 }

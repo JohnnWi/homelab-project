@@ -1626,6 +1626,39 @@ struct Translations {
 
     let debugLogsEmpty: String
     let securityLockoutMessage: String
+
+    // Pterodactyl
+    let servicePterodactylDesc: String
+    let loginHintPterodactyl: String
+    let pterodactylNoServers: String
+    let pterodactylRunningServers: String
+    let pterodactylTotalServers: String
+    let pterodactylCPU: String
+    let pterodactylRAM: String
+    let pterodactylDisk: String
+    let pterodactylUptime: String
+    let pterodactylStatusRunning: String
+    let pterodactylStatusStopping: String
+    let pterodactylStatusStarting: String
+    let pterodactylStatusOffline: String
+    let pterodactylStatusSuspended: String
+    let pterodactylStatusInstalling: String
+
+    // Calagopus
+    let serviceCalagopusDesc: String
+    let loginHintCalagopus: String
+    let calagopusNoServers: String
+    let calagopusRunningServers: String
+    let calagopusTotalServers: String
+    let calagopusCPU: String
+    let calagopusRAM: String
+    let calagopusDisk: String
+    let calagopusUptime: String
+    let calagopusStatusRunning: String
+    let calagopusStatusStopping: String
+    let calagopusStatusStarting: String
+    let calagopusStatusOffline: String
+    let calagopusStatusSuspended: String
 }
 
 // MARK: - Factory

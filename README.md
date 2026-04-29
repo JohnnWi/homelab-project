@@ -26,7 +26,7 @@ Homelab Dashboard is a fully native mobile app for monitoring and managing a sel
 
 ## 🚀 Highlights
 
-- **31 integrated service dashboards** across infrastructure, networking, media automation, observability, and developer tooling.
+- **33 integrated service dashboards** across infrastructure, networking, media automation, observability, and developer tooling.
 - **One app, many instances**: add multiple instances of the same service and switch between them without friction.
 - **Fully native on both platforms**: SwiftUI on iOS, Jetpack Compose on Android.
 - **Practical daily-use features**: encrypted backup and restore, biometric unlock, multilingual UI, alternate icons, and fast in-app update prompts.
@@ -47,6 +47,8 @@ Homelab Dashboard is a fully native mobile app for monitoring and managing a sel
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/beszel.png" width="18" style="vertical-align:middle"> **Beszel**: server monitoring across nodes.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/linux-update-dashboard.png" width="18" style="vertical-align:middle"> **Linux Update**: pending package updates across hosts.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/crafty-controller.png" width="18" style="vertical-align:middle"> **Crafty Controller**: game server management dashboard.
+- **Pterodactyl**: game server management panel with power controls, resource stats, and live status visibility.
+- **Calagopus**: next-generation game server management panel with power controls, uptime, and resource stats.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/gitea.png" width="18" style="vertical-align:middle"> **Gitea / Forgejo**: repositories, activity, and source browsing.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/pangolin.png" width="18" style="vertical-align:middle"> **Pangolin / Newt**: tunnel and peer visibility.
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/png/healthchecks.png" width="18" style="vertical-align:middle"> **Healthchecks**: uptime checks and health status.

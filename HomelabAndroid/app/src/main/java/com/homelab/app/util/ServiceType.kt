@@ -37,6 +37,8 @@ enum class ServiceType(val displayName: String) {
     FLARESOLVERR("FlareSolverr"),
     WAKAPI("Wakapi"),
     PROXMOX("Proxmox VE"),
+    PTERODACTYL("Pterodactyl"),
+    CALAGOPUS("Calagopus"),
     UNKNOWN("Unknown");
 
     companion object {
@@ -76,6 +78,8 @@ enum class ServiceType(val displayName: String) {
                 "UNIFI_NETWORK" -> UNIFI_NETWORK
                 "CRAFTY",
                 "CRAFTY_CONTROLLER" -> CRAFTY_CONTROLLER
+                "PTERODACTYL" -> PTERODACTYL
+                "CALAGOPUS" -> CALAGOPUS
                 else -> entries.firstOrNull { it.name == normalized } ?: UNKNOWN
             }
         }

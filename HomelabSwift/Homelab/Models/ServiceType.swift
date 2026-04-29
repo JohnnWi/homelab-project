@@ -32,6 +32,8 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
     case flaresolverr
     case wakapi
     case proxmox
+    case pterodactyl
+    case calagopus
 
     public var id: String { rawValue }
 
@@ -74,6 +76,10 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
             return .unifiNetwork
         case "proxmox", "proxmox_ve", "proxmoxve", "pve":
             return .proxmox
+        case "pterodactyl":
+            return .pterodactyl
+        case "calagopus":
+            return .calagopus
         default:
             return nil
         }
@@ -149,6 +155,8 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .flaresolverr:       return "FlareSolverr"
         case .wakapi:             return "Wakapi"
         case .proxmox:            return "Proxmox VE"
+        case .pterodactyl:        return "Pterodactyl"
+        case .calagopus:          return "Calagopus"
         }
     }
 
@@ -185,6 +193,8 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .flaresolverr:       return t.serviceFlaresolverrDesc
         case .wakapi:             return t.serviceWakapiDesc
         case .proxmox:            return t.serviceProxmoxDesc
+        case .pterodactyl:        return t.servicePterodactylDesc
+        case .calagopus:          return t.serviceCalagopusDesc
         }
     }
 
@@ -226,6 +236,8 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .flaresolverr:       return "flame.fill"
         case .wakapi:             return "timer"
         case .proxmox:            return "cpu"
+        case .pterodactyl:        return "gamecontroller.fill"
+        case .calagopus:          return "bird.fill"
         }
     }
 
@@ -262,6 +274,8 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .flaresolverr:       return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/flaresolverr.png"
         case .wakapi:             return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/wakapi.png"
         case .proxmox:            return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/proxmox.png"
+        case .pterodactyl:        return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/pterodactyl.png"
+        case .calagopus:          return "https://cdn.jsdelivr.net/gh/selfhst/icons/png/calagopus.png"
         }
     }
 
@@ -299,6 +313,8 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .flaresolverr:       slug = "flaresolverr"
         case .wakapi:             slug = "wakapi"
         case .proxmox:            slug = "proxmox"
+        case .pterodactyl:        slug = "pterodactyl"
+        case .calagopus:          slug = "calagopus"
         }
         var orderedCandidates: [String] = []
         let primary = iconUrl.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -350,6 +366,8 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .flaresolverr:       return "service-flaresolverr"
         case .wakapi:             return "service-wakapi"
         case .proxmox:            return "service-proxmox"
+        case .pterodactyl:        return "service-pterodactyl"
+        case .calagopus:          return "service-calagopus"
         }
     }
 
@@ -386,6 +404,8 @@ public enum ServiceType: String, CaseIterable, Identifiable, Codable, Hashable, 
         case .flaresolverr:       return ServiceColorSet(primary: Color(hex: "#FF4500"), dark: Color(hex: "#CC3700"), bg: Color(hex: "#FF4500").opacity(0.09))
         case .wakapi:             return ServiceColorSet(primary: Color(hex: "#2563EB"), dark: Color(hex: "#1D4ED8"), bg: Color(hex: "#2563EB").opacity(0.09))
         case .proxmox:            return ServiceColorSet(primary: Color(hex: "#D97706"), dark: Color(hex: "#B45309"), bg: Color(hex: "#D97706").opacity(0.06))
+        case .pterodactyl:        return ServiceColorSet(primary: Color(hex: "#0E4BEF"), dark: Color(hex: "#0B38C5"), bg: Color(hex: "#0E4BEF").opacity(0.09))
+        case .calagopus:          return ServiceColorSet(primary: Color(hex: "#16A34A"), dark: Color(hex: "#15803D"), bg: Color(hex: "#16A34A").opacity(0.09))
         }
     }
 }
