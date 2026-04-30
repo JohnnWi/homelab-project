@@ -1,6 +1,6 @@
 {
-  "latest": "1.5.1",
-  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.1/Homelab.ipa",
-  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.1/Homelab.apk",
-  "changelog": "Fixed Komodo API payload handling across iOS and Android.\nImproved Komodo stack actions and repository compatibility.\nIncluded stability improvements for Komodo integrations."
+  "latest": "1.5.2",
+  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.2/Homelab.ipa",
+  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.2/Homelab.apk",
+  "changelog": "Fixed Komodo stack detail refresh and fallback handling.\nImproved Komodo status presentation on iOS and Android.\nIncluded additional Komodo stability and UX fixes."
 }

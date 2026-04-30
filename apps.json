@@ -27,6 +27,15 @@
       ],
       "versions": [
         {
+          "version": "1.5.2",
+          "buildVersion": "33",
+          "date": "2026-04-30",
+          "localizedDescription": "Fixed Komodo stack detail refresh and fallback handling.\nImproved Komodo status presentation on iOS and Android.\nIncluded additional Komodo stability and UX fixes.",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.2/Homelab.ipa",
+          "size": 33416651,
+          "minOSVersion": "26.0"
+        },
+        {
           "version": "1.5.1",
           "buildVersion": "32",
           "date": "2026-04-29",
@@ -279,6 +288,16 @@
     }
   ],
   "news": [
+    {
+      "title": "v1.5.2 — Fixed Komodo stack detail refresh and fallback handling.",
+      "identifier": "release-1.5.2",
+      "caption": "Fixed Komodo stack detail refresh and fallback handling. Improved Komodo status presentation on iOS and Android. Included additional Komodo stability and UX fixes.",
+      "date": "2026-04-30",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v1.5.2",
+      "appID": "homelab.foreverhomelab"
+    },
     {
       "title": "v1.5.1 — Fixed Komodo API payload handling across iOS and Android.",
       "identifier": "release-1.5.1",
