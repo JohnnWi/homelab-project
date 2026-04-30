@@ -209,7 +209,7 @@ fun KomodoDashboardScreen(
                     isRunningAction = isRunningStackAction,
                     onBackToList = { viewModel.clearStackDetail() },
                     onRefreshList = { viewModel.loadStacks() },
-                    onStackSelected = { viewModel.loadStackDetail(it.id) },
+                    onStackSelected = { viewModel.loadStackDetail(it) },
                     onAction = { stackId, action -> viewModel.runStackAction(stackId, action) },
                     onDismiss = {
                         scope.launch { sheetState.hide() }.invokeOnCompletion {
@@ -655,8 +655,8 @@ private fun KomodoStackRow(stack: KomodoStackItem, onClick: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.42f))
+        color = statusColor.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, statusColor.copy(alpha = 0.24f))
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -904,9 +904,9 @@ private fun KomodoStatusChip(label: String, color: Color) {
 private fun komodoStatusColor(status: String): Color {
     val normalized = status.lowercase()
     return when {
+        "stopped" in normalized || "down" in normalized || "dead" in normalized || "unhealthy" in normalized -> StatusRed
         "running" in normalized || "healthy" in normalized -> StatusGreen
         "paused" in normalized || "restarting" in normalized || "deploying" in normalized || "created" in normalized -> StatusOrange
-        "stopped" in normalized || "down" in normalized || "dead" in normalized || "unhealthy" in normalized -> StatusRed
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 }

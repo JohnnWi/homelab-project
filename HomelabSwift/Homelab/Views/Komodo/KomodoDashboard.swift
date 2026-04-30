@@ -59,7 +59,7 @@ struct KomodoDashboard: View {
                 isRunningAction: isRunningStackAction,
                 onRefreshList: { Task { await loadStacks() } },
                 onBackToList: { stackDetailState = .idle },
-                onSelectStack: { stack in Task { await loadStackDetail(stack.id) } },
+                onSelectStack: { stack in Task { await loadStackDetail(stack) } },
                 onAction: { stackId, action in Task { await runStackAction(stackId: stackId, action: action) } }
             )
             .presentationDetents([.medium, .large])
@@ -340,7 +340,11 @@ struct KomodoDashboard: View {
         }
     }
 
-    private func loadStackDetail(_ stackId: String) async {
+    private func loadStackDetail(_ stack: KomodoStackItem) async {
+        await loadStackDetail(stack.id, fallback: stack)
+    }
+
+    private func loadStackDetail(_ stackId: String, fallback: KomodoStackItem? = nil) async {
         guard let client = await servicesStore.komodoClient(instanceId: selectedInstanceId) else {
             stackDetailState = .error(.notConfigured)
             return
@@ -348,7 +352,8 @@ struct KomodoDashboard: View {
 
         stackDetailState = .loading
         do {
-            stackDetailState = .loaded(try await client.getStackDetail(stackId: stackId))
+            let detail = try await client.getStackDetail(stackId: stackId)
+            stackDetailState = .loaded(detail.withFallback(fallback))
         } catch {
             stackDetailState = .error(APIError.custom(error.localizedDescription))
         }
@@ -363,7 +368,8 @@ struct KomodoDashboard: View {
         isRunningStackAction = true
         do {
             try await client.executeStackAction(stackId: stackId, action: action)
-            await loadStackDetail(stackId)
+            let fallback = stackDetailState.loadedValue?.stack.id == stackId ? stackDetailState.loadedValue?.stack : nil
+            await loadStackDetail(stackId, fallback: fallback)
             await loadStacks()
             await fetchDashboard(showLoading: false)
         } catch {
@@ -636,15 +642,41 @@ private struct KomodoStacksSheet: View {
 
     private func statusColor(_ status: String) -> Color {
         let value = status.lowercased()
+        if value.contains("stopped") || value.contains("down") || value.contains("dead") || value.contains("unhealthy") { return AppTheme.danger }
         if value.contains("running") || value.contains("healthy") { return AppTheme.running }
         if value.contains("paused") || value.contains("restarting") || value.contains("deploying") || value.contains("created") { return AppTheme.warning }
-        if value.contains("stopped") || value.contains("down") || value.contains("dead") || value.contains("unhealthy") { return AppTheme.danger }
         return AppTheme.textSecondary
+    }
+}
+
+private extension KomodoStackDetail {
+    func withFallback(_ fallback: KomodoStackItem?) -> KomodoStackDetail {
+        guard let fallback else { return self }
+        let mergedStack = KomodoStackItem(
+            id: stack.id,
+            name: stack.name.isEmpty || stack.name == stack.id ? fallback.name : stack.name,
+            status: stack.status.isUnknownStatus ? fallback.status : stack.status,
+            server: stack.server ?? fallback.server,
+            project: stack.project ?? fallback.project,
+            updateAvailable: stack.updateAvailable || fallback.updateAvailable
+        )
+        return KomodoStackDetail(stack: mergedStack, services: services)
+    }
+}
+
+private extension LoadableState<KomodoStackDetail> {
+    var loadedValue: KomodoStackDetail? {
+        if case .loaded(let value) = self { return value }
+        return nil
     }
 }
 
 private extension String {
     func ifEmpty(_ fallback: String) -> String {
         isEmpty ? fallback : self
+    }
+
+    var isUnknownStatus: Bool {
+        trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || caseInsensitiveCompare("Unknown") == .orderedSame
     }
 }

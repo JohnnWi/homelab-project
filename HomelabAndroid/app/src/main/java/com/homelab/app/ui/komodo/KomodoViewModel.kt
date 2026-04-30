@@ -104,15 +104,20 @@ class KomodoViewModel @Inject constructor(
         }
     }
 
-    fun loadStackDetail(stackId: String) {
+    fun loadStackDetail(stack: KomodoStackItem) {
+        loadStackDetail(stack.id, stack)
+    }
+
+    private fun loadStackDetail(stackId: String, fallbackStack: KomodoStackItem? = null) {
         viewModelScope.launch {
             _stackDetailState.value = UiState.Loading
             try {
-                _stackDetailState.value = UiState.Success(repository.getStackDetail(instanceId, stackId))
+                val detail = repository.getStackDetail(instanceId, stackId)
+                _stackDetailState.value = UiState.Success(detail.withFallback(fallbackStack))
             } catch (error: Exception) {
                 _stackDetailState.value = UiState.Error(
                     message = ErrorHandler.getMessage(context, error),
-                    retryAction = { loadStackDetail(stackId) }
+                    retryAction = { loadStackDetail(stackId, fallbackStack) }
                 )
             }
         }
@@ -128,7 +133,9 @@ class KomodoViewModel @Inject constructor(
             try {
                 repository.executeStackAction(instanceId, stackId, action)
                 _events.emit(KomodoUiEvent.StackActionSucceeded(action))
-                loadStackDetail(stackId)
+                val fallbackStack = (_stackDetailState.value as? UiState.Success)?.data?.stack
+                    ?.takeIf { it.id == stackId }
+                loadStackDetail(stackId, fallbackStack)
                 loadStacks()
                 fetchDashboard(forceLoading = false)
             } catch (error: Exception) {
@@ -138,6 +145,18 @@ class KomodoViewModel @Inject constructor(
             }
         }
     }
+}
+
+private fun KomodoStackDetail.withFallback(fallback: KomodoStackItem?): KomodoStackDetail {
+    if (fallback == null) return this
+    val mergedStack = stack.copy(
+        name = stack.name.takeUnless { it == stack.id || it.isBlank() } ?: fallback.name,
+        status = stack.status.takeUnless { it.isBlank() || it.equals("Unknown", ignoreCase = true) } ?: fallback.status,
+        server = stack.server ?: fallback.server,
+        project = stack.project ?: fallback.project,
+        updateAvailable = stack.updateAvailable || fallback.updateAvailable
+    )
+    return copy(stack = mergedStack)
 }
 
 sealed interface KomodoUiEvent {
